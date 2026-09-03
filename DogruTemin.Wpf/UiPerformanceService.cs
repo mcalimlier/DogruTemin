@@ -7,8 +7,8 @@ namespace DogruTemin.Wpf;
 
 internal static class UiPerformanceService
 {
-    private static readonly IReadOnlyDictionary<string, string> EmptyMessages =
-        new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string> EmptyMessages =
+        new(StringComparer.Ordinal)
         {
             ["ProductGrid"] = "Henüz mal / hizmet kalemi eklenmedi.",
             ["InspectionCommissionGrid"] = "Muayene ve kabul komisyonu üyesi bulunmuyor.",
