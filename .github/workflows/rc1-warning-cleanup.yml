@@ -65,13 +65,11 @@ jobs:
             [IO.File]::WriteAllText($full, $new, $utf8)
           }
 
-          # Test Dispose satırındaki literal newline kaçışını gerçek satır sonuna dönüştür.
           PatchFile '.\DogruTemin.Tests\StorageServiceTests.cs' {
             param($t)
             $t.Replace(' } catch { }`r`n        GC.SuppressFinalize(this);', " } catch { }`r`n        GC.SuppressFinalize(this);")
           }
 
-          # ValidationService tamamen stateless; nesne üretimini kaldır.
           PatchFile '.\DogruTemin.Core\Services\ValidationService.cs' {
             param($t)
             $t=$t.Replace('public class ValidationService','public static class ValidationService')
@@ -79,7 +77,6 @@ jobs:
             $t
           }
 
-          # ProcurementEngine de tamamen stateless hesap motoru.
           PatchFile '.\DogruTemin.Core\Services\ProcurementEngine.cs' {
             param($t)
             $t=$t.Replace('public class ProcurementEngine','public static class ProcurementEngine')
@@ -87,19 +84,18 @@ jobs:
             $t
           }
 
-          # Statik doğrulama/hesap çağrılarını bütün kaynakta uyumlu hale getir ve boş alanları kaldır.
           Get-ChildItem -Recurse -Filter '*.cs' | Where-Object { $_.FullName -notmatch '\\(bin|obj)\\' } | ForEach-Object {
             $t=[IO.File]::ReadAllText($_.FullName)
-            $n=$t.Replace('_validation.ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
-                 .Replace('new ValidationService().ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
-                 .Replace('_engine.Calculate(', 'ProcurementEngine.Calculate(')
-                 .Replace('new ProcurementEngine().Calculate(', 'ProcurementEngine.Calculate(')
-                 .Replace('private readonly ValidationService _validation = new();', '')
-                 .Replace('private readonly ProcurementEngine _engine = new();', '')
+            $n=$t
+            $n=$n.Replace('_validation.ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
+            $n=$n.Replace('new ValidationService().ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
+            $n=$n.Replace('_engine.Calculate(', 'ProcurementEngine.Calculate(')
+            $n=$n.Replace('new ProcurementEngine().Calculate(', 'ProcurementEngine.Calculate(')
+            $n=$n.Replace('private readonly ValidationService _validation = new();', '')
+            $n=$n.Replace('private readonly ProcurementEngine _engine = new();', '')
             if ($n -ne $t) { [IO.File]::WriteAllText($_.FullName,$n,$utf8) }
           }
 
-          # Uygulama ortam bilgileri storage state'ine bağlı değil.
           PatchFile '.\DogruTemin.Wpf\Services\ApplicationSafetyService.cs' {
             param($t)
             $t=$t.Replace('public string CurrentVersion =>', 'public static string CurrentVersion =>')
@@ -114,7 +110,6 @@ jobs:
             $t
           }
 
-          # Kaldırılan instance bağımlılıkları ve son stateless onay helperı.
           PatchFile '.\DogruTemin.Wpf\MainWindow.xaml.cs' {
             param($t)
             $t=$t.Replace('_safety.CurrentVersion', 'ApplicationSafetyService.CurrentVersion')
@@ -124,13 +119,11 @@ jobs:
             $t
           }
 
-          # Belge tablolarındaki sıra numaraları invariant kültürle yazılır.
           PatchFile '.\DogruTemin.Wpf\Services\OfficialDocumentService.cs' {
             param($t)
             $t.Replace('(i + 1).ToString()', '(i + 1).ToString(CultureInfo.InvariantCulture)')
           }
 
-          # Yönetim raporunda sabit kolon dizileri tekrar üretilmez ve XML metinleri invariant provider kullanır.
           PatchFile '.\DogruTemin.Wpf\Services\ManagementReportService.cs' {
             param($t)
             $marker='    private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");'
