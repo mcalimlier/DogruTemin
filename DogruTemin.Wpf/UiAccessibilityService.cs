@@ -10,12 +10,14 @@ namespace DogruTemin.Wpf;
 
 internal static class UiAccessibilityService
 {
-    private static readonly Brush Gold = BrushFrom("#FFB41F");
+    private static readonly SolidColorBrush Gold = BrushFrom("#FFB41F");
     private static readonly ConditionalWeakTable<Control, FocusSnapshot> FocusSnapshots = new();
 
     private static readonly string[] PreferredTabOrder =
     {
-        "InstitutionNameBox", "InstitutionAddressBox", "InstitutionPhoneBox", "InstitutionFaxBox",
+        "InstitutionTopAuthorityBox", "InstitutionFullNameBox", "InstitutionProvinceBox",
+        "InstitutionAddressBox", "InstitutionPhoneBox", "InstitutionEmailBox",
+        "AuthorizedNameBox", "AuthorizedDutyBox", "AuthorizedTitleBox",
         "JobTitleBox", "ProductNameBox", "ProductSpecBox", "ProductUnitBox", "ProductQuantityBox",
         "AssignmentDatePicker", "ApprovalDatePicker", "CostCalculationDatePicker", "MarketReportDatePicker",
         "InspectionReportDatePicker", "DeliveryDatePicker", "OfferDatePicker", "ArchiveSearchBox"
@@ -146,8 +148,8 @@ internal static class UiAccessibilityService
         .Replace("Picker", " tarih alanı", StringComparison.Ordinal)
         .Replace("Button", " düğmesi", StringComparison.Ordinal);
 
-    private static Brush BrushFrom(string value) =>
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+    private static SolidColorBrush BrushFrom(string value) =>
+        new((Color)ColorConverter.ConvertFromString(value));
 
     private sealed record FocusSnapshot(Brush? BorderBrush, Thickness BorderThickness);
 }
