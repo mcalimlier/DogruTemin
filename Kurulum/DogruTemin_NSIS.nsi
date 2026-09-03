@@ -39,7 +39,7 @@ VIAddVersionKey /LANG=1055 "LegalCopyright" "DoğruTemin"
 !define MUI_UNICON "..\DogruTemin.Wpf\Assets\AppIcon.ico"
 !define MUI_ABORTWARNING
 !define MUI_WELCOMEPAGE_TITLE "DoğruTemin 4.2.0 Kurulumuna Hoş Geldiniz"
-!define MUI_WELCOMEPAGE_TEXT "ÖNEMLİ BİLGİ: Windows bazı bilgisayarlarda kurulum dosyasını ilk açarken SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir. Dosyayı kurumunuzdan veya güvenilir kaynaktan aldıysanız seçenek sunuluyorsa Daha fazla bilgi > Yine de çalıştır ile devam edebilirsiniz.$\r$\n$\r$\nDoğruTemin Windows 10/11 64-bit için self-contained hazırlanmıştır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.$\r$\n$\r$\nMevcut DoğruTemin kullanıcı verileri ve arşivleri korunur."
+!define MUI_WELCOMEPAGE_TEXT "DoğruTemin Windows 10/11 64-bit için self-contained hazırlanmıştır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.$\r$\n$\r$\nMevcut DoğruTemin kullanıcı verileri ve arşivleri korunur. Kurulumdan önce açık DoğruTemin pencerelerini kapatmanız önerilir."
 !define MUI_FINISHPAGE_TITLE "DoğruTemin Kurulumu Tamamlandı"
 !define MUI_FINISHPAGE_TEXT "DoğruTemin başarıyla kuruldu.$\r$\n$\r$\nKullanıcı verileriniz Masaüstü\DoğruTemin klasöründe tutulur ve program kaldırıldığında silinmez."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APPEXENAME}"
@@ -68,16 +68,7 @@ Function .onInit
   ${EndIf}
 
   SetRegView 64
-
-  ; Temiz kurulumda, sihirbaz açılmadan hemen önce kısa bir kullanıcı bilgilendirmesi göster.
-  ; SmartScreen Windows tarafından EXE başlamadan önce çalıştığı için bu pencere SmartScreen'den önce gösterilemez; ancak kurulum sihirbazından önce görünür.
   ReadRegStr $0 HKLM "${UNINSTKEY}" "DisplayVersion"
-  ; Sessiz /S kurulumlar CI ve kurumsal dağıtım içindir; etkileşimli bilgi kutusu gösterilmez.
-  IfSilent skip_install_notice
-  ${If} $0 == ""
-    MessageBox MB_ICONINFORMATION|MB_OK "Kurulum bilgisi:$\r$\n$\r$\nWindows bazı bilgisayarlarda DoğruTemin kurulum dosyasını ilk açarken SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir.$\r$\n$\r$\nDosyayı kurumunuzdan veya güvenilir kaynaktan aldıysanız seçenek sunuluyorsa Daha fazla bilgi > Yine de çalıştır ile devam edebilirsiniz."
-  ${EndIf}
-skip_install_notice:
 
   ; Daha yeni bir sürüm zaten kuruluysa yanlışlıkla geri sürüme dönmeyi engelle.
   ${If} $0 != ""
