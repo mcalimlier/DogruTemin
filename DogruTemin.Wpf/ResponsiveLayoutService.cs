@@ -20,8 +20,8 @@ public static class ResponsiveLayoutService
 
     public static WindowLayoutProfile Calculate(double workWidthDip, double workHeightDip)
     {
-        if (workWidthDip <= 0) throw new ArgumentOutOfRangeException(nameof(workWidthDip));
-        if (workHeightDip <= 0) throw new ArgumentOutOfRangeException(nameof(workHeightDip));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(workWidthDip);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(workHeightDip);
 
         var availableWidth = workWidthDip * WorkAreaWidthUsage;
         var availableHeight = workHeightDip * WorkAreaHeightUsage;
@@ -39,7 +39,7 @@ public static class ResponsiveLayoutService
 
     public static WindowLayoutProfile CalculateForPixels(double pixelWidth, double pixelHeight, double dpiPercent)
     {
-        if (dpiPercent <= 0) throw new ArgumentOutOfRangeException(nameof(dpiPercent));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(dpiPercent);
         var dpiScale = dpiPercent / 100.0;
         return Calculate(pixelWidth / dpiScale, pixelHeight / dpiScale);
     }
