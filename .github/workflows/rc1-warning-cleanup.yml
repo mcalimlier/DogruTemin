@@ -91,8 +91,8 @@ jobs:
             $n=$n.Replace('new ValidationService().ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
             $n=$n.Replace('_engine.Calculate(', 'ProcurementEngine.Calculate(')
             $n=$n.Replace('new ProcurementEngine().Calculate(', 'ProcurementEngine.Calculate(')
-            $n=$n.Replace('private readonly ValidationService _validation = new();', '')
-            $n=$n.Replace('private readonly ProcurementEngine _engine = new();', '')
+            $n=$n.Replace('    private readonly ValidationService _validation = new();', '')
+            $n=$n.Replace('    private readonly ProcurementEngine _engine = new();', '')
             if ($n -ne $t) { [IO.File]::WriteAllText($_.FullName,$n,$utf8) }
           }
 
