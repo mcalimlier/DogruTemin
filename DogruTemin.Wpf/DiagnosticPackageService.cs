@@ -1,16 +1,17 @@
 using DogruTemin.Wpf.Services;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
 namespace DogruTemin.Wpf;
 
-public sealed class DiagnosticPackageService
+public static class DiagnosticPackageService
 {
     private const int MaximumLogFiles = 5;
     private const int MaximumLogCharacters = 250_000;
 
-    public string Create(ApplicationSafetyService safetyService)
+    public static string Create(ApplicationSafetyService safetyService)
     {
         ArgumentNullException.ThrowIfNull(safetyService);
         var integrity = safetyService.CheckIntegrity();
@@ -42,12 +43,12 @@ public sealed class DiagnosticPackageService
         var builder = new StringBuilder();
         builder.AppendLine("DoğruTemin Tanılama Paketi");
         builder.AppendLine(new string('=', 48));
-        builder.AppendLine($"Oluşturma       : {DateTimeOffset.Now:dd.MM.yyyy HH:mm:ss zzz}");
-        builder.AppendLine($"Sürüm           : {service.InformationalVersion}");
-        builder.AppendLine($"Çalışma ortamı  : {service.RuntimeDescription}");
-        builder.AppendLine($"Veri bütünlüğü  : {(integrity.IsHealthy ? "Sağlıklı" : "Sorun bulundu")}");
-        builder.AppendLine($"Sorun sayısı    : {integrity.ProblemCount}");
-        builder.AppendLine($"Açıklama        : {integrity.Message}");
+        builder.Append("Oluşturma       : ").AppendLine(DateTimeOffset.Now.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.InvariantCulture));
+        builder.Append("Sürüm           : ").AppendLine(service.InformationalVersion);
+        builder.Append("Çalışma ortamı  : ").AppendLine(service.RuntimeDescription);
+        builder.Append("Veri bütünlüğü  : ").AppendLine(integrity.IsHealthy ? "Sağlıklı" : "Sorun bulundu");
+        builder.Append("Sorun sayısı    : ").AppendLine(integrity.ProblemCount.ToString(CultureInfo.InvariantCulture));
+        builder.Append("Açıklama        : ").AppendLine(integrity.Message);
         builder.AppendLine();
         builder.AppendLine("Gizlilik notu: Bu paket işlem JSON verilerini veya PDF belgelerini içermez.");
         builder.AppendLine("Yalnız uygulama/ortam özeti ve en fazla son 5 hata günlüğü eklenir.");
