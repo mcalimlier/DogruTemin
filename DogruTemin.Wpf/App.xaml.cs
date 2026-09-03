@@ -2,7 +2,6 @@ using DogruTemin.Core.Services;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -41,7 +40,15 @@ public partial class App : Application
                 return;
             }
 
-            try { SetCurrentProcessExplicitAppUserModelID("DogruTemin.Wpf.App"); } catch { }
+            try
+            {
+                if (SetCurrentProcessExplicitAppUserModelID("DogruTemin.Wpf.App") != 0)
+                {
+                    // Shell kimliği atanamazsa Windows yürütülebilir dosya kimliğine güvenli biçimde geri döner.
+                }
+            }
+            catch { }
+
             var splash = new SplashWindow();
             splash.Show();
         }
