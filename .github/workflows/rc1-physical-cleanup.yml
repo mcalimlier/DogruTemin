@@ -43,6 +43,23 @@ jobs:
           [IO.File]::WriteAllText((Resolve-Path $path), $text, (New-Object System.Text.UTF8Encoding($false)))
           & $path
 
+      - name: Kaldırılan kartların kalan kod bağlarını temizle
+        shell: pwsh
+        run: |
+          $path = '.\DogruTemin.Wpf\MainWindow.xaml.cs'
+          $code = Get-Content $path -Raw -Encoding UTF8
+          $pdfAssignment = '            _lastPdfPath = dialog.FileName;'
+          $pdfCount = ([regex]::Matches($code, [regex]::Escape($pdfAssignment))).Count
+          if ($pdfCount -ne 2) { throw "Beklenen 2 eski Son PDF ataması yerine $pdfCount bulundu." }
+          $code = $code.Replace($pdfAssignment, '')
+
+          $comboPattern = '(?s)\s*private void AnyCombo_SelectionChanged\(object sender, SelectionChangedEventArgs e\)\s*\{\s*if \(!_suppressDirtyTracking\) MarkDirty\(\);\s*\}\s*'
+          $comboMatches = [regex]::Matches($code, $comboPattern)
+          if ($comboMatches.Count -ne 1) { throw "AnyCombo_SelectionChanged için beklenen 1 eşleşme yerine $($comboMatches.Count) bulundu." }
+          $code = [regex]::Replace($code, $comboPattern, "`r`n`r`n    ", 1)
+
+          [IO.File]::WriteAllText((Resolve-Path $path), $code, (New-Object System.Text.UTF8Encoding($false)))
+
       - name: XAML yapısını doğrula
         shell: pwsh
         run: |
