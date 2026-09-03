@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="DogruTemin.Wpf.LargeDatePicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root" Height="40" MinWidth="220">
+    <UserControl.Resources>
+        <Style x:Key="LargeDayButton" TargetType="CalendarDayButton">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="MinWidth" Value="42"/>
+            <Setter Property="MinHeight" Value="38"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="LargeMonthButton" TargetType="CalendarButton">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="MinWidth" Value="78"/>
+            <Setter Property="MinHeight" Value="50"/>
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Border x:Name="InputBorder"
+                Background="#082744"
+                BorderBrush="#365874"
+                BorderThickness="1"
+                CornerRadius="6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="48"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="DateText"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Foreground="White"
+                         FontFamily="Segoe UI"
+                         FontSize="15.5"
+                         IsReadOnly="True"
+                         Focusable="False"
+                         SelectionBrush="#2D6593"
+                         Cursor="Hand"
+                         Padding="12,0"
+                         VerticalContentAlignment="Center"
+                         PreviewMouseLeftButtonDown="DateText_PreviewMouseLeftButtonDown"/>
+                <Button x:Name="CalendarButton"
+                        Grid.Column="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="CalendarButton_Click"
+                        ToolTip="Tarih seç">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE787;" FontSize="20" Foreground="#FFB41F"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Popup x:Name="CalendarPopup"
+               PlacementTarget="{Binding ElementName=InputBorder}"
+               Placement="Bottom"
+               HorizontalOffset="0"
+               VerticalOffset="6"
+               AllowsTransparency="True"
+               StaysOpen="False"
+               PopupAnimation="Fade">
+            <Border Background="White" BorderBrush="#B8C8DA" BorderThickness="1" CornerRadius="10" Padding="12">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.25" Color="#00152D"/>
+                </Border.Effect>
+                <Calendar x:Name="CalendarControl"
+                          Width="390"
+                          Height="350"
+                          FontFamily="Segoe UI"
+                          FontSize="18"
+                          Background="White"
+                          Foreground="#0B1830"
+                          CalendarDayButtonStyle="{StaticResource LargeDayButton}"
+                          CalendarButtonStyle="{StaticResource LargeMonthButton}"
+                          SelectedDatesChanged="CalendarControl_SelectedDatesChanged"/>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

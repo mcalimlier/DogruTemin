@@ -1,0 +1,20 @@
+﻿DOGRUTEMIN 4.1.0 - KURULUM NOTU
+================================
+
+DoğruTemin, Windows 10/11 64-bit bilgisayarlar için self-contained hazırlanmıştır.
+Hedef bilgisayarda .NET, SDK, Visual Studio veya Excel kurulması gerekmez.
+
+WINDOWS SMARTSCREEN / BİLİNMEYEN YAYINCI
+Bazı bilgisayarlarda kurulum dosyası ilk kez çalıştırılırken Windows SmartScreen veya
+"Bilinmeyen yayıncı" uyarısı görülebilir. Bu, kurulum dosyasının ticari kod imzalama
+sertifikasıyla imzalanmamış olmasından kaynaklanabilir.
+
+Kurulum dosyasını kurumunuzdan veya güvenilir bir kaynaktan aldıysanız ve SmartScreen
+ekranında seçenek sunuluyorsa:
+  1. "Daha fazla bilgi" seçeneğine tıklayın.
+  2. "Yine de çalıştır" seçeneğini kullanın.
+
+"Yine de çalıştır" seçeneği yoksa bilgisayar kurum politikasıyla kısıtlanmış olabilir.
+Bu durumda ayarları değiştirmeye çalışmak yerine kurumun BT/yetkili personeline başvurun.
+
+Kurulum yönetici izni isteyebilir; bu Program Files klasörüne kurulum için normaldir.

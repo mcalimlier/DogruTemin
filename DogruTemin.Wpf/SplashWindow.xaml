@@ -1,0 +1,45 @@
+<Window x:Class="DogruTemin.Wpf.SplashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="Assets/AppIcon.ico"
+        Title="DoğruTemin"
+        Width="430" Height="645" MinWidth="430" MaxWidth="430" MinHeight="645" MaxHeight="645"
+        SizeToContent="Manual" WindowStyle="None" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" Background="#00152D"
+        AllowsTransparency="False" ShowInTaskbar="True"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
+      <Grid Width="600" Height="900">
+        <!-- Kilitli tasarımın birebir görsel tabanı -->
+        <Image Source="Assets/SplashReference.png" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+
+        <!-- Statik referanstaki yükleme satırını kapatıp gerçek WPF yükleme katmanını çiziyoruz. -->
+        <Border Background="#F4021731" CornerRadius="14" HorizontalAlignment="Center"
+                Width="520" Height="150" VerticalAlignment="Top" Margin="0,394,0,0"/>
+
+        <StackPanel Width="500" VerticalAlignment="Top" Margin="0,414,0,0" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Grid Width="26" Height="26" Margin="0,0,12,0">
+                    <Ellipse Stroke="#344C67" StrokeThickness="3"/>
+                    <Path Stroke="#FFB41F" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M13,1 A12,12 0 0 1 25,13"/>
+                    <Grid.RenderTransform>
+                        <RotateTransform x:Name="SpinnerRotate" CenterX="13" CenterY="13"/>
+                    </Grid.RenderTransform>
+                </Grid>
+                <TextBlock Text="Yükleniyor, lütfen bekleyiniz..." Foreground="White" FontSize="19" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,26,0,0">
+                <Border Height="15" Background="#17395B" CornerRadius="8" Margin="20,0,70,0"/>
+                <Border x:Name="ProgressFill" Height="15" Background="#FFB41F" CornerRadius="8" Width="0"
+                        HorizontalAlignment="Left" Margin="20,0,0,0"/>
+                <TextBlock x:Name="PercentText" Text="%0" Foreground="#FFB41F" FontSize="21" FontWeight="Bold"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,-8,12,0"/>
+            </Grid>
+            <TextBlock x:Name="StageText" Text="Bileşenler hazırlanıyor..." Foreground="#B8C6D8" FontSize="12"
+                       HorizontalAlignment="Center" Margin="0,15,0,0"/>
+        </StackPanel>
+    </Grid>
+    </Viewbox>
+</Window>
