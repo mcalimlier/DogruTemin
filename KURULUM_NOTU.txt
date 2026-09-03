@@ -1,20 +1,15 @@
-﻿DOGRUTEMIN 4.1.0 - KURULUM NOTU
-================================
+DOGRUTEMIN 4.2.0 RC1 - KURULUM NOTU
 
-DoğruTemin, Windows 10/11 64-bit bilgisayarlar için self-contained hazırlanmıştır.
-Hedef bilgisayarda .NET, SDK, Visual Studio veya Excel kurulması gerekmez.
+DoğruTemin Windows 10/11 x64 için self-contained hazırlanır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.
 
-WINDOWS SMARTSCREEN / BİLİNMEYEN YAYINCI
-Bazı bilgisayarlarda kurulum dosyası ilk kez çalıştırılırken Windows SmartScreen veya
-"Bilinmeyen yayıncı" uyarısı görülebilir. Bu, kurulum dosyasının ticari kod imzalama
-sertifikasıyla imzalanmamış olmasından kaynaklanabilir.
+KULLANICI VERISI
+- Yeni veri kökü Masaüstü\DoğruTemin klasörüdür.
+- 4.1.x sürümlerindeki Belgeler\DoğruTemin verileri ilk açılışta güvenli biçimde KOPYALANIR.
+- Kaynak eski veri silinmez; hedefte aynı dosya varsa üzerine yazılmaz.
+- Güncelleme ve kaldırma işlemleri Masaüstü\DoğruTemin içindeki veri, yedek, log ve PDF dosyalarını silmez.
 
-Kurulum dosyasını kurumunuzdan veya güvenilir bir kaynaktan aldıysanız ve SmartScreen
-ekranında seçenek sunuluyorsa:
-  1. "Daha fazla bilgi" seçeneğine tıklayın.
-  2. "Yine de çalıştır" seçeneğini kullanın.
+SMARTSCREEN
+Bu paket ücretli kod imzalama sertifikası kullanılmadığı sürece Windows SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir. Windows güvenlik özelliklerini kapatmayın. Dosyayı yalnız güvenilir kaynaktan alın ve paketle birlikte verilen SHA-256 değeriyle doğrulayın.
 
-"Yine de çalıştır" seçeneği yoksa bilgisayar kurum politikasıyla kısıtlanmış olabilir.
-Bu durumda ayarları değiştirmeye çalışmak yerine kurumun BT/yetkili personeline başvurun.
-
-Kurulum yönetici izni isteyebilir; bu Program Files klasörüne kurulum için normaldir.
+RC1 NOTU
+VersionSuffix=rc1 bulunduğu sürece SETUP_HAZIRLA.bat final dağıtım Setup'ı üretmez. RC1 onayından sonra suffix temizlenip final paket hazırlanmalıdır.

@@ -1,4 +1,4 @@
-﻿using DogruTemin.Wpf.Models;
+using DogruTemin.Wpf.Models;
 using ProcurementData = DogruTemin.Core.Models.ProcurementData;
 using ValidationSeverity = DogruTemin.Core.Models.ValidationSeverity;
 using OutputDocumentType = DogruTemin.Core.Models.OutputDocumentType;
@@ -76,6 +76,7 @@ public partial class MainWindow : Window
     private ICollectionView? _archiveView;
     private string _homeNextView = "General";
     private bool _dataEntryExpanded;
+    private readonly Action<int, string>? _startupProgress;
 
     private const double DesignWidth = 1450.0;
     private const double DesignHeight = 945.0;
@@ -87,10 +88,18 @@ public partial class MainWindow : Window
     private const uint MonitorDefaultToNearest = 0x00000002;
     private HwndSource? _windowSource;
 
-    public MainWindow()
+    public MainWindow() : this(null)
     {
+    }
+
+    public MainWindow(Action<int, string>? startupProgress)
+    {
+        _startupProgress = startupProgress;
         _safety = new ApplicationSafetyService(_storage);
+        ReportStartup(22, "Arayüz bileşenleri hazırlanıyor...");
         InitializeComponent();
+        ReportStartup(40, "Görsel kalite ve erişilebilirlik katmanı yükleniyor...");
+        UiPolishService.Apply(this);
         SourceInitialized += MainWindow_SourceInitialized;
         _lastPdfPath = FindMostRecentPdf() ?? string.Empty;
         ApplyTaskbarIcon();
@@ -99,11 +108,23 @@ public partial class MainWindow : Window
         DataContext = this;
         _archiveView = CollectionViewSource.GetDefaultView(ArchiveRecords);
         _archiveView.Filter = ArchiveRecordMatchesFilter;
+        ReportStartup(52, "Veri klasörleri ve güvenlik denetleniyor...");
         var startupSafety = _safety.InitializeAndCheck();
+        RecoverySessionService.Begin(_storage, () => _safety);
+        Loaded += (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(RecoverySessionService.PendingNotice))
+            {
+                UiNotificationService.Show(this, RecoverySessionService.PendingNotice!, TimeSpan.FromSeconds(8));
+                RecoverySessionService.ClearPendingNotice();
+            }
+        };
+        ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
         LoadSettingsEditor();
 
         _suppressDirtyTracking = true;
+        ReportStartup(73, "Aktif işlem ve kayıtlar yükleniyor...");
         var loaded = _storage.Load(out var loadWarning);
         if (loaded is null)
         {
@@ -115,6 +136,7 @@ public partial class MainWindow : Window
             _storage.EnsureArchived(loaded);
         }
         SeedOutputDocuments();
+        ReportStartup(84, "Belge ve rapor bileşenleri hazırlanıyor...");
 
         ProductCountText.Text = $"{Products.Count} / 8 ürün";
         _suppressDirtyTracking = false;
@@ -122,9 +144,11 @@ public partial class MainWindow : Window
         SetSavedStatus(loaded?.LastSavedAt);
         RefreshArchiveRecords();
         RefreshStatisticsYears();
+        ReportStartup(92, "Arşiv ve istatistik görünümü hazırlanıyor...");
         UpdateSafetyPanel(startupSafety);
         ShowView("Home");
 
+        ReportStartup(97, "Hesap motoru son kontrolden geçiyor...");
         var selfTest = EngineSelfTest.Run();
         if (!selfTest.Success)
             MessageBox.Show("C# hesap motoru öz testi başarısız: " + selfTest.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -132,6 +156,11 @@ public partial class MainWindow : Window
             MessageBox.Show(loadWarning, "DoğruTemin - Veri kurtarma", MessageBoxButton.OK, MessageBoxImage.Warning);
         if (!startupSafety.IsHealthy)
             MessageBox.Show(startupSafety.Message, "DoğruTemin - Veri Güvenliği", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void ReportStartup(int percent, string stage)
+    {
+        try { _startupProgress?.Invoke(percent, stage); } catch { }
     }
 
     private void ApplyTaskbarIcon()
@@ -484,6 +513,7 @@ public partial class MainWindow : Window
     {
         if (!ConfirmUnsavedWork("kapat", "DoğruTemin - Kapat")) return;
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
         Close();
     }
 
@@ -496,6 +526,7 @@ public partial class MainWindow : Window
             return;
         }
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -1322,7 +1353,7 @@ public partial class MainWindow : Window
             PdfImageWriter.Save(document, dialog.FileName);
             _lastPdfPath = dialog.FileName;
             UpdateHomeActivitySummary();
-            MessageBox.Show("PDF başarıyla oluşturuldu.\n\n" + dialog.FileName, "DoğruTemin - PDF", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, "PDF oluşturuldu:\n" + dialog.FileName, TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -2120,7 +2151,7 @@ public partial class MainWindow : Window
                 DefaultMarketCommission = new List<DogruTemin.Core.Models.CommissionMember>()
             };
             _storage.SaveSettings(_settings);
-            MessageBox.Show("Kurum bilgileri kaydedildi. Yeni işlemlerde kurum profili otomatik kullanılacaktır.", "DoğruTemin - Kurum Bilgisi", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, "Kurum bilgileri kaydedildi. Yeni işlemlerde otomatik kullanılacak.", TimeSpan.FromSeconds(4));
         }
         catch (Exception ex)
         {
@@ -2130,11 +2161,26 @@ public partial class MainWindow : Window
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.DataFolder);
     private void OpenBackupFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.BackupFolder);
+    private void OpenLogFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.LogFolder);
+
+    private void CreateDiagnosticPackage_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = new DiagnosticPackageService().Create(_safety);
+            UiNotificationService.Show(this, "Tanılama paketi oluşturuldu:\n" + path, TimeSpan.FromSeconds(6));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Tanılama paketi oluşturulamadı:\n\n" + ex.Message, "DoğruTemin - Tanılama", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
 
     private void UpdateSafetyPanel(SafetyCheckResult result)
     {
         if (AboutVersionText is null || DataIntegrityText is null) return;
-        AboutVersionText.Text = $"DoğruTemin {_safety.CurrentVersion}  •  {_safety.InformationalVersion}";
+        AboutVersionText.Text = $"DoğruTemin {AppVersionInfo.DisplayVersion}";
         AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {_safety.RuntimeDescription}";
         AboutDataFolderText.Text = _storage.RootFolder;
         DataIntegrityText.Text = result.Message;
@@ -2145,7 +2191,10 @@ public partial class MainWindow : Window
     {
         var result = _safety.CheckIntegrity();
         UpdateSafetyPanel(result);
-        MessageBox.Show(result.Message, "DoğruTemin - Veri Bütünlüğü", MessageBoxButton.OK, result.IsHealthy ? MessageBoxImage.Information : MessageBoxImage.Warning);
+        if (result.IsHealthy)
+            UiNotificationService.Show(this, result.Message, TimeSpan.FromSeconds(4));
+        else
+            MessageBox.Show(result.Message, "DoğruTemin - Veri Bütünlüğü", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void CreateSafetyBackup_Click(object sender, RoutedEventArgs e)
@@ -2166,7 +2215,7 @@ public partial class MainWindow : Window
             }
 
             var path = _safety.CreateManualSafetyBackup();
-            MessageBox.Show($"Güvenlik yedeği oluşturuldu:\n{path}", "DoğruTemin - Güvenlik Yedeği", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, $"Güvenlik yedeği oluşturuldu:\n{path}", TimeSpan.FromSeconds(5));
             UpdateSafetyPanel(_safety.CheckIntegrity());
         }
         catch (Exception ex)
@@ -2206,6 +2255,7 @@ public partial class MainWindow : Window
         message += "\n\nYeni verilerin güvenli biçimde yüklenmesi için DoğruTemin yeniden başlatılacak.";
         MessageBox.Show(message, "DoğruTemin - Yedekten Geri Yükle", MessageBoxButton.OK, MessageBoxImage.Information);
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
         RestartApplication();
     }
 
@@ -2406,7 +2456,7 @@ public partial class MainWindow : Window
             PdfImageWriter.Save(document, dialog.FileName);
             _lastPdfPath = dialog.FileName;
             UpdateHomeActivitySummary();
-            MessageBox.Show($"Yönetim raporu PDF olarak oluşturuldu:\n{dialog.FileName}", "DoğruTemin - Yönetim Raporu", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, $"Yönetim raporu PDF olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -2436,7 +2486,7 @@ public partial class MainWindow : Window
             if (dialog.ShowDialog(this) != true) return;
 
             _managementReports.SaveExcel(snapshot, dialog.FileName);
-            MessageBox.Show($"Yönetim raporu Excel olarak oluşturuldu:\n{dialog.FileName}", "DoğruTemin - Yönetim Raporu", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, $"Yönetim raporu Excel olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -2577,6 +2627,7 @@ public partial class MainWindow : Window
     private void NewOperation_Click(object sender, RoutedEventArgs e)
     {
         if (!ConfirmRecordSwitch()) return;
+        ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
         LoadSettingsEditor();
         _suppressDirtyTracking = true;
@@ -2655,7 +2706,7 @@ public partial class MainWindow : Window
 
         RefreshArchiveRecords();
         SelectArchiveRecord(copy.RecordId);
-        MessageBox.Show("İşlem kopyası arşive eklendi. Yeni kopyanın İşlem No alanı boş bırakıldı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, "İşlem kopyası arşive eklendi. Yeni kopyanın İşlem No alanı boş bırakıldı.", TimeSpan.FromSeconds(4));
     }
 
     private void ExportSelectedArchive_Click(object sender, RoutedEventArgs e)
@@ -2683,7 +2734,7 @@ public partial class MainWindow : Window
             MessageBox.Show(warning ?? "İşlem dışa aktarılamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        MessageBox.Show($"İşlem kaydı dışa aktarıldı:\n{dialog.FileName}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"İşlem kaydı dışa aktarıldı:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
     }
 
     private void ExportArchiveBackup_Click(object sender, RoutedEventArgs e)
@@ -2716,7 +2767,7 @@ public partial class MainWindow : Window
             MessageBox.Show(warning ?? "Arşiv yedeği oluşturulamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        MessageBox.Show($"Arşiv yedeği oluşturuldu:\n{dialog.FileName}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"Arşiv yedeği oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
     }
 
     private void RestoreDeletedArchive_Click(object sender, RoutedEventArgs e)
@@ -2729,7 +2780,7 @@ public partial class MainWindow : Window
         }
         RefreshArchiveRecords();
         SelectArchiveRecord(restored.RecordId);
-        MessageBox.Show($"Son silinen işlem geri alındı:\n{(string.IsNullOrWhiteSpace(restored.JobTitle) ? "Başlıksız işlem" : restored.JobTitle)}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"Son silinen işlem geri alındı:\n{(string.IsNullOrWhiteSpace(restored.JobTitle) ? "Başlıksız işlem" : restored.JobTitle)}", TimeSpan.FromSeconds(4));
     }
 
     private void SelectArchiveRecord(string recordId)

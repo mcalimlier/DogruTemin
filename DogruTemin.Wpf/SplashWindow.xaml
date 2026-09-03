@@ -38,7 +38,11 @@
                            HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,-8,12,0"/>
             </Grid>
             <TextBlock x:Name="StageText" Text="Bileşenler hazırlanıyor..." Foreground="#B8C6D8" FontSize="12"
+                       TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
                        HorizontalAlignment="Center" Margin="0,15,0,0"/>
+            <TextBlock x:Name="VersionText" Text="v4.2.0 RC1" Foreground="#8FA8C0" FontSize="11.5"
+                       TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
+                       HorizontalAlignment="Center" Margin="0,7,0,0"/>
         </StackPanel>
     </Grid>
     </Viewbox>
