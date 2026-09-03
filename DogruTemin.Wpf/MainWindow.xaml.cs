@@ -58,7 +58,7 @@ public partial class MainWindow : Window
     private bool _suppressDirtyTracking = true;
     private bool _hasUnsavedChanges;
     private DateTime? _lastSavedAt;
-    private string _lastPdfPath = string.Empty;
+
     private string _lastDateSequenceWarning = string.Empty;
     private bool _closeApproved;
     private string _currentView = "Home";
@@ -101,7 +101,7 @@ public partial class MainWindow : Window
         ReportStartup(40, "Görsel kalite ve erişilebilirlik katmanı yükleniyor...");
         UiPolishService.Apply(this);
         SourceInitialized += MainWindow_SourceInitialized;
-        _lastPdfPath = FindMostRecentPdf() ?? string.Empty;
+
         ApplyTaskbarIcon();
         ConfigureFixedWindowForCurrentScreen();
         UpdateMaximizeRestoreButton();
@@ -121,7 +121,7 @@ public partial class MainWindow : Window
         };
         ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
-        LoadSettingsEditor();
+
 
         _suppressDirtyTracking = true;
         ReportStartup(73, "Aktif işlem ve kayıtlar yükleniyor...");
@@ -404,17 +404,13 @@ public partial class MainWindow : Window
     {
         ShowView("Firms");
     }
-    private void NavFirms_Click(object sender, RoutedEventArgs e) => ShowView("Firms");
-    private void NavOffers_Click(object sender, RoutedEventArgs e)
-    {
-        ShowView("Offers");
-        PrepareOffersView();
-    }
+
+
     private void NavDocumentsDates_Click(object sender, RoutedEventArgs e)
     {
         ShowView("Dates");
     }
-    private void NavDates_Click(object sender, RoutedEventArgs e) => ShowView("Dates");
+
     private void NavOutput_Click(object sender, RoutedEventArgs e) => ShowView("Output");
     private void NavControl_Click(object sender, RoutedEventArgs e)
     {
@@ -662,7 +658,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool ConfirmEditorClear(string message) =>
+    private static bool ConfirmEditorClear(string message) =>
         MessageBox.Show(message, "DoğruTemin - Temizle", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
 
     private void TransientFirmEditor_TextChanged(object sender, TextChangedEventArgs e)
@@ -705,7 +701,7 @@ public partial class MainWindow : Window
 
         var taxNo = TaxNoBox.Text.Trim();
         var duplicate = Firms.FirstOrDefault(f => f != _editingFirm &&
-            (string.Equals(f.Name.Trim(), name, StringComparison.CurrentCultureIgnoreCase) ||
+            (string.Equals(f.Name.Trim(), name, StringComparison.OrdinalIgnoreCase) ||
              (taxNo.Length > 0 && string.Equals(f.TaxNo.Trim(), taxNo, StringComparison.OrdinalIgnoreCase))));
         if (duplicate is not null)
         {
@@ -942,11 +938,6 @@ public partial class MainWindow : Window
     }
 
     private void AnyGlobalField_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (!_suppressDirtyTracking) MarkDirty();
-    }
-
-    private void AnyCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_suppressDirtyTracking) MarkDirty();
     }
@@ -1351,7 +1342,7 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
             PdfImageWriter.Save(document, dialog.FileName);
-            _lastPdfPath = dialog.FileName;
+
             UpdateHomeActivitySummary();
             UiNotificationService.Show(this, "PDF oluşturuldu:\n" + dialog.FileName, TimeSpan.FromSeconds(5));
         }
@@ -1643,9 +1634,6 @@ public partial class MainWindow : Window
 
     private void SetHomeOutputStage(bool preparationReady, bool finalReady, int preparationIssueCount, int finalIssueCount)
     {
-        SetHomeDocumentReadiness(HomePreparationDocsBadge, HomePreparationDocsStatusText, HomePreparationDocsDetailText, preparationReady, preparationIssueCount, "2 belge üretime hazır");
-        SetHomeDocumentReadiness(HomeFinalDocsBadge, HomeFinalDocsStatusText, HomeFinalDocsDetailText, finalReady, finalIssueCount, "3 belge üretime hazır");
-
         if (preparationReady && finalReady)
         {
             HomeStageOutputStatus.Text = "TAMAM";
@@ -1669,52 +1657,13 @@ public partial class MainWindow : Window
         var finalText = finalReady ? "Nihai: hazır" : $"Nihai: {finalIssueCount} eksik";
         HomeStageOutputDetail.Text = $"{preparationText} • {finalText}";
     }
-
-    private static void SetHomeDocumentReadiness(Border badge, TextBlock status, TextBlock detail, bool ready, int issueCount, string readyText)
-    {
-        if (ready)
-        {
-            badge.Background = new SolidColorBrush(Color.FromRgb(25, 78, 67));
-            status.Foreground = new SolidColorBrush(Color.FromRgb(126, 226, 166));
-            status.Text = "HAZIR";
-            detail.Text = readyText;
-        }
-        else
-        {
-            badge.Background = new SolidColorBrush(Color.FromRgb(91, 65, 25));
-            status.Foreground = new SolidColorBrush(Color.FromRgb(255, 199, 91));
-            status.Text = "EKSİK";
-            detail.Text = $"{issueCount} temel koşul tamamlanmalı";
-        }
-    }
-
     private void UpdateHomeActivitySummary()
     {
-        if (HomeLastSavedText is null || HomeHeroLastSavedText is null || HomeArchiveCountText is null || HomeLastPdfText is null) return;
-        var savedText = _lastSavedAt.HasValue ? _lastSavedAt.Value.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture) : "Henüz yok";
-        HomeLastSavedText.Text = savedText;
-        HomeHeroLastSavedText.Text = _lastSavedAt.HasValue ? _lastSavedAt.Value.ToString("dd.MM.yyyy • HH:mm", CultureInfo.InvariantCulture) : "Henüz kaydedilmedi";
-        HomeArchiveCountText.Text = $"{ArchiveRecords.Count} işlem";
-        HomeLastPdfText.Text = string.IsNullOrWhiteSpace(_lastPdfPath) ? "Henüz oluşturulmadı" : Path.GetFileName(_lastPdfPath);
-        HomeLastPdfText.ToolTip = string.IsNullOrWhiteSpace(_lastPdfPath) ? null : _lastPdfPath;
+        if (HomeHeroLastSavedText is null) return;
+        HomeHeroLastSavedText.Text = _lastSavedAt.HasValue
+            ? _lastSavedAt.Value.ToString("dd.MM.yyyy • HH:mm", CultureInfo.InvariantCulture)
+            : "Henüz kaydedilmedi";
     }
-
-    private string? FindMostRecentPdf()
-    {
-        try
-        {
-            if (!Directory.Exists(_storage.PdfFolder)) return null;
-            return Directory.EnumerateFiles(_storage.PdfFolder, "*.pdf", SearchOption.TopDirectoryOnly)
-                .Select(path => new FileInfo(path))
-                .OrderByDescending(file => file.LastWriteTimeUtc)
-                .FirstOrDefault()?.FullName;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     private void UpdateDerivedState(ProcurementData? supplied = null)
     {
         if (_suppressDirtyTracking && supplied is null) return;
@@ -1806,8 +1755,8 @@ public partial class MainWindow : Window
         OutputCommissionText.Text = $"{filledCommission} / 6";
         OutputFirmText.Text = selectedTypesForOutput.Any(IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
         OutputProductText.Text = $"{productCount} / EN AZ 1";
-        OutputCriticalText.Text = selectedCoreIssues.Count.ToString();
-        OutputWarningText.Text = selectedAdvisories.Count.ToString();
+        OutputCriticalText.Text = selectedCoreIssues.Count.ToString(CultureInfo.InvariantCulture);
+        OutputWarningText.Text = selectedAdvisories.Count.ToString(CultureInfo.InvariantCulture);
         OutputReadinessText.Text = $"%{readiness}";
         OutputReadinessBar.Width = 390.0 * readiness / 100.0;
         RefreshControlCenter(data);
@@ -2119,11 +2068,6 @@ public partial class MainWindow : Window
     }
 
     // ---------------- İŞLEM ARŞİVİ ----------------
-    private void LoadSettingsEditor()
-    {
-        // Varsayılan birim ve varsayılan komisyon şablonları yeni arayüzde kullanılmaz.
-        // Eski ayar dosyaları StorageService tarafından geriye dönük uyumluluk için okunmaya devam eder.
-    }
 
     private DogruTemin.Core.Models.InstitutionInfo BuildInstitutionFromUi() => new()
     {
@@ -2289,7 +2233,10 @@ public partial class MainWindow : Window
 
     private void RefreshStatisticsYears()
     {
-        var selected = StatisticsYearBox?.SelectedItem?.ToString();
+        var statisticsYearBox = StatisticsYearBox;
+        if (statisticsYearBox is null) return;
+
+        var selected = statisticsYearBox.SelectedItem?.ToString();
         var years = _storage.ListRecords()
             .Where(x => x.Dates.ApprovalDate.HasValue)
             .Select(x => x.Dates.ApprovalDate!.Value.Year)
@@ -2307,9 +2254,8 @@ public partial class MainWindow : Window
         var target = !string.IsNullOrWhiteSpace(selected) && StatisticsYears.Contains(selected)
             ? selected
             : DateTime.Now.Year.ToString(CultureInfo.InvariantCulture);
-        StatisticsYearBox.SelectedItem = StatisticsYears.Contains(target) ? target : "Tüm Yıllar";
+        statisticsYearBox.SelectedItem = StatisticsYears.Contains(target) ? target : "Tüm Yıllar";
     }
-
     private void RefreshStatistics_Click(object sender, RoutedEventArgs e)
     {
         RefreshStatisticsYears();
@@ -2454,7 +2400,7 @@ public partial class MainWindow : Window
 
             var document = _managementReports.BuildPdf(snapshot);
             PdfImageWriter.Save(document, dialog.FileName);
-            _lastPdfPath = dialog.FileName;
+
             UpdateHomeActivitySummary();
             UiNotificationService.Show(this, $"Yönetim raporu PDF olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
@@ -2629,7 +2575,7 @@ public partial class MainWindow : Window
         if (!ConfirmRecordSwitch()) return;
         ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
-        LoadSettingsEditor();
+
         _suppressDirtyTracking = true;
         InitializeBlankState(_settings);
         _suppressDirtyTracking = false;
