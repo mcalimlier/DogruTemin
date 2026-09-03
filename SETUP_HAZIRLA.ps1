@@ -101,6 +101,10 @@ Move-Item $setupExe $finalExe -Force
 foreach ($file in 'KURULUM_NOTU.txt','KULLANICI_KILAVUZU.md','RC1_DEGISIKLIK_NOTU.md') {
     if (Test-Path $file) { Copy-Item $file (Join-Path $dist $file) -Force }
 }
+$smartScreenNote = Join-Path $PSScriptRoot 'Kurulum\SMARTSCREEN_BILGILENDIRME.txt'
+if (Test-Path $smartScreenNote) {
+    Copy-Item $smartScreenNote (Join-Path $dist 'SMARTSCREEN_BILGILENDIRME.txt') -Force
+}
 $hash = (Get-FileHash $finalExe -Algorithm SHA256).Hash
 $hashFile = Join-Path $dist "DogruTemin_Setup_${packageVersion}_x64_SHA256.txt"
 @('DogruTemin Setup SHA-256','',"Dosya : $(Split-Path $finalExe -Leaf)","SHA256: $hash") | Set-Content $hashFile -Encoding UTF8
