@@ -6,12 +6,12 @@ using System.Text;
 
 namespace DogruTemin.Wpf;
 
-public static class DiagnosticPackageService
+public sealed class DiagnosticPackageService
 {
     private const int MaximumLogFiles = 5;
     private const int MaximumLogCharacters = 250_000;
 
-    public static string Create(ApplicationSafetyService safetyService)
+    public string Create(ApplicationSafetyService safetyService)
     {
         ArgumentNullException.ThrowIfNull(safetyService);
         var integrity = safetyService.CheckIntegrity();
