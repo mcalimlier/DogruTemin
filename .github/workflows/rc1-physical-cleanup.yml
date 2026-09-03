@@ -33,7 +33,15 @@ jobs:
 
       - name: Fiziksel kaynak temizliğini uygula
         shell: pwsh
-        run: .\_tools\rc1-physical-cleanup.ps1
+        run: |
+          $path = '.\_tools\rc1-physical-cleanup.ps1'
+          $text = Get-Content $path -Raw -Encoding UTF8
+          $old = '$code = Replace-LiteralOnce $code ''        LoadSettingsEditor();'' '''' ''boş ayar editörü çağrısı'''
+          $new = '$code = $code.Replace(''        LoadSettingsEditor();'', '''')'
+          if (-not $text.Contains($old)) { throw 'LoadSettingsEditor temizlik satırı bulunamadı.' }
+          $text = $text.Replace($old, $new)
+          [IO.File]::WriteAllText((Resolve-Path $path), $text, (New-Object System.Text.UTF8Encoding($false)))
+          & $path
 
       - name: XAML yapısını doğrula
         shell: pwsh
