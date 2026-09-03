@@ -1,0 +1,73 @@
+name: RC1 Physical Cleanup
+
+on:
+  push:
+    branches:
+      - release/4.2.0-rc1
+    paths:
+      - '_tools/rc1-physical-cleanup.ps1'
+      - '.github/workflows/rc1-physical-cleanup.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dogrutemin-rc1-physical-cleanup
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: RC1 dalını al
+        uses: actions/checkout@v4
+        with:
+          ref: release/4.2.0-rc1
+          fetch-depth: 0
+
+      - name: .NET 8 kur
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Fiziksel kaynak temizliğini uygula
+        shell: pwsh
+        run: .\_tools\rc1-physical-cleanup.ps1
+
+      - name: XAML yapısını doğrula
+        shell: pwsh
+        run: |
+          [xml](Get-Content .\DogruTemin.Wpf\MainWindow.xaml -Raw -Encoding UTF8) | Out-Null
+          Write-Host 'MainWindow.xaml XML doğrulaması başarılı.'
+
+      - name: Kaynak farkını doğrula
+        shell: pwsh
+        run: |
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check başarısız.' }
+          git diff --stat
+
+      - name: NuGet paketlerini yükle
+        shell: pwsh
+        run: |
+          dotnet restore .\DogruTemin.Wpf\DogruTemin.Wpf.csproj
+          dotnet restore .\DogruTemin.Tests\DogruTemin.Tests.csproj
+
+      - name: Release derlemesini doğrula
+        shell: pwsh
+        run: dotnet build .\DogruTemin.Wpf\DogruTemin.Wpf.csproj -c Release --no-restore
+
+      - name: Otomatik testleri doğrula
+        shell: pwsh
+        run: dotnet test .\DogruTemin.Tests\DogruTemin.Tests.csproj -c Release --no-restore
+
+      - name: Temizliği RC1 dalına işle
+        shell: pwsh
+        run: |
+          git config user.name 'mcalimlier'
+          git config user.email '123293878+mcalimlier@users.noreply.github.com'
+          git add DogruTemin.Wpf/MainWindow.xaml DogruTemin.Wpf/MainWindow.xaml.cs
+          if (git diff --cached --quiet) { throw 'Temizlik değişikliği oluşmadı.' }
+          git commit -m 'Ana ekran tekrarlarını ve ölü kodu fiziksel olarak temizle'
+          git push origin HEAD:release/4.2.0-rc1
