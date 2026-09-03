@@ -6,12 +6,12 @@ using System.Text;
 
 namespace DogruTemin.Wpf;
 
-public sealed class DiagnosticPackageService
+public static class DiagnosticPackageService
 {
     private const int MaximumLogFiles = 5;
     private const int MaximumLogCharacters = 250_000;
 
-    public string Create(ApplicationSafetyService safetyService)
+    public static string Create(ApplicationSafetyService safetyService)
     {
         ArgumentNullException.ThrowIfNull(safetyService);
         var integrity = safetyService.CheckIntegrity();
@@ -44,8 +44,8 @@ public sealed class DiagnosticPackageService
         builder.AppendLine("DoğruTemin Tanılama Paketi");
         builder.AppendLine(new string('=', 48));
         builder.Append("Oluşturma       : ").AppendLine(DateTimeOffset.Now.ToString("dd.MM.yyyy HH:mm:ss zzz", CultureInfo.InvariantCulture));
-        builder.Append("Sürüm           : ").AppendLine(service.InformationalVersion);
-        builder.Append("Çalışma ortamı  : ").AppendLine(service.RuntimeDescription);
+        builder.Append("Sürüm           : ").AppendLine(ApplicationSafetyService.InformationalVersion);
+        builder.Append("Çalışma ortamı  : ").AppendLine(ApplicationSafetyService.RuntimeDescription);
         builder.Append("Veri bütünlüğü  : ").AppendLine(integrity.IsHealthy ? "Sağlıklı" : "Sorun bulundu");
         builder.Append("Sorun sayısı    : ").AppendLine(integrity.ProblemCount.ToString(CultureInfo.InvariantCulture));
         builder.Append("Açıklama        : ").AppendLine(integrity.Message);

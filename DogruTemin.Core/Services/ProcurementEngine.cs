@@ -1,12 +1,12 @@
-﻿using DogruTemin.Core.Models;
+using DogruTemin.Core.Models;
 
 namespace DogruTemin.Core.Services;
 
-public class ProcurementEngine
+public static class ProcurementEngine
 {
     private const decimal TieTolerance = 0.000001m;
 
-    public CalculationResult Calculate(ProcurementData data)
+    public static CalculationResult Calculate(ProcurementData data)
     {
         var result = new CalculationResult();
         var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
@@ -44,7 +44,7 @@ public class ProcurementEngine
     private static bool IsPositive(decimal? value) => value.HasValue && value.Value > 0;
     private static bool Equal(decimal a, decimal b) => Math.Abs(a - b) < TieTolerance;
 
-    private void CalculateLowestCompleteFirm(ProcurementData data, List<ProductItem> products, List<Firm> firms, CalculationResult result)
+    private static void CalculateLowestCompleteFirm(ProcurementData data, List<ProductItem> products, List<Firm> firms, CalculationResult result)
     {
         if (products.Count == 0) return;
 

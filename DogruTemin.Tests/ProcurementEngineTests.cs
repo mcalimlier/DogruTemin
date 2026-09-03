@@ -21,7 +21,7 @@ public class ProcurementEngineTests
             }
         };
 
-        var result = new ProcurementEngine().Calculate(data);
+        var result = ProcurementEngine.Calculate(data);
 
         Assert.Equal("b", result.WinningFirmId);
         Assert.Equal("Firma B", result.WinningFirmName);
@@ -44,7 +44,7 @@ public class ProcurementEngineTests
             }
         };
 
-        var result = new ProcurementEngine().Calculate(data);
+        var result = ProcurementEngine.Calculate(data);
 
         Assert.True(result.HasWinnerTie);
         Assert.Equal(2, result.TiedWinnerFirmIds.Count);

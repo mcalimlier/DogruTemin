@@ -17,7 +17,7 @@ public class ValidationTests
             }
         };
 
-        var issues = new ValidationService().DateLogicWarnings(data);
+        var issues = ValidationService.DateLogicWarnings(data);
 
         Assert.Contains(issues, issue => issue.Message.Contains("MUTLAKA önce", StringComparison.Ordinal));
     }
@@ -34,7 +34,7 @@ public class ValidationTests
             }
         };
 
-        var issues = new ValidationService().ValidateDraft(data);
+        var issues = ValidationService.ValidateDraft(data);
 
         Assert.Contains(issues, issue => issue.Message.Contains("mükerrer", StringComparison.OrdinalIgnoreCase));
     }

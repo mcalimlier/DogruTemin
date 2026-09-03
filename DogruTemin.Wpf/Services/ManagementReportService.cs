@@ -21,9 +21,12 @@ public sealed class ManagementReportService
     private const double Cm = 37.7952755906;
     private const double Margin = 0.75 * Cm;
     private static readonly CultureInfo Tr = CultureInfo.GetCultureInfo("tr-TR");
-    private readonly ProcurementEngine _engine = new();
+    private static readonly double[] SummaryColumnWidths = { 5.0, 26.0, 22.0, 22.0, 22.0, 22.0 };
+    private static readonly double[] MonthlyColumnWidths = { 14.0, 15.0, 24.0 };
+    private static readonly double[] DetailColumnWidths = { 7.0, 13.0, 18.0, 52.0, 22.0, 22.0, 22.0, 17.0 };
 
-    public ManagementReportSnapshot BuildSnapshot(IEnumerable<ProcurementData> source, int? selectedYear, string? institutionName = null)
+
+    public static ManagementReportSnapshot BuildSnapshot(IEnumerable<ProcurementData> source, int? selectedYear, string? institutionName = null)
     {
         var all = source.ToList();
         var missingDateCount = all.Count(x => !x.Dates.ApprovalDate.HasValue);
@@ -49,7 +52,7 @@ public sealed class ManagementReportService
 
         foreach (var data in records)
         {
-            var calc = _engine.Calculate(data);
+            var calc = ProcurementEngine.Calculate(data);
             var date = data.Dates.ApprovalDate!.Value;
             monthCounts[date.Month]++;
             if (calc.MarketResultTotal > 0m) monthTotals[date.Month] += calc.MarketResultTotal;
@@ -94,7 +97,7 @@ public sealed class ManagementReportService
         return snapshot;
     }
 
-    public FixedDocument BuildPdf(ManagementReportSnapshot snapshot)
+    public static FixedDocument BuildPdf(ManagementReportSnapshot snapshot)
     {
         var document = new FixedDocument();
         var page = NewPage();
@@ -139,7 +142,7 @@ public sealed class ManagementReportService
         return document;
     }
 
-    public void SaveExcel(ManagementReportSnapshot snapshot, string path)
+    public static void SaveExcel(ManagementReportSnapshot snapshot, string path)
     {
         var folder = Path.GetDirectoryName(path);
         if (!string.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
@@ -160,7 +163,7 @@ public sealed class ManagementReportService
         AddText(zip, "docProps/app.xml", AppPropsXml());
     }
 
-    private static FrameworkElement BuildKpiRow(ManagementReportSnapshot s)
+    private static UniformGrid BuildKpiRow(ManagementReportSnapshot s)
     {
         var grid = new UniformGrid { Columns = 5 };
         grid.Children.Add(Kpi("İŞLEM SAYISI", s.IncludedOperationCount.ToString(Tr), "rapora dahil"));
@@ -238,7 +241,7 @@ public sealed class ManagementReportService
             {
                 AddRow(table, 24);
                 var r = rows[i];
-                AddCell(table, i + 1, 0, r.ApprovalDate.ToString("dd.MM.yy"), false, 8.6);
+                AddCell(table, i + 1, 0, r.ApprovalDate.ToString("dd.MM.yy", CultureInfo.InvariantCulture), false, 8.6);
                 AddCell(table, i + 1, 1, r.JobTitle, false, Fit(r.JobTitle, 8.6, 38, 7.0), TextAlignment.Left);
                 AddCell(table, i + 1, 2, Money(r.FinalTotal), false, 8.6, TextAlignment.Right);
                 AddCell(table, i + 1, 3, SignedMoney(r.Savings), false, 8.6, TextAlignment.Right);
@@ -399,7 +402,7 @@ public sealed class ManagementReportService
     private static string SummarySheetXml(ManagementReportSnapshot s)
     {
         var detailLast = Math.Max(2, s.Operations.Count + 1);
-        var sb = SheetStart(new[] { 5.0, 26.0, 22.0, 22.0, 22.0, 22.0 });
+        var sb = SheetStart(SummaryColumnWidths);
         sb.Append(Row(1, CellString("A1", "DOĞRUTEMİN - YÖNETİM RAPORU", 1)));
         sb.Append(Row(2, CellString("A2", s.InstitutionName, 8)));
         sb.Append(Row(3, CellString("A3", $"Rapor Dönemi: {s.PeriodLabel} | Oluşturma: {s.GeneratedAt:dd.MM.yyyy HH:mm}", 4)));
@@ -422,7 +425,7 @@ public sealed class ManagementReportService
 
     private static string MonthlySheetXml(ManagementReportSnapshot s)
     {
-        var sb = SheetStart(new[] { 14.0, 15.0, 24.0 });
+        var sb = SheetStart(MonthlyColumnWidths);
         sb.Append(Row(1, CellString("A1", "AY", 2), CellString("B1", "İŞLEM SAYISI", 2), CellString("C1", "NİHAİ TOPLAM", 2)));
         for (var i = 0; i < s.Months.Count; i++)
         {
@@ -438,7 +441,7 @@ public sealed class ManagementReportService
 
     private static string DetailSheetXml(ManagementReportSnapshot s)
     {
-        var sb = SheetStart(new[] { 7.0, 13.0, 18.0, 52.0, 22.0, 22.0, 22.0, 17.0 });
+        var sb = SheetStart(DetailColumnWidths);
         sb.Append(Row(1,
             CellString("A1", "NO", 2), CellString("B1", "TARİH", 2), CellString("C1", "İŞLEM NO", 2), CellString("D1", "İŞ / ALIM ADI", 2),
             CellString("E1", "YAKLAŞIK MALİYET", 2), CellString("F1", "NİHAİ TOPLAM", 2), CellString("G1", "TASARRUF", 2), CellString("H1", "DURUM", 2)));
@@ -461,18 +464,18 @@ public sealed class ManagementReportService
         }
 
         var last = Math.Max(1, s.Operations.Count + 1);
-        sb.Append($"</sheetData><autoFilter ref=\"A1:H{last}\"/>");
+        sb.Append(CultureInfo.InvariantCulture, $"</sheetData><autoFilter ref=\"A1:H{last}\"/>");
         sb.Append(PageSettingsLandscape());
         sb.Append("</worksheet>");
         return sb.ToString();
     }
 
-    private static StringBuilder SheetStart(IReadOnlyList<double> widths)
+    private static StringBuilder SheetStart(double[] widths)
     {
         var sb = new StringBuilder();
         sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">");
         sb.Append("<sheetViews><sheetView workbookViewId=\"0\" showGridLines=\"0\"/></sheetViews><cols>");
-        for (var i = 0; i < widths.Count; i++) sb.Append($"<col min=\"{i + 1}\" max=\"{i + 1}\" width=\"{widths[i].ToString("0.##", CultureInfo.InvariantCulture)}\" customWidth=\"1\"/>");
+        for (var i = 0; i < widths.Length; i++) sb.Append(CultureInfo.InvariantCulture, $"<col min=\"{i + 1}\" max=\"{i + 1}\" width=\"{widths[i].ToString("0.##", CultureInfo.InvariantCulture)}\" customWidth=\"1\"/>");
         sb.Append("</cols><sheetData>");
         return sb;
     }

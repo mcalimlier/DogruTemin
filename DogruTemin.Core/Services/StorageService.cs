@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.IO.Compression;
 using DogruTemin.Core.Models;
@@ -203,7 +204,7 @@ public class StorageService
         {
             try
             {
-                var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
                 if (File.Exists(ActiveFile))
                 {
                     var activeBackup = Path.Combine(BackupFolder, $"DogruTemin_{stamp}.json");

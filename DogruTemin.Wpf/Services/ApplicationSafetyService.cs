@@ -16,11 +16,11 @@ public sealed class ApplicationSafetyService
         _storage = storage;
     }
 
-    public string CurrentVersion => AppVersionInfo.Version;
+    public static string CurrentVersion => AppVersionInfo.Version;
 
-    public string InformationalVersion => AppVersionInfo.InformationalVersion;
+    public static string InformationalVersion => AppVersionInfo.InformationalVersion;
 
-    public string RuntimeDescription => $"{Environment.Version} / {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}";
+    public static string RuntimeDescription => $"{Environment.Version} / {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}";
 
     public string BackupFolder => _storage.BackupFolder;
     public string LogFolder => _storage.LogFolder;

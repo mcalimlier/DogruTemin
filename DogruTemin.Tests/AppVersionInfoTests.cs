@@ -5,7 +5,7 @@ namespace DogruTemin.Tests;
 public class AppVersionInfoTests
 {
     [Fact]
-    public void Version_ComesFromCentralBuildProperties()
+    public void VersionComesFromCentralBuildProperties()
     {
         Assert.StartsWith("4.2.0", AppVersionInfo.InformationalVersion, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("4.2.0", AppVersionInfo.ProductVersion);

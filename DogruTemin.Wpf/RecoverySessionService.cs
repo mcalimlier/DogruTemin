@@ -1,4 +1,5 @@
 using DogruTemin.Core.Services;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -34,8 +35,8 @@ public static class RecoverySessionService
 
             var content = new StringBuilder()
                 .AppendLine("DoğruTemin çalışma oturumu")
-                .AppendLine($"Başlangıç: {DateTimeOffset.Now:O}")
-                .AppendLine($"PID: {Environment.ProcessId}")
+                .Append("Başlangıç: ").AppendLine(DateTimeOffset.Now.ToString("O", CultureInfo.InvariantCulture))
+                .Append("PID: ").AppendLine(Environment.ProcessId.ToString(CultureInfo.InvariantCulture))
                 .ToString();
             File.WriteAllText(marker, content, new UTF8Encoding(false));
             _activeMarkerPath = marker;

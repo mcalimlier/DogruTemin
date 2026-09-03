@@ -8,7 +8,7 @@ public class StorageServiceTests : IDisposable
     private readonly string _temp = Path.Combine(Path.GetTempPath(), "DogruTeminTests_" + Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public void ExplicitRoot_CreatesExpectedFolderStructure()
+    public void ExplicitRootCreatesExpectedFolderStructure()
     {
         var root = Path.Combine(_temp, "root");
         var storage = new StorageService(root);
@@ -22,7 +22,7 @@ public class StorageServiceTests : IDisposable
     }
 
     [Fact]
-    public void Save_CreatesActiveAndArchiveRecord()
+    public void SaveCreatesActiveAndArchiveRecord()
     {
         var storage = new StorageService(Path.Combine(_temp, "save"));
         var data = new ProcurementData { RecordId = "abc", JobTitle = "Test alımı" };
@@ -35,7 +35,7 @@ public class StorageServiceTests : IDisposable
     }
 
     [Fact]
-    public void LegacyMigration_CopiesWithoutOverwritingExistingFiles()
+    public void LegacyMigrationCopiesWithoutOverwritingExistingFiles()
     {
         var legacy = Path.Combine(_temp, "legacy");
         var preferred = Path.Combine(_temp, "preferred");
@@ -55,5 +55,6 @@ public class StorageServiceTests : IDisposable
     public void Dispose()
     {
         try { if (Directory.Exists(_temp)) Directory.Delete(_temp, true); } catch { }
+        GC.SuppressFinalize(this);
     }
 }

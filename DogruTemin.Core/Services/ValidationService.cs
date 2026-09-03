@@ -1,11 +1,11 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using DogruTemin.Core.Models;
 
 namespace DogruTemin.Core.Services;
 
-public class ValidationService
+public static class ValidationService
 {
-    public IReadOnlyList<ValidationIssue> ValidateDraft(ProcurementData data)
+    public static IReadOnlyList<ValidationIssue> ValidateDraft(ProcurementData data)
     {
         var issues = new List<ValidationIssue>();
         if (data.Products.Count > 8) Critical(issues, "Products", "En fazla 8 ürün / mal / hizmet eklenebilir.");
@@ -54,7 +54,7 @@ public class ValidationService
     }
 
 
-    public IReadOnlyList<ValidationIssue> ValidateWorkflow(ProcurementData data)
+    public static IReadOnlyList<ValidationIssue> ValidateWorkflow(ProcurementData data)
     {
         var issues = new List<ValidationIssue>();
 
@@ -128,7 +128,7 @@ public class ValidationService
 
         if (products.Count > 0 && firms.Count >= 3)
         {
-            var calc = new ProcurementEngine().Calculate(data);
+            var calc = ProcurementEngine.Calculate(data);
             if (calc.HasWinnerTie && string.IsNullOrWhiteSpace(calc.WinningFirmId))
                 Warning(issues, "Offers.WinnerTie", "Eşit en düşük toplam teklif var. Kazanan firma seçimi yapılmalıdır.");
             var winner = firms.FirstOrDefault(f => f.Id == calc.WinningFirmId);
@@ -154,7 +154,7 @@ public class ValidationService
         return Regex.Replace(text, @"[^\p{L}\p{Nd}]", string.Empty);
     }
 
-    public IReadOnlyList<ValidationIssue> DateLogicWarnings(ProcurementData data)
+    public static IReadOnlyList<ValidationIssue> DateLogicWarnings(ProcurementData data)
     {
         // DoğruTemin'in TEK zorunlu kronolojik tarih kuralı:
         // Yaklaşık Maliyet Hesap Cetveli < Piyasa Fiyat Araştırması Tutanağı < Muayene ve Kabul Tutanağı.
@@ -164,7 +164,7 @@ public class ValidationService
         return issues;
     }
 
-    public IReadOnlyList<ValidationIssue> ValidateDocument(ProcurementData data, OutputDocumentType document)
+    public static IReadOnlyList<ValidationIssue> ValidateDocument(ProcurementData data, OutputDocumentType document)
     {
         var issues = new List<ValidationIssue>();
         CommonDocumentRequirements(data, issues);
@@ -223,7 +223,7 @@ public class ValidationService
         return issues;
     }
 
-    public int ReadinessPercent(ProcurementData data)
+    public static int ReadinessPercent(ProcurementData data)
     {
         var checks = new List<bool>
         {
@@ -294,7 +294,7 @@ public class ValidationService
             return;
         }
 
-        var calc = new ProcurementEngine().Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var winner = firms.FirstOrDefault(f => f.Id == calc.WinningFirmId);
         if (winner is not null && string.IsNullOrWhiteSpace(winner.Address))
             Critical(issues, $"Firm:{winner.Id}:Address", "Kazanan firmanın adresi");

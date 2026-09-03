@@ -63,10 +63,10 @@ public partial class MainWindow : Window
     private bool _closeApproved;
     private string _currentView = "Home";
     private readonly StorageService _storage = new();
-    private readonly ProcurementEngine _engine = new();
-    private readonly ValidationService _validation = new();
-    private readonly OfficialDocumentService _documents = new();
-    private readonly ManagementReportService _managementReports = new();
+
+
+
+
     private readonly ApplicationSafetyService _safety;
     private AppSettings _settings = new();
     private string _operationNumber = string.Empty;
@@ -577,14 +577,14 @@ public partial class MainWindow : Window
                 return;
             }
             var data = BuildDataFromUi();
-            var errors = _validation.ValidateDraft(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
+            var errors = ValidationService.ValidateDraft(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
             if (errors.Count > 0)
             {
                 MessageBox.Show(string.Join("\n", errors.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var dateWarnings = _validation.DateLogicWarnings(data);
+            var dateWarnings = ValidationService.DateLogicWarnings(data);
             if (dateWarnings.Count > 0)
             {
                 var answer = MessageBox.Show("Tarih sıralamasında kontrol edilmesi gereken noktalar var:\n\n" +
@@ -947,7 +947,7 @@ public partial class MainWindow : Window
         if (_suppressDirtyTracking) return;
         MarkDirty();
 
-        var warnings = _validation.DateLogicWarnings(BuildDataFromUi())
+        var warnings = ValidationService.DateLogicWarnings(BuildDataFromUi())
             .Select(x => x.Message)
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct()
@@ -986,7 +986,7 @@ public partial class MainWindow : Window
     private void RefreshControlCenter(ProcurementData? supplied = null)
     {
         var data = supplied ?? BuildDataFromUi();
-        var issues = _validation.ValidateWorkflow(data)
+        var issues = ValidationService.ValidateWorkflow(data)
             .OrderBy(i => i.Severity == ValidationSeverity.Critical ? 0 : i.Severity == ValidationSeverity.Warning ? 1 : 2)
             .ThenBy(i => ControlAreaFor(i).Area)
             .ThenBy(i => i.Message)
@@ -1008,8 +1008,8 @@ public partial class MainWindow : Window
 
         var critical = issues.Count(i => i.Severity == ValidationSeverity.Critical);
         var warning = issues.Count(i => i.Severity == ValidationSeverity.Warning);
-        ControlCriticalCountText.Text = critical.ToString();
-        ControlWarningCountText.Text = warning.ToString();
+        ControlCriticalCountText.Text = critical.ToString(CultureInfo.InvariantCulture);
+        ControlWarningCountText.Text = warning.ToString(CultureInfo.InvariantCulture);
         ControlResultCountText.Text = $"{issues.Count} kontrol noktası";
         ControlIssuesGrid.Visibility = issues.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         ControlEmptyText.Visibility = issues.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -1098,7 +1098,7 @@ public partial class MainWindow : Window
             }
 
             var core = GetExportCoreIssues(data, new[] { type });
-            var advisory = _validation.ValidateDocument(data, type)
+            var advisory = ValidationService.ValidateDocument(data, type)
                 .Select(i => i.Message)
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Distinct()
@@ -1149,7 +1149,7 @@ public partial class MainWindow : Window
             or OutputDocumentType.MarketResearchReport
             or OutputDocumentType.InspectionAcceptanceReport;
 
-    private List<string> GetExportCoreIssues(ProcurementData data, IReadOnlyCollection<OutputDocumentType> types)
+    private static List<string> GetExportCoreIssues(ProcurementData data, IReadOnlyCollection<OutputDocumentType> types)
     {
         var issues = new List<string>();
 
@@ -1240,12 +1240,12 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
+    private static bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
     {
         var messages = types
-            .SelectMany(type => _validation.ValidateDocument(data, type))
+            .SelectMany(type => ValidationService.ValidateDocument(data, type))
             .Select(i => i.Message)
-            .Concat(_validation.DateLogicWarnings(data).Select(i => i.Message))
+            .Concat(ValidationService.DateLogicWarnings(data).Select(i => i.Message))
             .Where(m => !string.IsNullOrWhiteSpace(m))
             .Distinct()
             .Take(14)
@@ -1267,7 +1267,7 @@ public partial class MainWindow : Window
         if (types is null) return null;
 
         // Önizleme taslak görüntüdür. Eksik alanlar belge üzerinde boş bırakılabilir.
-        return _documents.BuildDocument(BuildDataFromUi(), types);
+        return OfficialDocumentService.BuildDocument(BuildDataFromUi(), types);
     }
 
     private FixedDocument? BuildSelectedOfficialDocumentForExport(string actionName)
@@ -1291,7 +1291,7 @@ public partial class MainWindow : Window
         if (!ConfirmNonBlockingDocumentIssues(data, types, actionName))
             return null;
 
-        var calc = _engine.Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var requiresWinner = types.Any(t => t is OutputDocumentType.MarketResearchReport or OutputDocumentType.InspectionAcceptanceReport);
 
         if (requiresWinner && calc.HasWinnerTie && string.IsNullOrWhiteSpace(calc.WinningFirmId))
@@ -1306,7 +1306,7 @@ public partial class MainWindow : Window
             data = BuildDataFromUi();
         }
 
-        return _documents.BuildDocument(data, types);
+        return OfficialDocumentService.BuildDocument(data, types);
     }
 
     private void OutputPreview_Click(object sender, RoutedEventArgs e)
@@ -1534,7 +1534,7 @@ public partial class MainWindow : Window
             $"{firms.Count} firma ve tüm teklifler hazır.",
             firmsDone ? $"{firms.Count} firma hazır • tekliflerde eksik var." : $"En az 3 firma gerekli; şu an {firms.Count} firma var.");
 
-        var dateWarnings = _validation.DateLogicWarnings(data);
+        var dateWarnings = ValidationService.DateLogicWarnings(data);
         var datesDone = data.Dates.CostCalculationDate.HasValue
             && data.Dates.MarketReportDate.HasValue
             && data.Dates.InspectionReportDate.HasValue
@@ -1668,10 +1668,10 @@ public partial class MainWindow : Window
     {
         if (_suppressDirtyTracking && supplied is null) return;
         var data = supplied ?? BuildDataFromUi();
-        var calc = _engine.Calculate(data);
-        var readiness = _validation.ReadinessPercent(data);
-        var draftIssues = _validation.ValidateDraft(data);
-        var dateWarnings = _validation.DateLogicWarnings(data);
+        var calc = ProcurementEngine.Calculate(data);
+        var readiness = ValidationService.ReadinessPercent(data);
+        var draftIssues = ValidationService.ValidateDraft(data);
+        var dateWarnings = ValidationService.DateLogicWarnings(data);
         var filledCommission = data.InspectionCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title))
             + data.MarketCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title));
         var firmCount = data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name));
@@ -1726,7 +1726,7 @@ public partial class MainWindow : Window
             HomeWinnerHintText.Text = firmCount < 3 ? "En az 3 firma gerekli" : "Nihai teklifler bekleniyor";
         }
 
-        var workflowIssues = _validation.ValidateWorkflow(data);
+        var workflowIssues = ValidationService.ValidateWorkflow(data);
         var homeWarningCount = workflowIssues.Count;
         HomeWarningCountText.Text = $"{homeWarningCount} UYARI";
         UpdateHomeActivitySummary();
@@ -1746,7 +1746,7 @@ public partial class MainWindow : Window
         var selectedCoreIssues = GetExportCoreIssues(data, selectedTypesForOutput);
         var selectedAdvisories = OutputDocuments
             .Where(d => d.IsSelected && OfficialDocumentService.IsImplemented(DocumentTypeFor(d.Name)))
-            .SelectMany(d => _validation.ValidateDocument(data, DocumentTypeFor(d.Name)))
+            .SelectMany(d => ValidationService.ValidateDocument(data, DocumentTypeFor(d.Name)))
             .Select(i => i.Message)
             .Where(m => !string.IsNullOrWhiteSpace(m))
             .Distinct()
@@ -1772,7 +1772,7 @@ public partial class MainWindow : Window
             }
 
             var core = GetExportCoreIssues(data, new[] { type });
-            var advisoryCount = _validation.ValidateDocument(data, type)
+            var advisoryCount = ValidationService.ValidateDocument(data, type)
                 .Select(i => i.Message)
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Distinct()
@@ -2111,7 +2111,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var path = new DiagnosticPackageService().Create(_safety);
+            var path = DiagnosticPackageService.Create(_safety);
             UiNotificationService.Show(this, "Tanılama paketi oluşturuldu:\n" + path, TimeSpan.FromSeconds(6));
         }
         catch (Exception ex)
@@ -2125,7 +2125,7 @@ public partial class MainWindow : Window
     {
         if (AboutVersionText is null || DataIntegrityText is null) return;
         AboutVersionText.Text = $"DoğruTemin {AppVersionInfo.DisplayVersion}";
-        AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {_safety.RuntimeDescription}";
+        AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {ApplicationSafetyService.RuntimeDescription}";
         AboutDataFolderText.Text = _storage.RootFolder;
         DataIntegrityText.Text = result.Message;
         DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#167A46" : "#B42318"));
@@ -2293,7 +2293,7 @@ public partial class MainWindow : Window
 
         foreach (var data in records)
         {
-            var calc = _engine.Calculate(data);
+            var calc = ProcurementEngine.Calculate(data);
             var date = data.Dates.ApprovalDate!.Value;
             monthCounts[date.Month]++;
             if (calc.MarketResultTotal > 0m) monthTotals[date.Month] += calc.MarketResultTotal;
@@ -2310,7 +2310,7 @@ public partial class MainWindow : Window
                     RecordId = data.RecordId,
                     JobTitle = string.IsNullOrWhiteSpace(data.JobTitle) ? "Başlıksız işlem" : data.JobTitle,
                     Date = date,
-                    DateText = date.ToString("dd.MM.yyyy"),
+                    DateText = date.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture),
                     ApproximateTotal = calc.ApproximateCostTotal,
                     FinalTotal = calc.MarketResultTotal,
                     Savings = savings,
@@ -2367,7 +2367,7 @@ public partial class MainWindow : Window
     private ManagementReportSnapshot BuildCurrentManagementReport()
     {
         var institutionName = _settings?.Institution?.FullName;
-        return _managementReports.BuildSnapshot(_storage.ListRecords(), SelectedStatisticsYear(), institutionName);
+        return ManagementReportService.BuildSnapshot(_storage.ListRecords(), SelectedStatisticsYear(), institutionName);
     }
 
     private static string ReportPeriodFilePart(string period)
@@ -2398,7 +2398,7 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
 
-            var document = _managementReports.BuildPdf(snapshot);
+            var document = ManagementReportService.BuildPdf(snapshot);
             PdfImageWriter.Save(document, dialog.FileName);
 
             UpdateHomeActivitySummary();
@@ -2431,7 +2431,7 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
 
-            _managementReports.SaveExcel(snapshot, dialog.FileName);
+            ManagementReportService.SaveExcel(snapshot, dialog.FileName);
             UiNotificationService.Show(this, $"Yönetim raporu Excel olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
@@ -2454,11 +2454,11 @@ public partial class MainWindow : Window
                 IsActive = isActive,
                 OperationNumber = string.IsNullOrWhiteSpace(data.OperationNumber) ? "—" : data.OperationNumber,
                 JobTitle = string.IsNullOrWhiteSpace(data.JobTitle) ? "Başlıksız işlem" : data.JobTitle,
-                ApprovalDate = data.Dates.ApprovalDate?.ToString("dd.MM.yyyy") ?? "—",
+                ApprovalDate = data.Dates.ApprovalDate?.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) ?? "—",
                 ApprovalSortKey = data.Dates.ApprovalDate ?? DateTime.MinValue,
                 ProductCount = data.Products.Count(p => !string.IsNullOrWhiteSpace(p.Name)),
                 FirmCount = data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name)),
-                LastSaved = lastSaved.ToString("dd.MM.yyyy HH:mm"),
+                LastSaved = lastSaved.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture),
                 LastSavedValue = lastSaved
             });
         }
