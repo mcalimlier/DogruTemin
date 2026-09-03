@@ -1,0 +1,13 @@
+DOGRUTEMIN - WINDOWS SMARTSCREEN BILGILENDIRMESI
+
+DoğruTemin kurulum paketinde ücretli kod imzalama sertifikası kullanılmadığında Windows bazı bilgisayarlarda SmartScreen / "Bilinmeyen yayıncı" uyarısı gösterebilir.
+
+Bu uyarı DoğruTemin kurulum sihirbazının parçası değildir; Windows tarafından EXE çalıştırılmadan önce gösterilir. Uyarıyı program içinden teknik olarak kaldırmak mümkün değildir. Kalıcı olarak azaltmanın standart yolu güvenilir bir kod imzalama sertifikası kullanmaktır.
+
+GÜVENLI KULLANIM
+- Kurulum dosyasını yalnız kurumunuzdan veya doğrulanmış GitHub Release kaynağından alın.
+- Paketle verilen SHA-256 dosyasındaki değeri kurulum EXE'siyle karşılaştırın.
+- Windows güvenlik özelliklerini kapatmayın.
+- Kaynağından emin olmadığınız bir kurulum dosyasını çalıştırmayın.
+
+DoğruTemin kurulum ekranında SmartScreen yönlendirmesi özellikle gösterilmez; bu açıklama dağıtım paketinde ayrı tutulur.
