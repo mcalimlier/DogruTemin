@@ -14,3 +14,5 @@
 - Depolama katmanına test edilebilir kök/legacy yol desteği eklendi; veri taşıma ve overwrite-etmeme davranışı otomatik teste bağlandı.
 - Merkezi sürüm, hesap motoru, validasyon, sayı ayrıştırma, responsive/DPI ve depolama senaryoları için xUnit test kapsamı oluşturuldu.
 - `TEST_AC.bat` ile RC1 kullanıcı bilgisayarında tek tıklamayla Release çalıştırma yolu eklendi.
+- Sessiz Setup smoke testinde etkileşimli SmartScreen bilgilendirmesi atlanır; normal kullanıcı kurulumunda bilgilendirme korunur.
+- CI işlerine 20 dakikalık üst süre sınırı ve güncellenmiş eşzamanlılık grubu eklendi; takılan eski koşular yeni doğrulamayı bloke etmez.
