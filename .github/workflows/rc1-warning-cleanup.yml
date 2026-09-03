@@ -34,7 +34,30 @@ jobs:
       - name: Analyzer düzeltmelerini uygula
         shell: pwsh
         run: |
-          .\_tools\rc1-warning-cleanup.ps1
+          $scriptPath = '.\_tools\rc1-warning-cleanup.ps1'
+          $script = Get-Content $scriptPath -Raw -Encoding UTF8
+          $script = $script.Replace('function Write(', 'function WriteFile(')
+          $script = $script.Replace('Write $p $t', 'WriteFile $p $t')
+
+          $chainPattern = '(?s)    \$new=\$text\.Replace\(''_validation\.ValidateDraft\('', ''ValidationService\.ValidateDraft\(''\).*?\.Replace\(''new ValidationService\(\)\.ReadinessPercent\('', ''ValidationService\.ReadinessPercent\(''\)'
+          $chainReplacement = @'
+              $new=$text
+              $new=$new.Replace('_validation.ValidateDraft(', 'ValidationService.ValidateDraft(')
+              $new=$new.Replace('_validation.DateLogicWarnings(', 'ValidationService.DateLogicWarnings(')
+              $new=$new.Replace('_validation.ValidateDocument(', 'ValidationService.ValidateDocument(')
+              $new=$new.Replace('_validation.ReadinessPercent(', 'ValidationService.ReadinessPercent(')
+              $new=$new.Replace('new ValidationService().ValidateDraft(', 'ValidationService.ValidateDraft(')
+              $new=$new.Replace('new ValidationService().DateLogicWarnings(', 'ValidationService.DateLogicWarnings(')
+              $new=$new.Replace('new ValidationService().ValidateDocument(', 'ValidationService.ValidateDocument(')
+              $new=$new.Replace('new ValidationService().ReadinessPercent(', 'ValidationService.ReadinessPercent(')
+          '@
+          $matches = [regex]::Matches($script, $chainPattern)
+          if ($matches.Count -ne 1) { throw "Static çağrı zinciri için beklenen 1 eşleşme yerine $($matches.Count) bulundu." }
+          $script = [regex]::Replace($script, $chainPattern, $chainReplacement, 1)
+          [IO.File]::WriteAllText((Resolve-Path $scriptPath), $script, (New-Object System.Text.UTF8Encoding($false)))
+
+          & $scriptPath
+
           $testPath = '.\DogruTemin.Tests\StorageServiceTests.cs'
           $test = Get-Content $testPath -Raw -Encoding UTF8
           $literal = ' } catch { }`r`n        GC.SuppressFinalize(this);'
