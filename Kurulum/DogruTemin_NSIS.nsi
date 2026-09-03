@@ -1,4 +1,4 @@
-﻿Unicode true
+Unicode true
 
 !include "MUI2.nsh"
 !include "x64.nsh"
@@ -72,9 +72,12 @@ Function .onInit
   ; Temiz kurulumda, sihirbaz açılmadan hemen önce kısa bir kullanıcı bilgilendirmesi göster.
   ; SmartScreen Windows tarafından EXE başlamadan önce çalıştığı için bu pencere SmartScreen'den önce gösterilemez; ancak kurulum sihirbazından önce görünür.
   ReadRegStr $0 HKLM "${UNINSTKEY}" "DisplayVersion"
+  ; Sessiz /S kurulumlar CI ve kurumsal dağıtım içindir; etkileşimli bilgi kutusu gösterilmez.
+  IfSilent skip_install_notice
   ${If} $0 == ""
     MessageBox MB_ICONINFORMATION|MB_OK "Kurulum bilgisi:$\r$\n$\r$\nWindows bazı bilgisayarlarda DoğruTemin kurulum dosyasını ilk açarken SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir.$\r$\n$\r$\nDosyayı kurumunuzdan veya güvenilir kaynaktan aldıysanız seçenek sunuluyorsa Daha fazla bilgi > Yine de çalıştır ile devam edebilirsiniz."
   ${EndIf}
+skip_install_notice:
 
   ; Daha yeni bir sürüm zaten kuruluysa yanlışlıkla geri sürüme dönmeyi engelle.
   ${If} $0 != ""
