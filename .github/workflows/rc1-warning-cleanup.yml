@@ -91,8 +91,14 @@ jobs:
             $n=$n.Replace('new ValidationService().ValidateWorkflow(', 'ValidationService.ValidateWorkflow(')
             $n=$n.Replace('_engine.Calculate(', 'ProcurementEngine.Calculate(')
             $n=$n.Replace('new ProcurementEngine().Calculate(', 'ProcurementEngine.Calculate(')
+            $n=$n.Replace('_documents.BuildDocument(', 'OfficialDocumentService.BuildDocument(')
+            $n=$n.Replace('new OfficialDocumentService().BuildDocument(', 'OfficialDocumentService.BuildDocument(')
+            $n=$n.Replace('_managementReports.BuildSnapshot(', 'ManagementReportService.BuildSnapshot(')
+            $n=$n.Replace('new ManagementReportService().BuildSnapshot(', 'ManagementReportService.BuildSnapshot(')
             $n=$n.Replace('    private readonly ValidationService _validation = new();', '')
             $n=$n.Replace('    private readonly ProcurementEngine _engine = new();', '')
+            $n=$n.Replace('    private readonly OfficialDocumentService _documents = new();', '')
+            $n=$n.Replace('    private readonly ManagementReportService _managementReports = new();', '')
             if ($n -ne $t) { [IO.File]::WriteAllText($_.FullName,$n,$utf8) }
           }
 
@@ -121,7 +127,13 @@ jobs:
 
           PatchFile '.\DogruTemin.Wpf\Services\OfficialDocumentService.cs' {
             param($t)
-            $t.Replace('(i + 1).ToString()', '(i + 1).ToString(CultureInfo.InvariantCulture)')
+            $t=$t.Replace('(i + 1).ToString()', '(i + 1).ToString(CultureInfo.InvariantCulture)')
+            $t=$t.Replace('(r + 1).ToString()', '(r + 1).ToString(CultureInfo.InvariantCulture)')
+            $t=$t.Replace('public FixedDocument BuildDocument(', 'public static FixedDocument BuildDocument(')
+            $t=$t.Replace('private FixedPage BuildApproximateCostSheetPage(', 'private static FixedPage BuildApproximateCostSheetPage(')
+            $t=$t.Replace('private FixedPage BuildMarketResearchPage(', 'private static FixedPage BuildMarketResearchPage(')
+            $t=$t.Replace('private FixedPage BuildInspectionAcceptancePage(', 'private static FixedPage BuildInspectionAcceptancePage(')
+            $t
           }
 
           PatchFile '.\DogruTemin.Wpf\Services\ManagementReportService.cs' {
@@ -134,6 +146,7 @@ jobs:
               private static readonly double[] DetailColumnWidths = { 7.0, 13.0, 18.0, 52.0, 22.0, 22.0, 22.0, 17.0 };
           '@
             $t=$t.Replace($marker,$fields.TrimEnd())
+            $t=$t.Replace('public ManagementReportSnapshot BuildSnapshot(', 'public static ManagementReportSnapshot BuildSnapshot(')
             $t=$t.Replace('SheetStart(new[] { 5.0, 26.0, 22.0, 22.0, 22.0, 22.0 })','SheetStart(SummaryColumnWidths)')
             $t=$t.Replace('SheetStart(new[] { 14.0, 15.0, 24.0 })','SheetStart(MonthlyColumnWidths)')
             $t=$t.Replace('SheetStart(new[] { 7.0, 13.0, 18.0, 52.0, 22.0, 22.0, 22.0, 17.0 })','SheetStart(DetailColumnWidths)')
