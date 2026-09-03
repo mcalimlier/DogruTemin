@@ -1,20 +1,22 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 namespace DogruTemin.Wpf;
 
 internal static class UiVisualPolishService
 {
-    private static readonly Brush Gold = BrushFrom("#FFB41F");
-    private static readonly Brush Navy = BrushFrom("#031C38");
-    private static readonly Brush WarningDark = BrushFrom("#8A5A12");
+    private static readonly SolidColorBrush Gold = BrushFrom("#FFB41F");
+    private static readonly SolidColorBrush Navy = BrushFrom("#031C38");
+    private static readonly SolidColorBrush WarningDark = BrushFrom("#8A5A12");
 
     public static void Apply(MainWindow window)
     {
         ApplyVersionAndHeader(window);
         ApplyHomeCardLanguage(window);
+        SimplifyHomeDashboard(window);
         NormalizeButtons(window);
         NormalizePanels(window);
         NormalizeDatePickers(window);
@@ -79,6 +81,59 @@ internal static class UiVisualPolishService
         }
     }
 
+    private static void SimplifyHomeDashboard(MainWindow window)
+    {
+        if (window.FindName("HomeView") is not FrameworkElement home) return;
+
+        // Akıllı İş Akışı aynı kalem/firma/hazırlık bilgilerini daha işlevsel verdiği için
+        // üstteki tekrar eden üç KPI kartını kaldır.
+        var repeatedKpis = UiTree.Descendants<UniformGrid>(home)
+            .FirstOrDefault(grid => grid.Columns == 3
+                && ContainsLabel(grid, "MAL / HİZMET")
+                && ContainsLabel(grid, "FİRMA / TEKLİF")
+                && ContainsLabel(grid, "SÜREÇ HAZIRLIĞI"));
+        Collapse(repeatedKpis);
+
+        // Belge hazırlığı bilgisi Akıllı İş Akışı'nın 5. adımı ve Kontrol Merkezi'nde zaten bulunuyor.
+        CollapseCardByTitle(home, "BELGE HAZIRLIĞI");
+
+        // Son kayıt kahraman kartta; arşiv ve son PDF kendi ekranlarında mevcut.
+        // Tekrar eden SON DURUM kartını kaldır, sonraki öneriyi tam genişliğe yay.
+        var lastStatusTitle = UiTree.Descendants<TextBlock>(home).FirstOrDefault(x => x.Text == "SON DURUM");
+        var lastStatusCard = lastStatusTitle is null ? null : UiTree.FindAncestor<Border>(lastStatusTitle);
+        if (lastStatusCard is not null)
+        {
+            lastStatusCard.Visibility = Visibility.Collapsed;
+            lastStatusCard.Margin = new Thickness(0);
+        }
+
+        var nextStepTitle = UiTree.Descendants<TextBlock>(home).FirstOrDefault(x => x.Text == "SIRADAKİ ÖNERİLEN ADIM");
+        var nextStepCard = nextStepTitle is null ? null : UiTree.FindAncestor<Border>(nextStepTitle);
+        if (nextStepCard is not null)
+        {
+            Grid.SetColumn(nextStepCard, 0);
+            Grid.SetColumnSpan(nextStepCard, 3);
+            nextStepCard.Margin = new Thickness(0);
+        }
+    }
+
+    private static void CollapseCardByTitle(FrameworkElement root, string title)
+    {
+        var label = UiTree.Descendants<TextBlock>(root).FirstOrDefault(x => x.Text == title);
+        if (label is not null)
+            Collapse(UiTree.FindAncestor<Border>(label));
+    }
+
+    private static bool ContainsLabel(DependencyObject root, string text) =>
+        UiTree.Descendants<TextBlock>(root).Any(x => x.Text == text);
+
+    private static void Collapse(FrameworkElement? element)
+    {
+        if (element is null) return;
+        element.Visibility = Visibility.Collapsed;
+        element.Margin = new Thickness(0);
+    }
+
     private static void NormalizeButtons(MainWindow window)
     {
         foreach (var button in UiTree.Descendants<Button>(window))
@@ -139,6 +194,6 @@ internal static class UiVisualPolishService
         }
     }
 
-    private static Brush BrushFrom(string value) =>
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+    private static SolidColorBrush BrushFrom(string value) =>
+        new((Color)ColorConverter.ConvertFromString(value));
 }
