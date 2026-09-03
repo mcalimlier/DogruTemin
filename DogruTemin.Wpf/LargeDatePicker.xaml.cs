@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -21,8 +22,8 @@ public partial class LargeDatePicker : UserControl
         typeof(LargeDatePicker));
 
     private bool _syncing;
-    private static readonly Brush NormalBorder = BrushFrom("#365874");
-    private static readonly Brush FocusBorder = BrushFrom("#FFB41F");
+    private static readonly SolidColorBrush NormalBorder = BrushFrom("#365874");
+    private static readonly SolidColorBrush FocusBorder = BrushFrom("#FFB41F");
 
     public LargeDatePicker()
     {
@@ -55,7 +56,9 @@ public partial class LargeDatePicker : UserControl
     private void UpdateDisplay()
     {
         if (DateText is null) return;
-        DateText.Text = SelectedDate.HasValue ? SelectedDate.Value.ToString("dd.MM.yyyy") : string.Empty;
+        DateText.Text = SelectedDate.HasValue
+            ? SelectedDate.Value.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)
+            : string.Empty;
         if (ClearButton is not null)
             ClearButton.Visibility = SelectedDate.HasValue ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -133,6 +136,6 @@ public partial class LargeDatePicker : UserControl
         Focus();
     }
 
-    private static Brush BrushFrom(string value) =>
-        new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
+    private static SolidColorBrush BrushFrom(string value) =>
+        new((Color)ColorConverter.ConvertFromString(value));
 }
