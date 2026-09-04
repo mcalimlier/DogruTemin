@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -22,6 +23,7 @@ public partial class App : Application
     {
         DispatcherUnhandledException += App_DispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)
@@ -122,17 +124,23 @@ public partial class App : Application
             WriteCrashLog(ex);
     }
 
+    private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        WriteCrashLog(e.Exception);
+        e.SetObserved();
+    }
+
     private static void ShowFatalError(string title, Exception ex)
     {
         var path = WriteCrashLog(ex);
         MessageBox.Show(
-            title + "\n\n" + ex.Message + "\n\nHata ayrıntısı şu dosyaya kaydedildi:\n" + path,
+            title + "\n\nTeknik ayrıntılar güvenlik amacıyla ekranda gösterilmez. Hata günlüğü:\n" + path,
             "DoğruTemin - Hata",
             MessageBoxButton.OK,
             MessageBoxImage.Error);
     }
 
-    private static string WriteCrashLog(Exception ex)
+    internal static string WriteCrashLog(Exception ex)
     {
         string path;
         try
