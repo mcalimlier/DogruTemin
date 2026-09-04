@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <!-- DoğruTemin için tek sürüm kaynağı. Final yayında VersionSuffix boş bırakılır. -->
     <VersionPrefix>4.2.0</VersionPrefix>
     <VersionSuffix>rc1</VersionSuffix>
     <Version Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</Version>
@@ -7,9 +8,16 @@
     <AssemblyVersion>4.2.0.0</AssemblyVersion>
     <FileVersion>4.2.0.0</FileVersion>
     <InformationalVersion>$(Version)</InformationalVersion>
-    <Deterministic>true</Deterministic>
+    <Product>DoğruTemin</Product>
+    <Company>DoğruTemin</Company>
+
+    <!-- DoğruFatura ile aynı derleme kalite kapısı: C# compiler warning'leri hata sayılır.
+         .NET analizörleri çalışır; salt analizör önerileri legacy kodu gereksiz yere bloke etmez. -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
 </Project>
