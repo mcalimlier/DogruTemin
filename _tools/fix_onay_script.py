@@ -38,5 +38,29 @@ if old_func not in s:
     raise SystemExit('Replace-Once function not found')
 s = s.replace(old_func, new_func, 1)
 
+old_clear_anchor = '''$clearAnchor = @'
+            case "Dates":
+'@'''
+new_clear_anchor = '''$clearAnchor = @'
+                LoadOfferFirm(_offerEditingFirm);
+                RefreshSaveStatusVisual();
+                break;
+            case "Dates":
+'@'''
+if old_clear_anchor not in s:
+    raise SystemExit('Clear anchor block not found')
+s = s.replace(old_clear_anchor, new_clear_anchor, 1)
+
+old_clear_new = '''$clearNew = @'
+            case "ApprovalDocument":'''
+new_clear_new = '''$clearNew = @'
+                LoadOfferFirm(_offerEditingFirm);
+                RefreshSaveStatusVisual();
+                break;
+            case "ApprovalDocument":'''
+if old_clear_new not in s:
+    raise SystemExit('Clear new block not found')
+s = s.replace(old_clear_new, new_clear_new, 1)
+
 p.write_text(s, encoding='utf-8', newline='\n')
 print('PowerShell integration script fixed.')
