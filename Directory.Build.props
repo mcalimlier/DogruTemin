@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- DoğruTemin için tek sürüm kaynağı. Final yayında VersionSuffix boş bırakılır. -->
     <VersionPrefix>4.2.0</VersionPrefix>
-    <VersionSuffix>rc1</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
     <Version Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</Version>
     <Version Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
     <AssemblyVersion>4.2.0.0</AssemblyVersion>
