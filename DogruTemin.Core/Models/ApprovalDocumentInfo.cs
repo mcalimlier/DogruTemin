@@ -3,8 +3,6 @@ namespace DogruTemin.Core.Models;
 public class ApprovalDocumentInfo
 {
     public string DocumentNumber { get; set; } = string.Empty;
-    public string JobDescription { get; set; } = string.Empty;
-    public string JobNature { get; set; } = string.Empty;
     public string AvailableBudgetAmount { get; set; } = string.Empty;
     public string InvestmentProjectNumber { get; set; } = string.Empty;
     public string BudgetCode { get; set; } = string.Empty;
