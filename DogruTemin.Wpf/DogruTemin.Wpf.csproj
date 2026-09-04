@@ -20,6 +20,9 @@
     <Resource Include="Assets\AppIcon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="PDFsharp-WPF" Version="6.2.4" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\DogruTemin.Core\DogruTemin.Core.csproj" />
   </ItemGroup>
 </Project>
