@@ -6,6 +6,7 @@ on:
       - release/4.2.0-rc1
     paths:
       - '_tools/apply_onay_belgesi.ps1'
+      - '_tools/fix_onay_script.py'
       - '.github/workflows/onay-belgesi-integration.yml'
       - 'RC1_DEGISIKLIK_NOTU.md'
   workflow_dispatch:
@@ -31,6 +32,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Fix temporary integration script
+        shell: pwsh
+        run: python ./_tools/fix_onay_script.py
 
       - name: Apply Onay Belgesi integration and verify
         shell: pwsh
