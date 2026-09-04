@@ -9,23 +9,48 @@ public static class NumberParser
 
     public static bool TryPositiveDecimal(string? text, out decimal value)
     {
-        value = 0;
+        value = 0m;
         if (string.IsNullOrWhiteSpace(text)) return false;
-        var s = text.Trim().Replace("₺", "", StringComparison.OrdinalIgnoreCase).Replace("TL", "", StringComparison.OrdinalIgnoreCase).Trim();
-        if (decimal.TryParse(s, NumberStyles.Number, Tr, out value) && value > 0) return true;
-        if (decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out value) && value > 0) return true;
 
-        s = Regex.Replace(s, @"\s+", "");
-        if (s.Contains(',') && s.Contains('.'))
+        // DoğruFatura ile aynı sağlam ayrıştırma yaklaşımı: önce para simgeleri/boşluklar
+        // temizlenir, sonra son ayırıcıya göre ondalık ve binlik işaretleri normalize edilir.
+        // Böylece hem 1.234,56 hem 1,234.56 hem de 1234.56 doğru yorumlanır.
+        var normalized = text.Trim()
+            .Replace("₺", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("TL", "", StringComparison.OrdinalIgnoreCase);
+        normalized = Regex.Replace(normalized, @"\s+", "");
+
+        var comma = normalized.LastIndexOf(',');
+        var dot = normalized.LastIndexOf('.');
+        if (comma >= 0 && dot >= 0)
         {
-            var lastComma = s.LastIndexOf(',');
-            var lastDot = s.LastIndexOf('.');
-            if (lastComma > lastDot) s = s.Replace(".", "").Replace(',', '.');
-            else s = s.Replace(",", "");
+            if (comma > dot)
+            {
+                normalized = normalized
+                    .Replace(".", "", StringComparison.Ordinal)
+                    .Replace(",", ".", StringComparison.Ordinal);
+            }
+            else
+            {
+                normalized = normalized.Replace(",", "", StringComparison.Ordinal);
+            }
         }
-        else if (s.Contains(',')) s = s.Replace(',', '.');
+        else if (comma >= 0)
+        {
+            normalized = normalized
+                .Replace(".", "", StringComparison.Ordinal)
+                .Replace(",", ".", StringComparison.Ordinal);
+        }
+        else if (dot >= 0)
+        {
+            var dotCount = normalized.Count(c => c == '.');
+            var fractionLength = normalized.Length - dot - 1;
+            if (dotCount > 1 || (fractionLength == 3 && dot <= 3))
+                normalized = normalized.Replace(".", "", StringComparison.Ordinal);
+        }
 
-        return decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out value) && value > 0;
+        return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out value)
+               && value > 0m;
     }
 
     public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";
