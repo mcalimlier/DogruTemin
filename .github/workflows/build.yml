@@ -8,6 +8,7 @@ on:
       - 'feature/**'
       - 'fix/**'
       - 'chore/**'
+      - 'hardening/**'
   pull_request:
     branches:
       - main
@@ -17,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: dogrutemin-ci-v2-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: dogrutemin-ci-v3-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -36,16 +37,25 @@ jobs:
         run: |
           dotnet restore DogruTemin.Wpf/DogruTemin.Wpf.csproj
           dotnet restore DogruTemin.Tests/DogruTemin.Tests.csproj
+      - name: Bağımlılık güvenlik taraması
+        shell: pwsh
+        run: |
+          $output = dotnet list DogruTemin.Tests/DogruTemin.Tests.csproj package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Host $output
+          if ($LASTEXITCODE -ne 0) { throw 'NuGet güvenlik taraması çalıştırılamadı.' }
+          if ($output -match 'has the following vulnerable packages') { throw 'Bilinen güvenlik açığı bulunan NuGet paketi tespit edildi.' }
       - name: Release derlemesi yap
         run: dotnet build DogruTemin.Wpf/DogruTemin.Wpf.csproj -c Release --no-restore
-      - name: Otomatik testleri çalıştır
-        run: dotnet test DogruTemin.Tests/DogruTemin.Tests.csproj -c Release --no-restore --logger "trx;LogFileName=DogruTemin.Tests.trx"
-      - name: Test raporunu sakla
+      - name: Otomatik testleri ve coverage ölçümünü çalıştır
+        run: dotnet test DogruTemin.Tests/DogruTemin.Tests.csproj -c Release --no-restore --logger "trx;LogFileName=DogruTemin.Tests.trx" --collect:"XPlat Code Coverage"
+      - name: Test ve coverage raporunu sakla
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dogrutemin-test-results
-          path: '**/DogruTemin.Tests.trx'
+          path: |
+            **/DogruTemin.Tests.trx
+            **/coverage.cobertura.xml
           if-no-files-found: warn
           retention-days: 14
 
@@ -68,7 +78,7 @@ jobs:
         shell: pwsh
         run: |
           $dist = Join-Path $env:RUNNER_TEMP 'DogruTeminDist'
-          .\SETUP_HAZIRLA.ps1 -AllowPrerelease -OutputRoot $dist
+          .\SETUP_HAZIRLA.ps1 -AllowPrerelease -AllowUnsignedFinal -OutputRoot $dist
           $setup = Get-ChildItem $dist -Filter 'DogruTemin_Setup_*_x64.exe' | Select-Object -First 1
           if (-not $setup) { throw 'Setup EXE bulunamadı.' }
           "SETUP_PATH=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
