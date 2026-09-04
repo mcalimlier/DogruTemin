@@ -8,7 +8,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WpfBrush = System.Windows.Media.Brush;
-using WpfColor = System.Windows.Media.Color;
 using WpfImage = System.Windows.Controls.Image;
 using WpfLine = System.Windows.Shapes.Line;
 using WpfPath = System.Windows.Shapes.Path;
@@ -31,7 +30,7 @@ public static class PdfVectorWriter
         if (document.Pages.Count == 0)
             throw new InvalidOperationException("PDF oluşturmak için sayfa bulunamadı.");
 
-        var folder = Path.GetDirectoryName(path);
+        var folder = System.IO.Path.GetDirectoryName(path);
         if (!string.IsNullOrWhiteSpace(folder))
             Directory.CreateDirectory(folder);
 
