@@ -80,6 +80,23 @@ public sealed class DataSafetyIntegrationTests : IDisposable
         Assert.NotEmpty(Directory.GetFiles(storage.DataFolder, "aktif_islem_bozuk_*.json"));
     }
 
+    [Fact]
+    public void PdfIntegrityCheckDetectsTruncatedPdf()
+    {
+        var storage = NewStorage("pdf-integrity");
+        var safety = new ApplicationSafetyService(storage);
+        var pdf = Path.Combine(storage.PdfFolder, "test.pdf");
+
+        File.WriteAllText(pdf, "%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF", Encoding.ASCII);
+        Assert.True(safety.CheckIntegrity().IsHealthy);
+
+        File.WriteAllText(pdf, "%PDF-1.4\ntruncated", Encoding.ASCII);
+        var result = safety.CheckIntegrity();
+
+        Assert.False(result.IsHealthy);
+        Assert.Contains("PDF", result.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     private StorageService NewStorage(string name)
     {
         var path = Path.Combine(_root, name);
