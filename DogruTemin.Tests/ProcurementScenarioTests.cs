@@ -32,6 +32,7 @@ public sealed class ProcurementScenarioTests : IDisposable
         var before = ProcurementEngine.Calculate(data);
         var storage = new StorageService(Path.Combine(_root, "data"));
         storage.Save(data, createBackup: true);
+        storage.Save(data, createBackup: true);
         var loaded = storage.Load(out var loadError);
 
         Assert.Null(loadError);
@@ -46,7 +47,7 @@ public sealed class ProcurementScenarioTests : IDisposable
         Assert.Equal(before.MarketResultTotal, after.MarketResultTotal);
         Assert.Equal("b", after.WinningFirmId);
         Assert.Equal(2762.5m, after.MarketResultTotal);
-        Assert.NotEmpty(Directory.EnumerateFiles(storage.BackupFolder, "*.zip", SearchOption.AllDirectories));
+        Assert.NotEmpty(Directory.EnumerateFiles(storage.BackupFolder, "DogruTemin_*.json", SearchOption.TopDirectoryOnly));
     }
 
     [Fact]
