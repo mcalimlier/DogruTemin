@@ -40,10 +40,24 @@
             <TextBlock x:Name="StageText" Text="Bileşenler hazırlanıyor..." Foreground="#B8C6D8" FontSize="12"
                        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
                        HorizontalAlignment="Center" Margin="0,15,0,0"/>
-            <TextBlock x:Name="VersionText" Text="v4.2.0 RC1" Foreground="#8FA8C0" FontSize="11.5"
+            <TextBlock x:Name="VersionText" Text="v4.2.0" Foreground="#8FA8C0" FontSize="11.5"
                        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
                        HorizontalAlignment="Center" Margin="0,7,0,0"/>
         </StackPanel>
+
+        <!-- Geliştirici adı arka plandan bağımsız, net okunabilir bir katmanda gösterilir. -->
+        <Border Width="360" Height="82" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                Margin="0,0,0,46" Background="#F2051C35" BorderBrush="#5AFFB41F"
+                BorderThickness="1" CornerRadius="14">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="GELİŞTİREN" Foreground="#FFB41F" FontSize="11.5" FontWeight="SemiBold"
+                           CharacterSpacing="120" HorizontalAlignment="Center"
+                           TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"/>
+                <TextBlock Text="Murat Çalımlıer" Foreground="White" FontSize="23" FontWeight="Bold"
+                           Margin="0,5,0,0" HorizontalAlignment="Center"
+                           TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"/>
+            </StackPanel>
+        </Border>
     </Grid>
     </Viewbox>
 </Window>
