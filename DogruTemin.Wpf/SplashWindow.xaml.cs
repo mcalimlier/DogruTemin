@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
@@ -9,7 +10,9 @@ namespace DogruTemin.Wpf;
 
 public partial class SplashWindow : Window
 {
+    private const double ProgressTrackWidth = 410.0;
     private static readonly TimeSpan MinimumDisplayTime = TimeSpan.FromMilliseconds(3500);
+    private static readonly TimeSpan CompletionAnimationTime = TimeSpan.FromMilliseconds(180);
 
     public SplashWindow()
     {
@@ -26,24 +29,24 @@ public partial class SplashWindow : Window
             RepeatBehavior = RepeatBehavior.Forever
         };
         SpinnerRotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, spin);
+        StartSmoothProgress();
 
         try
         {
             SetProgress(8, "DoğruTemin başlatılıyor...");
             await Dispatcher.Yield(DispatcherPriority.Background);
 
-            // İlerleme yüzdesi MainWindow içindeki gerçek başlangıç kilometre taşlarından gelir.
+            // Ana pencere gerçek başlangıç kilometre taşlarını bildirmeye devam eder;
+            // yalnız ilerleme çubuğu bu kilometre taşlarına atlamaz, tek akış halinde ilerler.
             var main = new MainWindow(SetProgress);
 
-            // Karşılama ekranı; logo, sürüm ve geliştirici adı rahatça okunabilsin diye
-            // hızlı bilgisayarlarda da yaklaşık 3,5 saniye görünür kalır.
             SetProgress(96, "Son kontroller yapılıyor...");
             var remaining = MinimumDisplayTime - visibleTime.Elapsed;
             if (remaining > TimeSpan.Zero)
                 await Task.Delay(remaining);
 
             SetProgress(100, "Hazır. Program açılıyor...");
-            await Task.Delay(180);
+            await CompleteProgressAsync();
 
             Application.Current.MainWindow = main;
             main.Show();
@@ -62,11 +65,54 @@ public partial class SplashWindow : Window
         }
     }
 
+    private void StartSmoothProgress()
+    {
+        ProgressFill.Width = 0;
+        PercentText.Text = "%0";
+        CompositionTarget.Rendering += UpdateAnimatedPercent;
+
+        var animation = new DoubleAnimation
+        {
+            From = 0,
+            To = ProgressTrackWidth * 0.96,
+            Duration = new Duration(MinimumDisplayTime),
+            FillBehavior = FillBehavior.HoldEnd
+        };
+        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, animation, HandoffBehavior.SnapshotAndReplace);
+    }
+
+    private async Task CompleteProgressAsync()
+    {
+        var currentWidth = Math.Clamp(ProgressFill.Width, 0, ProgressTrackWidth);
+        var animation = new DoubleAnimation(currentWidth, ProgressTrackWidth, CompletionAnimationTime)
+        {
+            FillBehavior = FillBehavior.HoldEnd,
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, animation, HandoffBehavior.SnapshotAndReplace);
+        await Task.Delay(CompletionAnimationTime);
+        PercentText.Text = "%100";
+    }
+
+    private void UpdateAnimatedPercent(object? sender, EventArgs e)
+    {
+        var width = Math.Clamp(ProgressFill.Width, 0, ProgressTrackWidth);
+        var percent = (int)Math.Round(width / ProgressTrackWidth * 100.0, MidpointRounding.AwayFromZero);
+        PercentText.Text = $"%{percent}";
+    }
+
     private void SetProgress(int percent, string stage)
     {
-        PercentText.Text = $"%{percent}";
-        ProgressFill.Width = 410 * (percent / 100.0);
+        // Yüzde bilgisi MainWindow ile API uyumluluğu için korunur. Görsel yüzde ve bar,
+        // tek bir zaman çizelgesiyle akıcı ilerlediği için burada sıçratılmaz.
+        _ = percent;
         StageText.Text = stage;
         Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        CompositionTarget.Rendering -= UpdateAnimatedPercent;
+        base.OnClosed(e);
     }
 }
