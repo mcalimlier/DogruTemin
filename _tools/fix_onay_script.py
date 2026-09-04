@@ -80,5 +80,29 @@ if old_build not in s:
     raise SystemExit('Build block not found')
 s = s.replace(old_build, new_build, 1)
 
+marker = '# XAML yapısal doğrulama'
+cleanup = '''# Geçici patch metninden C# kaynaklarına sızabilecek literal PowerShell satır sonlarını düzelt.
+$literalCrLf = ([string][char]96) + 'r' + ([string][char]96) + 'n'
+$literalLf = ([string][char]96) + 'n'
+$generatedSources = @(
+    'DogruTemin.Wpf/MainWindow.xaml.cs',
+    'DogruTemin.Wpf/UiAccessibilityService.cs',
+    'DogruTemin.Wpf/Services/OfficialDocumentService.cs',
+    'DogruTemin.Core/Services/ValidationService.cs',
+    'DogruTemin.Tests/ProcurementEngineTests.cs'
+)
+foreach ($generatedSource in $generatedSources) {
+    if (-not (Test-Path $generatedSource)) { continue }
+    $generatedText = Read-Text $generatedSource
+    $generatedText = $generatedText.Replace($literalCrLf, "`n").Replace($literalLf, "`n")
+    Write-Text $generatedSource $generatedText
+}
+
+'''
+if cleanup not in s:
+    if marker not in s:
+        raise SystemExit('XAML validation marker not found')
+    s = s.replace(marker, cleanup + marker, 1)
+
 p.write_text(s, encoding='utf-8', newline='\n')
 print('PowerShell integration script fixed.')
