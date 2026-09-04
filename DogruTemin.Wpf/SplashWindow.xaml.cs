@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
@@ -8,6 +9,8 @@ namespace DogruTemin.Wpf;
 
 public partial class SplashWindow : Window
 {
+    private static readonly TimeSpan MinimumDisplayTime = TimeSpan.FromMilliseconds(3500);
+
     public SplashWindow()
     {
         InitializeComponent();
@@ -16,6 +19,7 @@ public partial class SplashWindow : Window
 
     private async void SplashWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        var visibleTime = Stopwatch.StartNew();
         VersionText.Text = AppVersionInfo.DisplayVersion;
         var spin = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1))
         {
@@ -31,11 +35,18 @@ public partial class SplashWindow : Window
             // İlerleme yüzdesi MainWindow içindeki gerçek başlangıç kilometre taşlarından gelir.
             var main = new MainWindow(SetProgress);
 
+            // Karşılama ekranı; logo, sürüm ve geliştirici adı rahatça okunabilsin diye
+            // hızlı bilgisayarlarda da yaklaşık 3,5 saniye görünür kalır.
+            SetProgress(96, "Son kontroller yapılıyor...");
+            var remaining = MinimumDisplayTime - visibleTime.Elapsed;
+            if (remaining > TimeSpan.Zero)
+                await Task.Delay(remaining);
+
             SetProgress(100, "Hazır. Program açılıyor...");
+            await Task.Delay(180);
+
             Application.Current.MainWindow = main;
             main.Show();
-            await Task.Delay(140);
-
             Close();
             Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
