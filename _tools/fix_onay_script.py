@@ -15,7 +15,7 @@ $newWorkflowDates = @'
 '@
 $validation = Replace-Once $validation $oldWorkflowDates $newWorkflowDates 'workflow Onay tarihi zorunluluğu' '''
 if old not in s:
-    raise SystemExit('Hedef PowerShell bloğu bulunamadı')
+    raise SystemExit('Target PowerShell block not found')
 s = s.replace(old, new, 1)
 p.write_text(s, encoding='utf-8', newline='\n')
-print('PowerShell kaçış bloğu düzeltildi.')
+print('PowerShell escape block fixed.')
