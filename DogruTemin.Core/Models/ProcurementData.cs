@@ -2,7 +2,7 @@ namespace DogruTemin.Core.Models;
 
 public class ProcurementData
 {
-    public int SchemaVersion { get; set; } = 3;
+    public int SchemaVersion { get; set; } = 4;
     public string RecordId { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string OperationNumber { get; set; } = string.Empty;
@@ -13,6 +13,7 @@ public class ProcurementData
     public List<CommissionMember> MarketCommission { get; set; } = new();
     public ProcessDates Dates { get; set; } = new();
     public InstitutionInfo Institution { get; set; } = new();
+    public ApprovalDocumentInfo ApprovalDocument { get; set; } = new();
     // Nihai değerlendirme tek kuraldır: tüm aktif ürünlere teklif veren firmalar
     // arasında miktar x nihai birim fiyat toplamı en düşük olan tek firma kazanır.
     public string PreferredWinnerFirmId { get; set; } = string.Empty;
