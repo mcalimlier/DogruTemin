@@ -52,9 +52,10 @@ public partial class SplashWindow : Window
         }
         catch (Exception ex)
         {
+            var path = App.WriteCrashLog(ex);
             MessageBox.Show(
-                "DoğruTemin açılırken hata oluştu:\n\n" + ex.Message,
-                "DoğruTemin",
+                "DoğruTemin başlatılamadı. Teknik ayrıntılar güvenlik amacıyla ekranda gösterilmez.\n\nHata günlüğü:\n" + path,
+                "DoğruTemin - Açılış Hatası",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             Application.Current.Shutdown(-1);
