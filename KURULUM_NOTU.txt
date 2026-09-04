@@ -1,4 +1,5 @@
-DOGRUTEMIN 4.2.0 RC1 - KURULUM NOTU
+DOGRUTEMIN 4.2.0 FINAL - KURULUM NOTU
+=====================================
 
 DoğruTemin Windows 10/11 x64 için self-contained hazırlanır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.
 
@@ -8,8 +9,11 @@ KULLANICI VERISI
 - Kaynak eski veri silinmez; hedefte aynı dosya varsa üzerine yazılmaz.
 - Güncelleme ve kaldırma işlemleri Masaüstü\DoğruTemin içindeki veri, yedek, log ve PDF dosyalarını silmez.
 
-SMARTSCREEN
-Bu paket ücretli kod imzalama sertifikası kullanılmadığı sürece Windows SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir. Windows güvenlik özelliklerini kapatmayın. Dosyayı yalnız güvenilir kaynaktan alın ve paketle birlikte verilen SHA-256 değeriyle doğrulayın.
+KOD IMZASI VE SMARTSCREEN
+- Final dağıtım Setup'ı Authenticode kod imzası olmadan normal üretim akışında oluşturulmaz.
+- CI/yerel smoke testindeki -AllowUnsignedFinal seçeneği dağıtım amacıyla kullanılmaz.
+- İmzalı pakette de dosyayı yalnız güvenilir kaynaktan alın ve paketle birlikte verilen SHA-256 değeriyle doğrulayın.
 
-RC1 NOTU
-VersionSuffix=rc1 bulunduğu sürece SETUP_HAZIRLA.bat final dağıtım Setup'ı üretmez. RC1 onayından sonra suffix temizlenip final paket hazırlanmalıdır.
+DOGRULAMA
+- Setup üretiminden önce Release build ve otomatik testler çalışır.
+- GitHub Actions ayrıca temiz kurulum, güncelleme, kullanıcı verisi koruma ve kaldırma smoke testlerini yürütür.
