@@ -62,5 +62,23 @@ if old_clear_new not in s:
     raise SystemExit('Clear new block not found')
 s = s.replace(old_clear_new, new_clear_new, 1)
 
+old_build = '''& dotnet restore | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'dotnet restore başarısız' }
+& dotnet build -c Release --no-restore | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Release build başarısız' }
+& dotnet test -c Release --no-build | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Testler başarısız' }'''
+new_build = '''& dotnet restore 'DogruTemin.Wpf/DogruTemin.Wpf.csproj' | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'WPF restore başarısız' }
+& dotnet restore 'DogruTemin.Tests/DogruTemin.Tests.csproj' | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Test restore başarısız' }
+& dotnet build 'DogruTemin.Wpf/DogruTemin.Wpf.csproj' -c Release --no-restore | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Release build başarısız' }
+& dotnet test 'DogruTemin.Tests/DogruTemin.Tests.csproj' -c Release --no-restore | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Testler başarısız' }'''
+if old_build not in s:
+    raise SystemExit('Build block not found')
+s = s.replace(old_build, new_build, 1)
+
 p.write_text(s, encoding='utf-8', newline='\n')
 print('PowerShell integration script fixed.')
