@@ -1,5 +1,6 @@
 param(
     [switch]$AllowPrerelease,
+    [switch]$AllowUnsignedFinal,
     [string]$OutputRoot = '',
     [string]$CertificateThumbprint = $env:DOGRUTEMIN_SIGN_CERT_SHA1,
     [string]$TimestampUrl = 'http://timestamp.digicert.com'
@@ -7,6 +8,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
+
 function Fail([string]$Message) { Write-Host "HATA: $Message" -ForegroundColor Red; exit 1 }
 
 function Find-SignTool {
@@ -23,6 +25,7 @@ function Sign-File([string]$FilePath) {
     if ([string]::IsNullOrWhiteSpace($CertificateThumbprint)) { return }
     $signTool = Find-SignTool
     if (-not $signTool) { Fail 'Kod imzası istendi ancak signtool.exe bulunamadı.' }
+    Write-Host "Kod imzalanıyor: $(Split-Path $FilePath -Leaf)" -ForegroundColor Cyan
     & $signTool sign /sha1 $CertificateThumbprint /fd SHA256 /tr $TimestampUrl /td SHA256 $FilePath
     if ($LASTEXITCODE -ne 0) { Fail "Kod imzası başarısız: $FilePath" }
     & $signTool verify /pa /v $FilePath
@@ -36,16 +39,32 @@ $suffix = [string]$group.VersionSuffix
 $assemblyVersion = [string]$group.AssemblyVersion
 if ([string]::IsNullOrWhiteSpace($version)) { Fail 'VersionPrefix okunamadı.' }
 $packageVersion = if ([string]::IsNullOrWhiteSpace($suffix)) { $version } else { "$version-$suffix" }
+$isPrerelease = -not [string]::IsNullOrWhiteSpace($suffix)
 
-if (-not [string]::IsNullOrWhiteSpace($suffix) -and -not $AllowPrerelease) {
+if ($isPrerelease -and -not $AllowPrerelease) {
     Write-Host "DoğruTemin $packageVersion bir RC/test sürümüdür." -ForegroundColor Yellow
     Write-Host 'Final Setup güvenlik amacıyla üretilmedi. RC testleri bitince VersionSuffix boşaltılmalıdır.'
     exit 2
 }
+if ($isPrerelease) {
+    Write-Host "UYARI: $packageVersion yalnız RC/CI kurulum testi için üretilecek." -ForegroundColor Yellow
+}
+if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and -not $AllowUnsignedFinal) {
+    Fail 'Final Setup için kod imzalama sertifikası zorunludur. DOGRUTEMIN_SIGN_CERT_SHA1 tanımlayın. Yalnız CI/yerel smoke testi için -AllowUnsignedFinal kullanılabilir.'
+}
+if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and $AllowUnsignedFinal) {
+    Write-Host 'UYARI: Final sürüm CI/yerel smoke testi amacıyla imzasız üretilecek. Bu paket dağıtım için kullanılmamalıdır.' -ForegroundColor Yellow
+}
 
-if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { Fail '.NET SDK bulunamadı.' }
-$makensis = @("${env:ProgramFiles(x86)}\NSIS\makensis.exe", "$env:ProgramFiles\NSIS\makensis.exe", "$env:LOCALAPPDATA\Programs\NSIS\makensis.exe") |
-    Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+$dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+if (-not $dotnet) { Fail '.NET SDK bulunamadı.' }
+if ([int]((& dotnet --version).Split('.')[0]) -lt 8) { Fail '.NET 8 veya daha yeni SDK gerekir.' }
+
+$makensis = @(
+    "${env:ProgramFiles(x86)}\NSIS\makensis.exe",
+    "$env:ProgramFiles\NSIS\makensis.exe",
+    "$env:LOCALAPPDATA\Programs\NSIS\makensis.exe"
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 if (-not $makensis) { $cmd = Get-Command makensis.exe -ErrorAction SilentlyContinue; if ($cmd) { $makensis = $cmd.Source } }
 if (-not $makensis) { Fail 'NSIS makensis.exe bulunamadı.' }
 
@@ -76,8 +95,10 @@ foreach ($file in 'DogruTemin.exe','coreclr.dll','hostfxr.dll','PresentationFram
 }
 
 if ([string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
-    Write-Host 'Kod imzalama sertifikası tanımlı değil; paket imzasız üretilecek.' -ForegroundColor Yellow
-} else { Sign-File (Join-Path $appOut 'DogruTemin.exe') }
+    Write-Host 'Kod imzalama sertifikası tanımlı değil; yalnız açıkça izin verilen smoke paketi imzasız üretilecek.' -ForegroundColor Yellow
+} else {
+    Sign-File (Join-Path $appOut 'DogruTemin.exe')
+}
 
 $template = Join-Path $PSScriptRoot 'Kurulum\DogruTemin_NSIS.nsi'
 $nsi = Get-Content $template -Raw -Encoding UTF8
@@ -98,7 +119,7 @@ if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) { Sign-File $setu
 
 $finalExe = Join-Path $dist "DogruTemin_Setup_${packageVersion}_x64.exe"
 Move-Item $setupExe $finalExe -Force
-foreach ($file in 'KURULUM_NOTU.txt','KULLANICI_KILAVUZU.md','RC1_DEGISIKLIK_NOTU.md') {
+foreach ($file in 'KURULUM_NOTU.txt','KULLANICI_KILAVUZU.md','RELEASE_NOTES_4.2.0.md','RC1_DEGISIKLIK_NOTU.md') {
     if (Test-Path $file) { Copy-Item $file (Join-Path $dist $file) -Force }
 }
 $smartScreenNote = Join-Path $PSScriptRoot 'Kurulum\SMARTSCREEN_BILGILENDIRME.txt'
