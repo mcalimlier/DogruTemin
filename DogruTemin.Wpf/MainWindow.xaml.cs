@@ -289,6 +289,7 @@ public partial class MainWindow : Window
         AssignmentDatePicker.SelectedDate = null;
         ApprovalDatePicker.SelectedDate = null;
         CostCalculationDatePicker.SelectedDate = null;
+        ApprovalDocumentDatePicker.SelectedDate = null;
         MarketReportDatePicker.SelectedDate = null;
         InspectionReportDatePicker.SelectedDate = null;
         DeliveryDatePicker.SelectedDate = null;
@@ -296,6 +297,18 @@ public partial class MainWindow : Window
         JobTitleBox.Text = string.Empty;
         AssignmentNoBox.Text = string.Empty;
         ApprovalNoBox.Text = string.Empty;
+        ApprovalDocumentNumberBox.Text = string.Empty;
+        ApprovalAvailableBudgetBox.Text = string.Empty;
+        ApprovalInvestmentProjectBox.Text = string.Empty;
+        ApprovalBudgetCodeBox.Text = string.Empty;
+        ApprovalAdvanceConditionsBox.Text = string.Empty;
+        ApprovalTenderProcedureBox.Text = "4734 S.K. 22/d Kapsamında";
+        ApprovalAnnouncementMethodBox.Text = "İlansız";
+        ApprovalPrequalificationSalePriceBox.Text = string.Empty;
+        ApprovalPriceDifferenceBasisBox.Text = "Ödenmeyecektir";
+        ApprovalNotesBox.Text = string.Empty;
+        ApprovalSubmittedByNameBox.Text = string.Empty;
+        ApprovalSubmittedByTitleBox.Text = string.Empty;
         var preservedInstitution = settings.Institution;
         InstitutionTopAuthorityBox.Text = preservedInstitution?.TopAuthority ?? string.Empty;
         InstitutionFullNameBox.Text = !string.IsNullOrWhiteSpace(preservedInstitution?.FullName) ? preservedInstitution!.FullName : preservedInstitution?.ShortName ?? string.Empty;
@@ -321,6 +334,7 @@ public partial class MainWindow : Window
         var approximateRequest = new OutputDocument { Name = "Yaklaşık Maliyet Talep Yazısı", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
         var firmOfferForm = new OutputDocument { Name = "Firma Teklif Formu", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
         var approximateCostSheet = new OutputDocument { Name = "Yaklaşık Maliyet Hesap Cetveli", IsSelected = false, Status = "Uyarı", Note = "Nihai işlem belgesi" };
+        var approvalDocument = new OutputDocument { Name = "Onay Belgesi", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var marketResearchReport = new OutputDocument { Name = "Piyasa Fiyat Araştırması Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var inspectionReport = new OutputDocument { Name = "Muayene ve Kabul Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
 
@@ -328,6 +342,7 @@ public partial class MainWindow : Window
         PreparationOutputDocuments.Add(firmOfferForm);
 
         FinalOutputDocuments.Add(approximateCostSheet);
+        FinalOutputDocuments.Add(approvalDocument);
         FinalOutputDocuments.Add(marketResearchReport);
         FinalOutputDocuments.Add(inspectionReport);
 
@@ -345,6 +360,7 @@ public partial class MainWindow : Window
         GeneralView.Visibility = view == "General" ? Visibility.Visible : Visibility.Collapsed;
         FirmsOffersView.Visibility = view is "Firms" or "Offers" ? Visibility.Visible : Visibility.Collapsed;
         DocumentsDatesView.Visibility = view is "Dates" or "Output" ? Visibility.Visible : Visibility.Collapsed;
+        ApprovalDocumentView.Visibility = view == "ApprovalDocument" ? Visibility.Visible : Visibility.Collapsed;
         InstitutionView.Visibility = view == "Institution" ? Visibility.Visible : Visibility.Collapsed;
         ControlView.Visibility = view == "Control" ? Visibility.Visible : Visibility.Collapsed;
         StatisticsView.Visibility = view == "Statistics" ? Visibility.Visible : Visibility.Collapsed;
@@ -356,7 +372,7 @@ public partial class MainWindow : Window
         if (view == "Firms") Dispatcher.BeginInvoke(new Action(() => FirmsView?.BringIntoView()));
         if (view == "Offers") Dispatcher.BeginInvoke(new Action(() => OffersView?.BringIntoView()));
 
-        var dataEntryView = view is "Institution" or "General" or "Firms" or "Offers" or "Dates" or "Output";
+        var dataEntryView = view is "Institution" or "General" or "Firms" or "Offers" or "ApprovalDocument" or "Dates" or "Output";
         if (dataEntryView)
         {
             _dataEntryExpanded = true;
@@ -368,6 +384,7 @@ public partial class MainWindow : Window
         NavInstitution.Tag = view == "Institution" ? "Active" : null;
         NavGeneral.Tag = view == "General" ? "Active" : null;
         NavFirmsOffers.Tag = view is "Firms" or "Offers" ? "Active" : null;
+        NavApprovalDocument.Tag = view == "ApprovalDocument" ? "Active" : null;
         NavDocumentsDates.Tag = view is "Dates" or "Output" ? "Active" : null;
         NavControl.Tag = view == "Control" ? "Active" : null;
         NavStatistics.Tag = view == "Statistics" ? "Active" : null;
@@ -405,6 +422,11 @@ public partial class MainWindow : Window
         ShowView("Firms");
     }
 
+
+    private void NavApprovalDocument_Click(object sender, RoutedEventArgs e)
+    {
+        ShowView("ApprovalDocument");
+    }
 
     private void NavDocumentsDates_Click(object sender, RoutedEventArgs e)
     {
@@ -535,7 +557,7 @@ public partial class MainWindow : Window
         }
 
         if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
-        if (_currentView is not ("Institution" or "General" or "Firms" or "Offers" or "Dates" or "Output")) return;
+        if (_currentView is not ("Institution" or "General" or "Firms" or "Offers" or "ApprovalDocument" or "Dates" or "Output")) return;
         if (e.OriginalSource is not TextBox textBox || textBox.AcceptsReturn) return;
         if (FindVisualParent<DataGrid>(textBox) is not null) return;
 
@@ -633,6 +655,38 @@ public partial class MainWindow : Window
                 if (!ConfirmEditorClear("Teklif ekranındaki kaydedilmemiş değişiklikler geri alınsın mı?")) return;
                 LoadOfferFirm(_offerEditingFirm);
                 RefreshSaveStatusVisual();
+                break;
+            case "ApprovalDocument":
+                if (!ApprovalDocumentDatePicker.SelectedDate.HasValue
+                    && string.IsNullOrWhiteSpace(ApprovalDocumentNumberBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalAvailableBudgetBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalInvestmentProjectBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalBudgetCodeBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalAdvanceConditionsBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalPrequalificationSalePriceBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalNotesBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalSubmittedByNameBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalSubmittedByTitleBox.Text)) return;
+                if (!ConfirmEditorClear("Onay Belgesi'ne özgü giriş alanları temizlensin mi?")) return;
+                _suppressDirtyTracking = true;
+                try
+                {
+                    ApprovalDocumentDatePicker.SelectedDate = null;
+                    ApprovalDocumentNumberBox.Text = string.Empty;
+                    ApprovalAvailableBudgetBox.Text = string.Empty;
+                    ApprovalInvestmentProjectBox.Text = string.Empty;
+                    ApprovalBudgetCodeBox.Text = string.Empty;
+                    ApprovalAdvanceConditionsBox.Text = string.Empty;
+                    ApprovalTenderProcedureBox.Text = "4734 S.K. 22/d Kapsamında";
+                    ApprovalAnnouncementMethodBox.Text = "İlansız";
+                    ApprovalPrequalificationSalePriceBox.Text = string.Empty;
+                    ApprovalPriceDifferenceBasisBox.Text = "Ödenmeyecektir";
+                    ApprovalNotesBox.Text = string.Empty;
+                    ApprovalSubmittedByNameBox.Text = string.Empty;
+                    ApprovalSubmittedByTitleBox.Text = string.Empty;
+                }
+                finally { _suppressDirtyTracking = false; }
+                MarkDirty();
                 break;
             case "Dates":
                 if (!CostCalculationDatePicker.SelectedDate.HasValue && !MarketReportDatePicker.SelectedDate.HasValue
@@ -1146,6 +1200,7 @@ public partial class MainWindow : Window
 
     private static bool IsFinalProcessDocument(OutputDocumentType type) =>
         type is OutputDocumentType.ApproximateCostSheet
+            or OutputDocumentType.ApprovalDocument
             or OutputDocumentType.MarketResearchReport
             or OutputDocumentType.InspectionAcceptanceReport;
 
@@ -1415,6 +1470,7 @@ public partial class MainWindow : Window
         ApprovalDatePicker.SelectedDate = data.Dates.ApprovalDate;
         ApprovalNoBox.Text = TextNormalizer.Hys(data.Dates.ApprovalNo);
         CostCalculationDatePicker.SelectedDate = data.Dates.CostCalculationDate;
+        ApprovalDocumentDatePicker.SelectedDate = data.Dates.ApprovalDocumentDate;
         // Eski kayıtlarda ayrı tutulan UYGUNDUR tarihi varsa tek Piyasa tarihi alanına taşınır.
         MarketReportDatePicker.SelectedDate = data.Dates.MarketReportDate ?? data.Dates.MarketApprovalDate;
         InspectionReportDatePicker.SelectedDate = data.Dates.InspectionReportDate;
@@ -1429,6 +1485,18 @@ public partial class MainWindow : Window
         AuthorizedNameBox.Text = data.Institution.AuthorizedName;
         AuthorizedDutyBox.Text = data.Institution.AuthorizedDuty;
         AuthorizedTitleBox.Text = data.Institution.AuthorizedTitle;
+        ApprovalDocumentNumberBox.Text = data.ApprovalDocument.DocumentNumber;
+        ApprovalAvailableBudgetBox.Text = data.ApprovalDocument.AvailableBudgetAmount;
+        ApprovalInvestmentProjectBox.Text = data.ApprovalDocument.InvestmentProjectNumber;
+        ApprovalBudgetCodeBox.Text = data.ApprovalDocument.BudgetCode;
+        ApprovalAdvanceConditionsBox.Text = data.ApprovalDocument.AdvanceConditions;
+        ApprovalTenderProcedureBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.TenderProcedure) ? "4734 S.K. 22/d Kapsamında" : data.ApprovalDocument.TenderProcedure;
+        ApprovalAnnouncementMethodBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.AnnouncementMethod) ? "İlansız" : data.ApprovalDocument.AnnouncementMethod;
+        ApprovalPrequalificationSalePriceBox.Text = data.ApprovalDocument.PrequalificationDocumentSalePrice;
+        ApprovalPriceDifferenceBasisBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.PriceDifferenceBasis) ? "Ödenmeyecektir" : data.ApprovalDocument.PriceDifferenceBasis;
+        ApprovalNotesBox.Text = data.ApprovalDocument.Notes;
+        ApprovalSubmittedByNameBox.Text = data.ApprovalDocument.SubmittedByName;
+        ApprovalSubmittedByTitleBox.Text = data.ApprovalDocument.SubmittedByTitle;
         AutoBackupCheckBox.IsChecked = data.AutoBackup;
         _operationNumber = data.OperationNumber ?? string.Empty;
         _recordId = data.RecordId ?? string.Empty;
@@ -1462,7 +1530,7 @@ public partial class MainWindow : Window
             {
                 AssignmentDate = AssignmentDatePicker.SelectedDate, AssignmentNo = AssignmentNoBox.Text.Trim(),
                 ApprovalDate = ApprovalDatePicker.SelectedDate, ApprovalNo = TextNormalizer.Hys(ApprovalNoBox.Text),
-                CostCalculationDate = CostCalculationDatePicker.SelectedDate, MarketReportDate = MarketReportDatePicker.SelectedDate,
+                CostCalculationDate = CostCalculationDatePicker.SelectedDate, ApprovalDocumentDate = ApprovalDocumentDatePicker.SelectedDate, MarketReportDate = MarketReportDatePicker.SelectedDate,
                 InspectionReportDate = InspectionReportDatePicker.SelectedDate,
                 DeliveryDate = DeliveryDatePicker.SelectedDate,
                 // Piyasa UYGUNDUR tarihi ayrı bir kullanıcı alanı değildir; aynı tarih geriye dönük uyumluluk için de saklanır.
@@ -1476,6 +1544,21 @@ public partial class MainWindow : Window
                 Province = InstitutionProvinceBox.Text.Trim(), Address = InstitutionAddressBox.Text.Trim(), Phone = InstitutionPhoneBox.Text.Trim(),
                 Email = InstitutionEmailBox.Text.Trim().ToLowerInvariant(), AuthorizedName = AuthorizedNameBox.Text.Trim(),
                 AuthorizedDuty = AuthorizedDutyBox.Text.Trim(), AuthorizedTitle = AuthorizedTitleBox.Text.Trim()
+            },
+            ApprovalDocument = new DogruTemin.Core.Models.ApprovalDocumentInfo
+            {
+                DocumentNumber = ApprovalDocumentNumberBox.Text.Trim(),
+                AvailableBudgetAmount = ApprovalAvailableBudgetBox.Text.Trim(),
+                InvestmentProjectNumber = ApprovalInvestmentProjectBox.Text.Trim(),
+                BudgetCode = ApprovalBudgetCodeBox.Text.Trim(),
+                AdvanceConditions = ApprovalAdvanceConditionsBox.Text.Trim(),
+                TenderProcedure = ApprovalTenderProcedureBox.Text.Trim(),
+                AnnouncementMethod = ApprovalAnnouncementMethodBox.Text.Trim(),
+                PrequalificationDocumentSalePrice = ApprovalPrequalificationSalePriceBox.Text.Trim(),
+                PriceDifferenceBasis = ApprovalPriceDifferenceBasisBox.Text.Trim(),
+                Notes = ApprovalNotesBox.Text.Trim(),
+                SubmittedByName = ApprovalSubmittedByNameBox.Text.Trim(),
+                SubmittedByTitle = ApprovalSubmittedByTitleBox.Text.Trim()
             },
             PreferredWinnerFirmId = _preferredWinnerFirmId,
             AutoBackup = AutoBackupCheckBox.IsChecked == true
@@ -1535,13 +1618,15 @@ public partial class MainWindow : Window
             firmsDone ? $"{firms.Count} firma hazır • tekliflerde eksik var." : $"En az 3 firma gerekli; şu an {firms.Count} firma var.");
 
         var dateWarnings = ValidationService.DateLogicWarnings(data);
-        var datesDone = data.Dates.CostCalculationDate.HasValue
+        var datesDone = data.Dates.AssignmentDate.HasValue
+            && data.Dates.CostCalculationDate.HasValue
+            && data.Dates.ApprovalDocumentDate.HasValue
             && data.Dates.MarketReportDate.HasValue
             && data.Dates.InspectionReportDate.HasValue
             && data.Dates.DeliveryDate.HasValue
             && dateWarnings.Count == 0;
         SetHomeStage(HomeStageDatesStatus, HomeStageDatesDetail, datesDone,
-            datesDone ? "4 belge tarihi hazır ve zorunlu sıra geçerli." : "Belge tarihlerini tamamlayın; yanlış sıra varsa uyarı verilir.");
+            datesDone ? "Belge tarihleri hazır ve zorunlu kronoloji geçerli." : "Kurul/komisyon, yaklaşık maliyet, Onay Belgesi, piyasa ve muayene/kabul tarihlerini kontrol edin.");
 
         var preparationTypes = new[]
         {
@@ -1551,6 +1636,7 @@ public partial class MainWindow : Window
         var finalProcessTypes = new[]
         {
             OutputDocumentType.ApproximateCostSheet,
+            OutputDocumentType.ApprovalDocument,
             OutputDocumentType.MarketResearchReport,
             OutputDocumentType.InspectionAcceptanceReport
         };
@@ -1584,6 +1670,12 @@ public partial class MainWindow : Window
         {
             _homeNextView = "Offers";
             HomeNextStepText.Text = "Firmaların yaklaşık ve nihai tekliflerini tamamlayın.";
+        }
+        else if (!data.Dates.ApprovalDocumentDate.HasValue || string.IsNullOrWhiteSpace(data.ApprovalDocument.AvailableBudgetAmount)
+            || string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByName) || string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByTitle))
+        {
+            _homeNextView = "ApprovalDocument";
+            HomeNextStepText.Text = "Onay Belgesi'ne özgü bilgileri tamamlayın.";
         }
         else if (!datesDone)
         {
@@ -1805,6 +1897,7 @@ public partial class MainWindow : Window
     {
         "Yaklaşık Maliyet Talep Yazısı" => OutputDocumentType.ApproximateRequest,
         "Yaklaşık Maliyet Hesap Cetveli" => OutputDocumentType.ApproximateCostSheet,
+        "Onay Belgesi" => OutputDocumentType.ApprovalDocument,
         "Firma Teklif Formu" => OutputDocumentType.FirmOfferForm,
         "Piyasa Fiyat Araştırması Tutanağı" => OutputDocumentType.MarketResearchReport,
         "Muayene ve Kabul Tutanağı" => OutputDocumentType.InspectionAcceptanceReport,

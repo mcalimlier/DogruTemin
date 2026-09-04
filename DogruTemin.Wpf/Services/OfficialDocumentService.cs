@@ -36,6 +36,7 @@ public sealed class OfficialDocumentService
             {
                 OutputDocumentType.ApproximateRequest => BuildApproximateRequestPage(data),
                 OutputDocumentType.ApproximateCostSheet => BuildApproximateCostSheetPage(data),
+                OutputDocumentType.ApprovalDocument => BuildApprovalDocumentPage(data),
                 OutputDocumentType.FirmOfferForm => BuildFirmOfferFormPage(data),
                 OutputDocumentType.MarketResearchReport => BuildMarketResearchPage(data),
                 OutputDocumentType.InspectionAcceptanceReport => BuildInspectionAcceptancePage(data),
@@ -216,6 +217,95 @@ public sealed class OfficialDocumentService
         return page;
     }
 
+    private static FixedPage BuildApprovalDocumentPage(ProcurementData data)
+    {
+        var products = ActiveProducts(data);
+        var calc = ProcurementEngine.Calculate(data);
+        var info = data.ApprovalDocument ?? new ApprovalDocumentInfo();
+        var page = NewPage(A4PortraitWidth, A4PortraitHeight);
+        var root = NewPageRoot(page, A4PortraitWidth, A4PortraitHeight);
+        var body = new StackPanel { Orientation = Orientation.Vertical };
+        root.Children.Add(body);
+
+        body.Children.Add(T("ONAY BELGESİ", 15.0, true, TextAlignment.Center, new Thickness(0, 0, 0, 6)));
+
+        var header = new Grid();
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(285) });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        AddRow(header, 28); AddCell(header, 0, 0, "ALIM YAPAN İDARENİN ADI", true, 9.4, TextAlignment.Left); AddCell(header, 0, 1, data.Institution.FullName, false, 9.4, TextAlignment.Center, 1, 1, "Cambria", 60, 7.4);
+        AddRow(header, 28); AddCell(header, 1, 0, "BELGE TARİH VE SAYISI", true, 9.4, TextAlignment.Left); AddCell(header, 1, 1, $"{DateText(data.Dates.ApprovalDocumentDate)}  /  {Safe(info.DocumentNumber)}", false, 9.4, TextAlignment.Center);
+        body.Children.Add(header);
+
+        var details = new Grid { Margin = new Thickness(0, 0, 0, 0) };
+        details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(285) });
+        details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        AddRow(details, 30); AddCell(details, 0, 0, "DOĞRUDAN TEMİN İLE İLGİLİ BİLGİLER", true, 10.2, TextAlignment.Center, 2, 1);
+        var row = 1;
+        void Detail(string label, string value, double height = 27)
+        {
+            AddRow(details, height); AddCell(details, row, 0, label, true, 8.8, TextAlignment.Left); AddCell(details, row, 1, value, false, 8.8, TextAlignment.Left, 1, 1, "Cambria", 88, 7.0); row++;
+        }
+        Detail("İŞİN TANIMI", data.JobTitle, 36);
+        Detail("İŞİN NİTELİĞİ", data.JobTitle, 36);
+        Detail("İŞİN MİKTARI", ApprovalQuantitySummary(products), 34);
+        Detail("Yaklaşık Maliyet (KDV Hariç)", NumberParser.Money(calc.ApproximateCostTotal));
+        Detail("Kullanılabilir Ödenek Tutarı", ApprovalMoneyText(info.AvailableBudgetAmount));
+        Detail("Yatırım Proje Numarası (varsa)", info.InvestmentProjectNumber);
+        Detail("Bütçe Tertibi (varsa)", info.BudgetCode);
+        Detail("Avans Verilecekse Şartları", info.AdvanceConditions);
+        Detail("İhale Usulü", string.IsNullOrWhiteSpace(info.TenderProcedure) ? "4734 S.K. 22/d Kapsamında" : info.TenderProcedure);
+        Detail("İlanın Şekli ve Adedi", string.IsNullOrWhiteSpace(info.AnnouncementMethod) ? "İlansız" : info.AnnouncementMethod);
+        Detail("Ön Yeterlik/İhale Dokümanı Satış Bedeli", info.PrequalificationDocumentSalePrice);
+        Detail("Fiyat Farkı Ödenecekse Dayanağı", string.IsNullOrWhiteSpace(info.PriceDifferenceBasis) ? "Ödenmeyecektir" : info.PriceDifferenceBasis, 32);
+        body.Children.Add(details);
+
+        var notes = new Grid(); notes.ColumnDefinitions.Add(new ColumnDefinition());
+        AddRow(notes, 28); AddCell(notes, 0, 0, "AÇIKLAMALAR", true, 9.8, TextAlignment.Center);
+        AddRow(notes, 55); AddCell(notes, 1, 0, string.IsNullOrWhiteSpace(info.Notes) ? data.JobTitle : info.Notes, false, 8.8, TextAlignment.Left, 1, 1, "Cambria", 120, 7.0);
+        body.Children.Add(notes);
+
+        body.Children.Add(BuildApprovalCommissionTable("PİYASA ARAŞTIRMA GÖREVLİLERİ", data.MarketCommission));
+        body.Children.Add(BuildApprovalCommissionTable("MUAYENE VE KABUL KOMİSYONU GÖREVLİLERİ", data.InspectionCommission));
+
+        var approval = new Grid();
+        approval.ColumnDefinitions.Add(new ColumnDefinition()); approval.ColumnDefinitions.Add(new ColumnDefinition());
+        AddRow(approval, 28); AddCell(approval, 0, 0, "ONAY", true, 10.0, TextAlignment.Center, 2, 1);
+        AddRow(approval, 112);
+        var left = $"Yukarıda belirtilen mal/malzeme/hizmetin alınması hususunu onaylarınıza arz ederim\n\n{DateText(data.Dates.ApprovalDocumentDate)}\n\n{info.SubmittedByName}\n{info.SubmittedByTitle}";
+        var rightTitle = !string.IsNullOrWhiteSpace(data.Institution.AuthorizedTitle) ? data.Institution.AuthorizedTitle : data.Institution.AuthorizedDuty;
+        var right = $"Uygundur\n{DateText(data.Dates.ApprovalDocumentDate)}\nHarcama Yetkilisi\n\n{data.Institution.AuthorizedName}\n{rightTitle}";
+        AddCell(approval, 1, 0, left, false, 8.8, TextAlignment.Center, 1, 1, "Cambria", 95, 7.2);
+        AddCell(approval, 1, 1, right, false, 8.8, TextAlignment.Center, 1, 1, "Cambria", 80, 7.2);
+        body.Children.Add(approval);
+        return page;
+    }
+
+    private static Grid BuildApprovalCommissionTable(string title, IEnumerable<CommissionMember> source)
+    {
+        var members = source.Take(3).ToList();
+        while (members.Count < 3) members.Add(new CommissionMember());
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
+        AddRow(grid, 28); AddCell(grid, 0, 0, title, true, 9.6, TextAlignment.Center, 2, 1);
+        AddRow(grid, 24); AddCell(grid, 1, 0, "Adı Soyadı", true, 8.6); AddCell(grid, 1, 1, "Unvanı", true, 8.6);
+        for (var i = 0; i < 3; i++)
+        {
+            AddRow(grid, 25);
+            AddCell(grid, i + 2, 0, $"{i + 1}. {members[i].Name}", false, 8.3, TextAlignment.Left);
+            AddCell(grid, i + 2, 1, $"{CommissionRole(i)} ({members[i].Title})", false, 8.3, TextAlignment.Left);
+        }
+        return grid;
+    }
+
+    private static string ApprovalQuantitySummary(IReadOnlyCollection<ProductItem> products) =>
+        products.Count == 0 ? string.Empty : string.Join("; ", products.Select(p => $"{p.Quantity} {p.Unit} {p.Name}"));
+
+    private static string ApprovalMoneyText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        return NumberParser.TryPositiveDecimal(value, out var parsed) ? NumberParser.Money(parsed) : value.Trim();
+    }
     // Eski Excel formu görsel referanstır; yeni iş kuralı ise alımın tamamında tek kazanan firmadır.
     private static FixedPage BuildMarketResearchPage(ProcurementData data)
     {

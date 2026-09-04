@@ -109,6 +109,7 @@ public static class ValidationService
         RequireDate(data.Dates.ApprovalDate, issues, "Harcama belgesi tarihi");
         RequireText(data.Dates.ApprovalNo, issues, "Harcama belgesi sayısı");
         RequireDate(data.Dates.CostCalculationDate, issues, "Yaklaşık Maliyet Hesap Cetveli tarihi");
+        RequireDate(data.Dates.ApprovalDocumentDate, issues, "Onay Belgesi tarihi");
         RequireDate(data.Dates.MarketReportDate, issues, "Piyasa Fiyat Araştırması Tutanağı tarihi");
         RequireDate(data.Dates.InspectionReportDate, issues, "Muayene ve Kabul Tutanağı tarihi");
         RequireDate(data.Dates.DeliveryDate, issues, "Teslim Alma / Kabul tarihi");
@@ -156,9 +157,9 @@ public static class ValidationService
 
     public static IReadOnlyList<ValidationIssue> DateLogicWarnings(ProcurementData data)
     {
-        // DoğruTemin'in TEK zorunlu kronolojik tarih kuralı:
-        // Yaklaşık Maliyet Hesap Cetveli < Piyasa Fiyat Araştırması Tutanağı < Muayene ve Kabul Tutanağı.
-        // Bunların dışındaki tarihler kullanıcı kararına bağlıdır ve birbirleriyle kıyaslanmaz.
+        // Zorunlu kronoloji:
+        // Kurul/Komisyon Onay <= Yaklaşık Maliyet < Onay Belgesi < Piyasa Fiyat Araştırması <= Muayene/Kabul.
+        // Harcama belgesi ve teslim/kabul tarihi bu zincirin dışında ayrıca yönetilir.
         var issues = new List<ValidationIssue>();
         AddRequiredDateSequenceIssues(data.Dates, issues, ValidationSeverity.Warning);
         return issues;
@@ -200,6 +201,20 @@ public static class ValidationService
                 if (!ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Kurum e-posta adresi");
                 RequireCommission(data.MarketCommission, issues, "Teklif formu komisyonu");
                 break;
+            case OutputDocumentType.ApprovalDocument:
+                RequireDate(data.Dates.ApprovalDocumentDate, issues, "Onay Belgesi tarihi");
+                RequireText(data.ApprovalDocument.AvailableBudgetAmount, issues, "Kullanılabilir ödenek tutarı");
+                RequireText(data.ApprovalDocument.SubmittedByName, issues, "Onaya sunan ad soyad");
+                RequireText(data.ApprovalDocument.SubmittedByTitle, issues, "Onaya sunan unvanı");
+                RequireText(data.Institution.AuthorizedName, issues, "Harcama yetkilisi adı soyadı");
+                RequireText(data.Institution.AuthorizedDuty, issues, "Harcama yetkilisi görevi");
+                RequireCommission(data.MarketCommission, issues, "Piyasa araştırma görevlileri");
+                RequireCommission(data.InspectionCommission, issues, "Muayene ve kabul komisyonu");
+                RequireAtLeastThreeFirms(firms, issues);
+                foreach (var firm in firms)
+                    foreach (var product in products)
+                        if (!(OfferFor(firm, product.Id)?.ApproximateUnitPrice > 0)) Critical(issues, "Offers", $"{firm.No}. firma / {product.No}. ürün yaklaşık fiyatı");
+                break;
             case OutputDocumentType.MarketResearchReport:
                 RequireDate(data.Dates.ApprovalDate, issues, "Harcama belgesi tarihi");
                 RequireText(data.Dates.ApprovalNo, issues, "Harcama belgesi sayısı");
@@ -237,27 +252,30 @@ public static class ValidationService
             !string.IsNullOrWhiteSpace(data.Institution.FullName),
             !string.IsNullOrWhiteSpace(data.Institution.Province),
             data.Dates.ApprovalDate.HasValue,
-            !string.IsNullOrWhiteSpace(data.Dates.ApprovalNo)
+            !string.IsNullOrWhiteSpace(data.Dates.ApprovalNo),
+            data.Dates.ApprovalDocumentDate.HasValue,
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.AvailableBudgetAmount)
         };
         return (int)Math.Round(checks.Count(c => c) * 100.0 / checks.Count);
     }
 
     private static void AddRequiredDateSequenceIssues(ProcessDates d, List<ValidationIssue> issues, ValidationSeverity severity)
     {
-        // Eşit tarih de geçerli değildir; kullanıcı açıkça "<" sıralamasını istemiştir.
-        if (d.CostCalculationDate.HasValue && d.MarketReportDate.HasValue &&
-            d.CostCalculationDate.Value.Date >= d.MarketReportDate.Value.Date)
-        {
-            AddDateSequenceIssue(issues, severity,
-                "Yaklaşık Maliyet Hesap Cetveli Tarihi, Piyasa Fiyat Araştırması Tutanağı tarihinden MUTLAKA önce olmalıdır.");
-        }
+        if (d.AssignmentDate.HasValue && d.CostCalculationDate.HasValue &&
+            d.AssignmentDate.Value.Date > d.CostCalculationDate.Value.Date)
+            AddDateSequenceIssue(issues, severity, "Kurul / Komisyon Onay Tarihi, Yaklaşık Maliyet Hesap Cetveli tarihinden sonra olamaz.");
+
+        if (d.CostCalculationDate.HasValue && d.ApprovalDocumentDate.HasValue &&
+            d.CostCalculationDate.Value.Date >= d.ApprovalDocumentDate.Value.Date)
+            AddDateSequenceIssue(issues, severity, "Yaklaşık Maliyet Hesap Cetveli Tarihi, Onay Belgesi tarihinden MUTLAKA önce olmalıdır.");
+
+        if (d.ApprovalDocumentDate.HasValue && d.MarketReportDate.HasValue &&
+            d.ApprovalDocumentDate.Value.Date >= d.MarketReportDate.Value.Date)
+            AddDateSequenceIssue(issues, severity, "Onay Belgesi tarihi, Piyasa Fiyat Araştırması Tutanağı tarihinden MUTLAKA önce olmalıdır.");
 
         if (d.MarketReportDate.HasValue && d.InspectionReportDate.HasValue &&
-            d.MarketReportDate.Value.Date >= d.InspectionReportDate.Value.Date)
-        {
-            AddDateSequenceIssue(issues, severity,
-                "Piyasa Fiyat Araştırması Tutanağı tarihi, Muayene ve Kabul Tutanağı tarihinden MUTLAKA önce olmalıdır.");
-        }
+            d.MarketReportDate.Value.Date > d.InspectionReportDate.Value.Date)
+            AddDateSequenceIssue(issues, severity, "Piyasa Fiyat Araştırması Tutanağı tarihi, Muayene ve Kabul Tutanağı tarihinden sonra olamaz.");
     }
 
     private static void AddDateSequenceIssue(List<ValidationIssue> issues, ValidationSeverity severity, string message)

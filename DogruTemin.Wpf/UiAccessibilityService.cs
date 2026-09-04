@@ -19,8 +19,11 @@ internal static class UiAccessibilityService
         "InstitutionAddressBox", "InstitutionPhoneBox", "InstitutionEmailBox",
         "AuthorizedNameBox", "AuthorizedDutyBox", "AuthorizedTitleBox",
         "JobTitleBox", "ProductNameBox", "ProductSpecBox", "ProductUnitBox", "ProductQuantityBox",
-        "AssignmentDatePicker", "ApprovalDatePicker", "CostCalculationDatePicker", "MarketReportDatePicker",
-        "InspectionReportDatePicker", "DeliveryDatePicker", "OfferDatePicker", "ArchiveSearchBox"
+        "AssignmentDatePicker", "ApprovalDatePicker", "CostCalculationDatePicker", "ApprovalDocumentDatePicker", "MarketReportDatePicker",
+        "InspectionReportDatePicker", "DeliveryDatePicker", "ApprovalDocumentNumberBox", "ApprovalAvailableBudgetBox",
+        "ApprovalInvestmentProjectBox", "ApprovalBudgetCodeBox", "ApprovalAdvanceConditionsBox", "ApprovalTenderProcedureBox",
+        "ApprovalAnnouncementMethodBox", "ApprovalPrequalificationSalePriceBox", "ApprovalPriceDifferenceBasisBox",
+        "ApprovalNotesBox", "ApprovalSubmittedByNameBox", "ApprovalSubmittedByTitleBox", "OfferDatePicker", "ArchiveSearchBox"
     };
 
     public static void Apply(MainWindow window)

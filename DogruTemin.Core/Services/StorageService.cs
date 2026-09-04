@@ -520,11 +520,11 @@ public class StorageService
 
     private static void Normalize(ProcurementData data)
     {
-        data.SchemaVersion = Math.Max(data.SchemaVersion, 3);
+        data.SchemaVersion = Math.Max(data.SchemaVersion, 4);
         if (string.IsNullOrWhiteSpace(data.RecordId)) data.RecordId = Guid.NewGuid().ToString("N");
         if (data.CreatedAt == default) data.CreatedAt = data.LastSavedAt ?? DateTime.Now;
         data.Products ??= new(); data.Firms ??= new(); data.InspectionCommission ??= new(); data.MarketCommission ??= new();
-        data.Dates ??= new(); data.Institution ??= new();
+        data.Dates ??= new(); data.Institution ??= new(); data.ApprovalDocument ??= new();
         data.Products = data.Products.Take(8).ToList();
         data.Firms = data.Firms.Take(5).ToList();
         for (var i = 0; i < data.Products.Count; i++) { data.Products[i].No = i + 1; if (string.IsNullOrWhiteSpace(data.Products[i].Id)) data.Products[i].Id = Guid.NewGuid().ToString("N"); }
