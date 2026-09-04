@@ -29,7 +29,7 @@ public sealed class DiagnosticAndRecoveryTests : IDisposable
         Assert.DoesNotContain(names, name => name.EndsWith(".json", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(names, name => name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
 
-        var logEntry = Assert.Single(zip.Entries.Where(entry => entry.FullName == "Loglar/test.log"));
+        var logEntry = Assert.Single(zip.Entries, entry => entry.FullName == "Loglar/test.log");
         using var reader = new StreamReader(logEntry.Open(), Encoding.UTF8);
         var logText = reader.ReadToEnd();
         Assert.DoesNotContain(Environment.UserName, logText, StringComparison.OrdinalIgnoreCase);
