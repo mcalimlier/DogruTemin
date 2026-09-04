@@ -3,12 +3,15 @@ using DogruTemin.Core.Services;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 
 namespace DogruTemin.Wpf.Services;
 
 public sealed class ApplicationSafetyService
 {
+    private const int MaximumArchiveEntryCount = 10_000;
+    private const long MaximumUncompressedBytes = 2L * 1024 * 1024 * 1024;
     private readonly StorageService _storage;
 
     public ApplicationSafetyService(StorageService storage)
@@ -64,6 +67,7 @@ public sealed class ApplicationSafetyService
     {
         var problems = new List<string>();
         var checkedJson = 0;
+        var checkedPdf = 0;
 
         try
         {
@@ -94,12 +98,32 @@ public sealed class ApplicationSafetyService
             }
         }
 
+        if (Directory.Exists(_storage.PdfFolder))
+        {
+            foreach (var file in Directory.EnumerateFiles(_storage.PdfFolder, "*.pdf", SearchOption.AllDirectories))
+            {
+                checkedPdf++;
+                try
+                {
+                    ValidatePdfFile(file);
+                }
+                catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException)
+                {
+                    problems.Add($"{Path.GetFileName(file)} geçerli PDF değil ({ex.Message})");
+                }
+            }
+        }
+
         if (problems.Count == 0)
         {
             var recordCount = Directory.Exists(_storage.RecordsFolder)
                 ? Directory.GetFiles(_storage.RecordsFolder, "islem_*.json").Length
                 : 0;
-            return new SafetyCheckResult(true, $"Veri bütünlüğü sağlıklı. {recordCount} arşiv kaydı, {checkedJson} JSON dosyası kontrol edildi.", null, 0);
+            return new SafetyCheckResult(
+                true,
+                $"Veri bütünlüğü sağlıklı. {recordCount} arşiv kaydı, {checkedJson} JSON ve {checkedPdf} PDF dosyası kontrol edildi.",
+                null,
+                0);
         }
 
         return new SafetyCheckResult(false, $"{problems.Count} veri problemi bulundu: {string.Join(" | ", problems.Take(3))}", null, problems.Count);
@@ -221,11 +245,19 @@ public sealed class ApplicationSafetyService
     {
         using var archive = ZipFile.OpenRead(zipPath);
         if (archive.Entries.Count == 0) throw new InvalidDataException("ZIP yedeği boş.");
+        if (archive.Entries.Count > MaximumArchiveEntryCount)
+            throw new InvalidDataException($"ZIP yedeğinde izin verilenden fazla dosya var ({MaximumArchiveEntryCount:N0} sınırı).");
+
         var basePath = Path.GetFullPath(destination).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        long totalUncompressedBytes = 0;
 
         foreach (var entry in archive.Entries)
         {
             if (string.IsNullOrWhiteSpace(entry.FullName)) continue;
+            totalUncompressedBytes = checked(totalUncompressedBytes + entry.Length);
+            if (totalUncompressedBytes > MaximumUncompressedBytes)
+                throw new InvalidDataException("ZIP yedeğinin açılmış toplam boyutu güvenlik sınırını aşıyor.");
+
             var target = Path.GetFullPath(Path.Combine(destination, entry.FullName));
             if (!target.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidDataException("Yedek içinde geçersiz dosya yolu bulundu.");
@@ -260,6 +292,24 @@ public sealed class ApplicationSafetyService
             using var stream = File.OpenRead(file);
             using var _ = JsonDocument.Parse(stream);
         }
+    }
+
+    private static void ValidatePdfFile(string filePath)
+    {
+        using var stream = File.OpenRead(filePath);
+        if (stream.Length < 8) throw new InvalidDataException("Dosya çok kısa.");
+
+        Span<byte> header = stackalloc byte[5];
+        if (stream.Read(header) != header.Length || Encoding.ASCII.GetString(header) != "%PDF-")
+            throw new InvalidDataException("PDF başlığı bulunamadı.");
+
+        var tailLength = (int)Math.Min(4096, stream.Length);
+        var tail = new byte[tailLength];
+        stream.Seek(-tailLength, SeekOrigin.End);
+        var read = stream.Read(tail, 0, tail.Length);
+        var tailText = Encoding.ASCII.GetString(tail, 0, read);
+        if (!tailText.Contains("%%EOF", StringComparison.Ordinal))
+            throw new InvalidDataException("PDF sonlandırma işareti bulunamadı.");
     }
 
     private static void CopyDirectory(string source, string destination)
