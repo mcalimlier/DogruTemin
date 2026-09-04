@@ -1,4 +1,4 @@
-﻿Unicode true
+Unicode true
 
 !include "MUI2.nsh"
 !include "x64.nsh"
@@ -9,14 +9,14 @@
 !insertmacro VersionCompare
 
 !define APPNAME "DoğruTemin"
-!define APPVERSION "4.1.0"
+!define APPVERSION "4.2.0"
 !define APPEXENAME "DogruTemin.exe"
 !define APPDESC "Doğrudan Temin Süreç Yönetim Programı"
 !define APPKEY "Software\DoğruTemin"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\DogruTemin.Desktop.4B5374E9-9DB8-4B4F-93D6-57B0BA5704C4"
 
 Name "${APPNAME} ${APPVERSION}"
-OutFile "..\_YAYIN\Setup\DogruTemin_Setup_4.1.0_x64.exe"
+OutFile "..\_YAYIN\Setup\DogruTemin_Setup_4.2.0_x64.exe"
 InstallDir "$PROGRAMFILES64\DoğruTemin"
 InstallDirRegKey HKLM "${APPKEY}" "InstallDir"
 RequestExecutionLevel admin
@@ -27,21 +27,21 @@ ShowInstDetails show
 ShowUninstDetails show
 BrandingText "DoğruTemin ${APPVERSION}"
 
-VIProductVersion "4.1.0.0"
+VIProductVersion "4.2.0.0"
 VIAddVersionKey /LANG=1055 "ProductName" "DoğruTemin"
 VIAddVersionKey /LANG=1055 "FileDescription" "DoğruTemin Kurulum Programı"
-VIAddVersionKey /LANG=1055 "FileVersion" "4.1.0.0"
-VIAddVersionKey /LANG=1055 "ProductVersion" "4.1.0"
+VIAddVersionKey /LANG=1055 "FileVersion" "4.2.0.0"
+VIAddVersionKey /LANG=1055 "ProductVersion" "4.2.0"
 VIAddVersionKey /LANG=1055 "CompanyName" "DoğruTemin"
 VIAddVersionKey /LANG=1055 "LegalCopyright" "DoğruTemin"
 
 !define MUI_ICON "..\DogruTemin.Wpf\Assets\AppIcon.ico"
 !define MUI_UNICON "..\DogruTemin.Wpf\Assets\AppIcon.ico"
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "DoğruTemin 4.1.0 Kurulumuna Hoş Geldiniz"
-!define MUI_WELCOMEPAGE_TEXT "ÖNEMLİ BİLGİ: Windows bazı bilgisayarlarda kurulum dosyasını ilk açarken SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir. Dosyayı kurumunuzdan veya güvenilir kaynaktan aldıysanız seçenek sunuluyorsa Daha fazla bilgi > Yine de çalıştır ile devam edebilirsiniz.$\r$\n$\r$\nDoğruTemin Windows 10/11 64-bit için self-contained hazırlanmıştır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.$\r$\n$\r$\nMevcut DoğruTemin kullanıcı verileri ve arşivleri korunur."
+!define MUI_WELCOMEPAGE_TITLE "DoğruTemin 4.2.0 Kurulumuna Hoş Geldiniz"
+!define MUI_WELCOMEPAGE_TEXT "DoğruTemin Windows 10/11 64-bit için self-contained hazırlanmıştır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.$\r$\n$\r$\nMevcut DoğruTemin kullanıcı verileri ve arşivleri korunur. Kurulumdan önce açık DoğruTemin pencerelerini kapatmanız önerilir."
 !define MUI_FINISHPAGE_TITLE "DoğruTemin Kurulumu Tamamlandı"
-!define MUI_FINISHPAGE_TEXT "DoğruTemin başarıyla kuruldu.$\r$\n$\r$\nKullanıcı verileriniz Belgeler\DoğruTemin klasöründe tutulur ve program kaldırıldığında silinmez."
+!define MUI_FINISHPAGE_TEXT "DoğruTemin başarıyla kuruldu.$\r$\n$\r$\nKullanıcı verileriniz Masaüstü\DoğruTemin klasöründe tutulur ve program kaldırıldığında silinmez."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APPEXENAME}"
 !define MUI_FINISHPAGE_RUN_TEXT "DoğruTemin'i şimdi çalıştır"
 
@@ -68,13 +68,7 @@ Function .onInit
   ${EndIf}
 
   SetRegView 64
-
-  ; Temiz kurulumda, sihirbaz açılmadan hemen önce kısa bir kullanıcı bilgilendirmesi göster.
-  ; SmartScreen Windows tarafından EXE başlamadan önce çalıştığı için bu pencere SmartScreen'den önce gösterilemez; ancak kurulum sihirbazından önce görünür.
   ReadRegStr $0 HKLM "${UNINSTKEY}" "DisplayVersion"
-  ${If} $0 == ""
-    MessageBox MB_ICONINFORMATION|MB_OK "Kurulum bilgisi:$\r$\n$\r$\nWindows bazı bilgisayarlarda DoğruTemin kurulum dosyasını ilk açarken SmartScreen / Bilinmeyen yayıncı uyarısı gösterebilir.$\r$\n$\r$\nDosyayı kurumunuzdan veya güvenilir kaynaktan aldıysanız seçenek sunuluyorsa Daha fazla bilgi > Yine de çalıştır ile devam edebilirsiniz."
-  ${EndIf}
 
   ; Daha yeni bir sürüm zaten kuruluysa yanlışlıkla geri sürüme dönmeyi engelle.
   ${If} $0 != ""
@@ -131,7 +125,7 @@ Section "DoğruTemin" SEC_MAIN
   ; Güncellemede çalışan eski sürümün dosya kilitlerini güvenli biçimde kaldır.
   Call CloseDogruTemin
 
-  ; Kullanıcı verileri Belgeler\DoğruTemin altında olduğundan yalnız Program Files içindeki
+  ; Kullanıcı verileri Masaüstü\DoğruTemin altında olduğundan yalnız Program Files içindeki
   ; eski uygulama dosyaları temizlenir. Bu, eski/stale DLL kalmasını da engeller.
   IfFileExists "$INSTDIR\*.*" 0 clean_install_done
 
@@ -194,7 +188,7 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\DoğruTemin"
 
   ; Yalnız uygulama kurulum klasörü silinir.
-  ; Belgeler\DoğruTemin içindeki arşiv, ayar, PDF ve yedekler BİLİNÇLİ olarak korunur.
+  ; Masaüstü\DoğruTemin içindeki arşiv, ayar, PDF ve yedekler BİLİNÇLİ olarak korunur.
   RMDir /r "$INSTDIR"
 
   DeleteRegKey HKLM "${UNINSTKEY}"

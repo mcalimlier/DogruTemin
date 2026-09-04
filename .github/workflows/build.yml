@@ -1,0 +1,123 @@
+name: DogruTemin Windows CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dogrutemin-ci-v2-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: build-and-test
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v4
+      - name: .NET 8 kur
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: NuGet paketlerini yükle
+        run: |
+          dotnet restore DogruTemin.Wpf/DogruTemin.Wpf.csproj
+          dotnet restore DogruTemin.Tests/DogruTemin.Tests.csproj
+      - name: Release derlemesi yap
+        run: dotnet build DogruTemin.Wpf/DogruTemin.Wpf.csproj -c Release --no-restore
+      - name: Otomatik testleri çalıştır
+        run: dotnet test DogruTemin.Tests/DogruTemin.Tests.csproj -c Release --no-restore --logger "trx;LogFileName=DogruTemin.Tests.trx"
+      - name: Test raporunu sakla
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dogrutemin-test-results
+          path: '**/DogruTemin.Tests.trx'
+          if-no-files-found: warn
+          retention-days: 14
+
+  setup-smoke:
+    name: setup-smoke
+    needs: build-and-test
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v4
+      - name: .NET 8 kur
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: NSIS kur
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+      - name: Kurulum paketini üret
+        shell: pwsh
+        run: |
+          $dist = Join-Path $env:RUNNER_TEMP 'DogruTeminDist'
+          .\SETUP_HAZIRLA.ps1 -AllowPrerelease -OutputRoot $dist
+          $setup = Get-ChildItem $dist -Filter 'DogruTemin_Setup_*_x64.exe' | Select-Object -First 1
+          if (-not $setup) { throw 'Setup EXE bulunamadı.' }
+          "SETUP_PATH=$($setup.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Temiz kurulum testi
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath $env:SETUP_PATH -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Temiz kurulum çıkış kodu: $($process.ExitCode)" }
+          $install = Join-Path $env:ProgramFiles 'DoğruTemin'
+          foreach ($file in 'DogruTemin.exe','Uninstall.exe') {
+            if (-not (Test-Path (Join-Path $install $file))) { throw "Kurulum dosyası eksik: $file" }
+          }
+      - name: Güncelleme ve kullanıcı verisi koruma testi
+        shell: pwsh
+        run: |
+          $install = Join-Path $env:ProgramFiles 'DoğruTemin'
+          $stale = Join-Path $install 'ESKI_SURUM_ARTIGI.tmp'
+          Set-Content $stale 'silinmeli' -Encoding utf8
+
+          $desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
+          $data = Join-Path $desktop 'DoğruTemin\Veri'
+          New-Item -ItemType Directory -Force -Path $data | Out-Null
+          $sentinel = Join-Path $data 'CI_SENTINEL.txt'
+          Set-Content $sentinel 'kullanici-verisi-korunmali' -Encoding utf8
+
+          reg add 'HKLM\Software\Microsoft\Windows\CurrentVersion\Uninstall\DogruTemin.Desktop.4B5374E9-9DB8-4B4F-93D6-57B0BA5704C4' /v DisplayVersion /t REG_SZ /d 4.1.0 /f | Out-Null
+          $process = Start-Process -FilePath $env:SETUP_PATH -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Güncelleme kurulum çıkış kodu: $($process.ExitCode)" }
+          if (Test-Path $stale) { throw 'Eski sürüm artığı güncellemede temizlenmedi.' }
+          if (-not (Test-Path $sentinel)) { throw 'Kullanıcı verisi güncellemede kayboldu.' }
+          if ((Get-Content $sentinel -Raw).Trim() -ne 'kullanici-verisi-korunmali') { throw 'Kullanıcı verisi değiştirildi.' }
+      - name: Kaldırma ve veri koruma testi
+        shell: pwsh
+        run: |
+          $install = Join-Path $env:ProgramFiles 'DoğruTemin'
+          $uninstall = Join-Path $install 'Uninstall.exe'
+          if (-not (Test-Path $uninstall)) { throw 'Uninstall.exe bulunamadı.' }
+          $desktop = [Environment]::GetFolderPath([Environment+SpecialFolder]::DesktopDirectory)
+          $sentinel = Join-Path $desktop 'DoğruTemin\Veri\CI_SENTINEL.txt'
+          $process = Start-Process -FilePath $uninstall -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Kaldırma çıkış kodu: $($process.ExitCode)" }
+          Start-Sleep -Seconds 2
+          if (Test-Path (Join-Path $install 'DogruTemin.exe')) { throw 'Program dosyası kaldırılmadı.' }
+          if (-not (Test-Path $sentinel)) { throw 'Kullanıcı verisi kaldırma sırasında silindi.' }
+      - name: Setup ve SHA-256 paketini sakla
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dogrutemin-setup-smoke
+          path: '${{ runner.temp }}/DogruTeminDist/*'
+          if-no-files-found: error
+          retention-days: 14

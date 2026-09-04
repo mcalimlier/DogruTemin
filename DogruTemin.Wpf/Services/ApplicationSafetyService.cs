@@ -1,4 +1,5 @@
-﻿using DogruTemin.Core.Services;
+using DogruTemin.Wpf;
+using DogruTemin.Core.Services;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -15,12 +16,14 @@ public sealed class ApplicationSafetyService
         _storage = storage;
     }
 
-    public string CurrentVersion => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "4.1.0";
+    public static string CurrentVersion => AppVersionInfo.Version;
 
-    public string InformationalVersion => Assembly.GetExecutingAssembly()
-        .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? CurrentVersion;
+    public static string InformationalVersion => AppVersionInfo.InformationalVersion;
 
-    public string RuntimeDescription => $"{Environment.Version} / {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}";
+    public static string RuntimeDescription => $"{Environment.Version} / {(Environment.Is64BitProcess ? "64-bit" : "32-bit")}";
+
+    public string BackupFolder => _storage.BackupFolder;
+    public string LogFolder => _storage.LogFolder;
 
     public SafetyCheckResult InitializeAndCheck()
     {
@@ -196,7 +199,7 @@ public sealed class ApplicationSafetyService
 
     private void EnsureFoldersWritable()
     {
-        foreach (var folder in new[] { _storage.RootFolder, _storage.DataFolder, _storage.RecordsFolder, _storage.BackupFolder, _storage.PdfFolder })
+        foreach (var folder in new[] { _storage.RootFolder, _storage.DataFolder, _storage.RecordsFolder, _storage.BackupFolder, _storage.PdfFolder, _storage.LogFolder })
         {
             Directory.CreateDirectory(folder);
             var probe = Path.Combine(folder, $".dogrutemin_write_test_{Guid.NewGuid():N}.tmp");

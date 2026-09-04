@@ -1,4 +1,4 @@
-﻿using DogruTemin.Wpf.Models;
+using DogruTemin.Wpf.Models;
 using ProcurementData = DogruTemin.Core.Models.ProcurementData;
 using ValidationSeverity = DogruTemin.Core.Models.ValidationSeverity;
 using OutputDocumentType = DogruTemin.Core.Models.OutputDocumentType;
@@ -58,15 +58,15 @@ public partial class MainWindow : Window
     private bool _suppressDirtyTracking = true;
     private bool _hasUnsavedChanges;
     private DateTime? _lastSavedAt;
-    private string _lastPdfPath = string.Empty;
+
     private string _lastDateSequenceWarning = string.Empty;
     private bool _closeApproved;
     private string _currentView = "Home";
     private readonly StorageService _storage = new();
-    private readonly ProcurementEngine _engine = new();
-    private readonly ValidationService _validation = new();
-    private readonly OfficialDocumentService _documents = new();
-    private readonly ManagementReportService _managementReports = new();
+
+
+
+
     private readonly ApplicationSafetyService _safety;
     private AppSettings _settings = new();
     private string _operationNumber = string.Empty;
@@ -76,6 +76,7 @@ public partial class MainWindow : Window
     private ICollectionView? _archiveView;
     private string _homeNextView = "General";
     private bool _dataEntryExpanded;
+    private readonly Action<int, string>? _startupProgress;
 
     private const double DesignWidth = 1450.0;
     private const double DesignHeight = 945.0;
@@ -87,23 +88,43 @@ public partial class MainWindow : Window
     private const uint MonitorDefaultToNearest = 0x00000002;
     private HwndSource? _windowSource;
 
-    public MainWindow()
+    public MainWindow() : this(null)
     {
+    }
+
+    public MainWindow(Action<int, string>? startupProgress)
+    {
+        _startupProgress = startupProgress;
         _safety = new ApplicationSafetyService(_storage);
+        ReportStartup(22, "Arayüz bileşenleri hazırlanıyor...");
         InitializeComponent();
+        ReportStartup(40, "Görsel kalite ve erişilebilirlik katmanı yükleniyor...");
+        UiPolishService.Apply(this);
         SourceInitialized += MainWindow_SourceInitialized;
-        _lastPdfPath = FindMostRecentPdf() ?? string.Empty;
+
         ApplyTaskbarIcon();
         ConfigureFixedWindowForCurrentScreen();
         UpdateMaximizeRestoreButton();
         DataContext = this;
         _archiveView = CollectionViewSource.GetDefaultView(ArchiveRecords);
         _archiveView.Filter = ArchiveRecordMatchesFilter;
+        ReportStartup(52, "Veri klasörleri ve güvenlik denetleniyor...");
         var startupSafety = _safety.InitializeAndCheck();
+        RecoverySessionService.Begin(_storage, () => _safety);
+        Loaded += (_, _) =>
+        {
+            if (!string.IsNullOrWhiteSpace(RecoverySessionService.PendingNotice))
+            {
+                UiNotificationService.Show(this, RecoverySessionService.PendingNotice!, TimeSpan.FromSeconds(8));
+                RecoverySessionService.ClearPendingNotice();
+            }
+        };
+        ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
-        LoadSettingsEditor();
+
 
         _suppressDirtyTracking = true;
+        ReportStartup(73, "Aktif işlem ve kayıtlar yükleniyor...");
         var loaded = _storage.Load(out var loadWarning);
         if (loaded is null)
         {
@@ -115,6 +136,7 @@ public partial class MainWindow : Window
             _storage.EnsureArchived(loaded);
         }
         SeedOutputDocuments();
+        ReportStartup(84, "Belge ve rapor bileşenleri hazırlanıyor...");
 
         ProductCountText.Text = $"{Products.Count} / 8 ürün";
         _suppressDirtyTracking = false;
@@ -122,9 +144,11 @@ public partial class MainWindow : Window
         SetSavedStatus(loaded?.LastSavedAt);
         RefreshArchiveRecords();
         RefreshStatisticsYears();
+        ReportStartup(92, "Arşiv ve istatistik görünümü hazırlanıyor...");
         UpdateSafetyPanel(startupSafety);
         ShowView("Home");
 
+        ReportStartup(97, "Hesap motoru son kontrolden geçiyor...");
         var selfTest = EngineSelfTest.Run();
         if (!selfTest.Success)
             MessageBox.Show("C# hesap motoru öz testi başarısız: " + selfTest.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -132,6 +156,11 @@ public partial class MainWindow : Window
             MessageBox.Show(loadWarning, "DoğruTemin - Veri kurtarma", MessageBoxButton.OK, MessageBoxImage.Warning);
         if (!startupSafety.IsHealthy)
             MessageBox.Show(startupSafety.Message, "DoğruTemin - Veri Güvenliği", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void ReportStartup(int percent, string stage)
+    {
+        try { _startupProgress?.Invoke(percent, stage); } catch { }
     }
 
     private void ApplyTaskbarIcon()
@@ -260,6 +289,7 @@ public partial class MainWindow : Window
         AssignmentDatePicker.SelectedDate = null;
         ApprovalDatePicker.SelectedDate = null;
         CostCalculationDatePicker.SelectedDate = null;
+        ApprovalDocumentDatePicker.SelectedDate = null;
         MarketReportDatePicker.SelectedDate = null;
         InspectionReportDatePicker.SelectedDate = null;
         DeliveryDatePicker.SelectedDate = null;
@@ -267,6 +297,18 @@ public partial class MainWindow : Window
         JobTitleBox.Text = string.Empty;
         AssignmentNoBox.Text = string.Empty;
         ApprovalNoBox.Text = string.Empty;
+        ApprovalDocumentNumberBox.Text = string.Empty;
+        ApprovalAvailableBudgetBox.Text = string.Empty;
+        ApprovalInvestmentProjectBox.Text = string.Empty;
+        ApprovalBudgetCodeBox.Text = string.Empty;
+        ApprovalAdvanceConditionsBox.Text = string.Empty;
+        ApprovalTenderProcedureBox.Text = "4734 S.K. 22/d Kapsamında";
+        ApprovalAnnouncementMethodBox.Text = "İlansız";
+        ApprovalPrequalificationSalePriceBox.Text = string.Empty;
+        ApprovalPriceDifferenceBasisBox.Text = "Ödenmeyecektir";
+        ApprovalNotesBox.Text = string.Empty;
+        ApprovalSubmittedByNameBox.Text = string.Empty;
+        ApprovalSubmittedByTitleBox.Text = string.Empty;
         var preservedInstitution = settings.Institution;
         InstitutionTopAuthorityBox.Text = preservedInstitution?.TopAuthority ?? string.Empty;
         InstitutionFullNameBox.Text = !string.IsNullOrWhiteSpace(preservedInstitution?.FullName) ? preservedInstitution!.FullName : preservedInstitution?.ShortName ?? string.Empty;
@@ -292,6 +334,7 @@ public partial class MainWindow : Window
         var approximateRequest = new OutputDocument { Name = "Yaklaşık Maliyet Talep Yazısı", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
         var firmOfferForm = new OutputDocument { Name = "Firma Teklif Formu", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
         var approximateCostSheet = new OutputDocument { Name = "Yaklaşık Maliyet Hesap Cetveli", IsSelected = false, Status = "Uyarı", Note = "Nihai işlem belgesi" };
+        var approvalDocument = new OutputDocument { Name = "Onay Belgesi", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var marketResearchReport = new OutputDocument { Name = "Piyasa Fiyat Araştırması Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var inspectionReport = new OutputDocument { Name = "Muayene ve Kabul Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
 
@@ -299,6 +342,7 @@ public partial class MainWindow : Window
         PreparationOutputDocuments.Add(firmOfferForm);
 
         FinalOutputDocuments.Add(approximateCostSheet);
+        FinalOutputDocuments.Add(approvalDocument);
         FinalOutputDocuments.Add(marketResearchReport);
         FinalOutputDocuments.Add(inspectionReport);
 
@@ -316,6 +360,7 @@ public partial class MainWindow : Window
         GeneralView.Visibility = view == "General" ? Visibility.Visible : Visibility.Collapsed;
         FirmsOffersView.Visibility = view is "Firms" or "Offers" ? Visibility.Visible : Visibility.Collapsed;
         DocumentsDatesView.Visibility = view is "Dates" or "Output" ? Visibility.Visible : Visibility.Collapsed;
+        ApprovalDocumentView.Visibility = view == "ApprovalDocument" ? Visibility.Visible : Visibility.Collapsed;
         InstitutionView.Visibility = view == "Institution" ? Visibility.Visible : Visibility.Collapsed;
         ControlView.Visibility = view == "Control" ? Visibility.Visible : Visibility.Collapsed;
         StatisticsView.Visibility = view == "Statistics" ? Visibility.Visible : Visibility.Collapsed;
@@ -327,7 +372,7 @@ public partial class MainWindow : Window
         if (view == "Firms") Dispatcher.BeginInvoke(new Action(() => FirmsView?.BringIntoView()));
         if (view == "Offers") Dispatcher.BeginInvoke(new Action(() => OffersView?.BringIntoView()));
 
-        var dataEntryView = view is "Institution" or "General" or "Firms" or "Offers" or "Dates" or "Output";
+        var dataEntryView = view is "Institution" or "General" or "Firms" or "Offers" or "ApprovalDocument" or "Dates" or "Output";
         if (dataEntryView)
         {
             _dataEntryExpanded = true;
@@ -339,6 +384,7 @@ public partial class MainWindow : Window
         NavInstitution.Tag = view == "Institution" ? "Active" : null;
         NavGeneral.Tag = view == "General" ? "Active" : null;
         NavFirmsOffers.Tag = view is "Firms" or "Offers" ? "Active" : null;
+        NavApprovalDocument.Tag = view == "ApprovalDocument" ? "Active" : null;
         NavDocumentsDates.Tag = view is "Dates" or "Output" ? "Active" : null;
         NavControl.Tag = view == "Control" ? "Active" : null;
         NavStatistics.Tag = view == "Statistics" ? "Active" : null;
@@ -375,17 +421,18 @@ public partial class MainWindow : Window
     {
         ShowView("Firms");
     }
-    private void NavFirms_Click(object sender, RoutedEventArgs e) => ShowView("Firms");
-    private void NavOffers_Click(object sender, RoutedEventArgs e)
+
+
+    private void NavApprovalDocument_Click(object sender, RoutedEventArgs e)
     {
-        ShowView("Offers");
-        PrepareOffersView();
+        ShowView("ApprovalDocument");
     }
+
     private void NavDocumentsDates_Click(object sender, RoutedEventArgs e)
     {
         ShowView("Dates");
     }
-    private void NavDates_Click(object sender, RoutedEventArgs e) => ShowView("Dates");
+
     private void NavOutput_Click(object sender, RoutedEventArgs e) => ShowView("Output");
     private void NavControl_Click(object sender, RoutedEventArgs e)
     {
@@ -484,6 +531,7 @@ public partial class MainWindow : Window
     {
         if (!ConfirmUnsavedWork("kapat", "DoğruTemin - Kapat")) return;
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
         Close();
     }
 
@@ -496,6 +544,7 @@ public partial class MainWindow : Window
             return;
         }
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -508,7 +557,7 @@ public partial class MainWindow : Window
         }
 
         if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
-        if (_currentView is not ("Institution" or "General" or "Firms" or "Offers" or "Dates" or "Output")) return;
+        if (_currentView is not ("Institution" or "General" or "Firms" or "Offers" or "ApprovalDocument" or "Dates" or "Output")) return;
         if (e.OriginalSource is not TextBox textBox || textBox.AcceptsReturn) return;
         if (FindVisualParent<DataGrid>(textBox) is not null) return;
 
@@ -550,14 +599,14 @@ public partial class MainWindow : Window
                 return;
             }
             var data = BuildDataFromUi();
-            var errors = _validation.ValidateDraft(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
+            var errors = ValidationService.ValidateDraft(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
             if (errors.Count > 0)
             {
                 MessageBox.Show(string.Join("\n", errors.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var dateWarnings = _validation.DateLogicWarnings(data);
+            var dateWarnings = ValidationService.DateLogicWarnings(data);
             if (dateWarnings.Count > 0)
             {
                 var answer = MessageBox.Show("Tarih sıralamasında kontrol edilmesi gereken noktalar var:\n\n" +
@@ -607,6 +656,38 @@ public partial class MainWindow : Window
                 LoadOfferFirm(_offerEditingFirm);
                 RefreshSaveStatusVisual();
                 break;
+            case "ApprovalDocument":
+                if (!ApprovalDocumentDatePicker.SelectedDate.HasValue
+                    && string.IsNullOrWhiteSpace(ApprovalDocumentNumberBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalAvailableBudgetBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalInvestmentProjectBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalBudgetCodeBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalAdvanceConditionsBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalPrequalificationSalePriceBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalNotesBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalSubmittedByNameBox.Text)
+                    && string.IsNullOrWhiteSpace(ApprovalSubmittedByTitleBox.Text)) return;
+                if (!ConfirmEditorClear("Onay Belgesi'ne özgü giriş alanları temizlensin mi?")) return;
+                _suppressDirtyTracking = true;
+                try
+                {
+                    ApprovalDocumentDatePicker.SelectedDate = null;
+                    ApprovalDocumentNumberBox.Text = string.Empty;
+                    ApprovalAvailableBudgetBox.Text = string.Empty;
+                    ApprovalInvestmentProjectBox.Text = string.Empty;
+                    ApprovalBudgetCodeBox.Text = string.Empty;
+                    ApprovalAdvanceConditionsBox.Text = string.Empty;
+                    ApprovalTenderProcedureBox.Text = "4734 S.K. 22/d Kapsamında";
+                    ApprovalAnnouncementMethodBox.Text = "İlansız";
+                    ApprovalPrequalificationSalePriceBox.Text = string.Empty;
+                    ApprovalPriceDifferenceBasisBox.Text = "Ödenmeyecektir";
+                    ApprovalNotesBox.Text = string.Empty;
+                    ApprovalSubmittedByNameBox.Text = string.Empty;
+                    ApprovalSubmittedByTitleBox.Text = string.Empty;
+                }
+                finally { _suppressDirtyTracking = false; }
+                MarkDirty();
+                break;
             case "Dates":
                 if (!CostCalculationDatePicker.SelectedDate.HasValue && !MarketReportDatePicker.SelectedDate.HasValue
                     && !InspectionReportDatePicker.SelectedDate.HasValue && !DeliveryDatePicker.SelectedDate.HasValue) return;
@@ -631,7 +712,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool ConfirmEditorClear(string message) =>
+    private static bool ConfirmEditorClear(string message) =>
         MessageBox.Show(message, "DoğruTemin - Temizle", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
 
     private void TransientFirmEditor_TextChanged(object sender, TextChangedEventArgs e)
@@ -674,7 +755,7 @@ public partial class MainWindow : Window
 
         var taxNo = TaxNoBox.Text.Trim();
         var duplicate = Firms.FirstOrDefault(f => f != _editingFirm &&
-            (string.Equals(f.Name.Trim(), name, StringComparison.CurrentCultureIgnoreCase) ||
+            (string.Equals(f.Name.Trim(), name, StringComparison.OrdinalIgnoreCase) ||
              (taxNo.Length > 0 && string.Equals(f.TaxNo.Trim(), taxNo, StringComparison.OrdinalIgnoreCase))));
         if (duplicate is not null)
         {
@@ -915,17 +996,12 @@ public partial class MainWindow : Window
         if (!_suppressDirtyTracking) MarkDirty();
     }
 
-    private void AnyCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!_suppressDirtyTracking) MarkDirty();
-    }
-
     private void AnyDate_Changed(object? sender, RoutedPropertyChangedEventArgs<DateTime?> e)
     {
         if (_suppressDirtyTracking) return;
         MarkDirty();
 
-        var warnings = _validation.DateLogicWarnings(BuildDataFromUi())
+        var warnings = ValidationService.DateLogicWarnings(BuildDataFromUi())
             .Select(x => x.Message)
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Distinct()
@@ -964,7 +1040,7 @@ public partial class MainWindow : Window
     private void RefreshControlCenter(ProcurementData? supplied = null)
     {
         var data = supplied ?? BuildDataFromUi();
-        var issues = _validation.ValidateWorkflow(data)
+        var issues = ValidationService.ValidateWorkflow(data)
             .OrderBy(i => i.Severity == ValidationSeverity.Critical ? 0 : i.Severity == ValidationSeverity.Warning ? 1 : 2)
             .ThenBy(i => ControlAreaFor(i).Area)
             .ThenBy(i => i.Message)
@@ -986,8 +1062,8 @@ public partial class MainWindow : Window
 
         var critical = issues.Count(i => i.Severity == ValidationSeverity.Critical);
         var warning = issues.Count(i => i.Severity == ValidationSeverity.Warning);
-        ControlCriticalCountText.Text = critical.ToString();
-        ControlWarningCountText.Text = warning.ToString();
+        ControlCriticalCountText.Text = critical.ToString(CultureInfo.InvariantCulture);
+        ControlWarningCountText.Text = warning.ToString(CultureInfo.InvariantCulture);
         ControlResultCountText.Text = $"{issues.Count} kontrol noktası";
         ControlIssuesGrid.Visibility = issues.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         ControlEmptyText.Visibility = issues.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -1076,7 +1152,7 @@ public partial class MainWindow : Window
             }
 
             var core = GetExportCoreIssues(data, new[] { type });
-            var advisory = _validation.ValidateDocument(data, type)
+            var advisory = ValidationService.ValidateDocument(data, type)
                 .Select(i => i.Message)
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Distinct()
@@ -1124,10 +1200,11 @@ public partial class MainWindow : Window
 
     private static bool IsFinalProcessDocument(OutputDocumentType type) =>
         type is OutputDocumentType.ApproximateCostSheet
+            or OutputDocumentType.ApprovalDocument
             or OutputDocumentType.MarketResearchReport
             or OutputDocumentType.InspectionAcceptanceReport;
 
-    private List<string> GetExportCoreIssues(ProcurementData data, IReadOnlyCollection<OutputDocumentType> types)
+    private static List<string> GetExportCoreIssues(ProcurementData data, IReadOnlyCollection<OutputDocumentType> types)
     {
         var issues = new List<string>();
 
@@ -1218,12 +1295,12 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
+    private static bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
     {
         var messages = types
-            .SelectMany(type => _validation.ValidateDocument(data, type))
+            .SelectMany(type => ValidationService.ValidateDocument(data, type))
             .Select(i => i.Message)
-            .Concat(_validation.DateLogicWarnings(data).Select(i => i.Message))
+            .Concat(ValidationService.DateLogicWarnings(data).Select(i => i.Message))
             .Where(m => !string.IsNullOrWhiteSpace(m))
             .Distinct()
             .Take(14)
@@ -1245,7 +1322,7 @@ public partial class MainWindow : Window
         if (types is null) return null;
 
         // Önizleme taslak görüntüdür. Eksik alanlar belge üzerinde boş bırakılabilir.
-        return _documents.BuildDocument(BuildDataFromUi(), types);
+        return OfficialDocumentService.BuildDocument(BuildDataFromUi(), types);
     }
 
     private FixedDocument? BuildSelectedOfficialDocumentForExport(string actionName)
@@ -1269,7 +1346,7 @@ public partial class MainWindow : Window
         if (!ConfirmNonBlockingDocumentIssues(data, types, actionName))
             return null;
 
-        var calc = _engine.Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var requiresWinner = types.Any(t => t is OutputDocumentType.MarketResearchReport or OutputDocumentType.InspectionAcceptanceReport);
 
         if (requiresWinner && calc.HasWinnerTie && string.IsNullOrWhiteSpace(calc.WinningFirmId))
@@ -1284,7 +1361,7 @@ public partial class MainWindow : Window
             data = BuildDataFromUi();
         }
 
-        return _documents.BuildDocument(data, types);
+        return OfficialDocumentService.BuildDocument(data, types);
     }
 
     private void OutputPreview_Click(object sender, RoutedEventArgs e)
@@ -1320,9 +1397,9 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
             PdfImageWriter.Save(document, dialog.FileName);
-            _lastPdfPath = dialog.FileName;
+
             UpdateHomeActivitySummary();
-            MessageBox.Show("PDF başarıyla oluşturuldu.\n\n" + dialog.FileName, "DoğruTemin - PDF", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, "PDF oluşturuldu:\n" + dialog.FileName, TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -1393,6 +1470,7 @@ public partial class MainWindow : Window
         ApprovalDatePicker.SelectedDate = data.Dates.ApprovalDate;
         ApprovalNoBox.Text = TextNormalizer.Hys(data.Dates.ApprovalNo);
         CostCalculationDatePicker.SelectedDate = data.Dates.CostCalculationDate;
+        ApprovalDocumentDatePicker.SelectedDate = data.Dates.ApprovalDocumentDate;
         // Eski kayıtlarda ayrı tutulan UYGUNDUR tarihi varsa tek Piyasa tarihi alanına taşınır.
         MarketReportDatePicker.SelectedDate = data.Dates.MarketReportDate ?? data.Dates.MarketApprovalDate;
         InspectionReportDatePicker.SelectedDate = data.Dates.InspectionReportDate;
@@ -1407,6 +1485,18 @@ public partial class MainWindow : Window
         AuthorizedNameBox.Text = data.Institution.AuthorizedName;
         AuthorizedDutyBox.Text = data.Institution.AuthorizedDuty;
         AuthorizedTitleBox.Text = data.Institution.AuthorizedTitle;
+        ApprovalDocumentNumberBox.Text = data.ApprovalDocument.DocumentNumber;
+        ApprovalAvailableBudgetBox.Text = data.ApprovalDocument.AvailableBudgetAmount;
+        ApprovalInvestmentProjectBox.Text = data.ApprovalDocument.InvestmentProjectNumber;
+        ApprovalBudgetCodeBox.Text = data.ApprovalDocument.BudgetCode;
+        ApprovalAdvanceConditionsBox.Text = data.ApprovalDocument.AdvanceConditions;
+        ApprovalTenderProcedureBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.TenderProcedure) ? "4734 S.K. 22/d Kapsamında" : data.ApprovalDocument.TenderProcedure;
+        ApprovalAnnouncementMethodBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.AnnouncementMethod) ? "İlansız" : data.ApprovalDocument.AnnouncementMethod;
+        ApprovalPrequalificationSalePriceBox.Text = data.ApprovalDocument.PrequalificationDocumentSalePrice;
+        ApprovalPriceDifferenceBasisBox.Text = string.IsNullOrWhiteSpace(data.ApprovalDocument.PriceDifferenceBasis) ? "Ödenmeyecektir" : data.ApprovalDocument.PriceDifferenceBasis;
+        ApprovalNotesBox.Text = data.ApprovalDocument.Notes;
+        ApprovalSubmittedByNameBox.Text = data.ApprovalDocument.SubmittedByName;
+        ApprovalSubmittedByTitleBox.Text = data.ApprovalDocument.SubmittedByTitle;
         AutoBackupCheckBox.IsChecked = data.AutoBackup;
         _operationNumber = data.OperationNumber ?? string.Empty;
         _recordId = data.RecordId ?? string.Empty;
@@ -1440,7 +1530,7 @@ public partial class MainWindow : Window
             {
                 AssignmentDate = AssignmentDatePicker.SelectedDate, AssignmentNo = AssignmentNoBox.Text.Trim(),
                 ApprovalDate = ApprovalDatePicker.SelectedDate, ApprovalNo = TextNormalizer.Hys(ApprovalNoBox.Text),
-                CostCalculationDate = CostCalculationDatePicker.SelectedDate, MarketReportDate = MarketReportDatePicker.SelectedDate,
+                CostCalculationDate = CostCalculationDatePicker.SelectedDate, ApprovalDocumentDate = ApprovalDocumentDatePicker.SelectedDate, MarketReportDate = MarketReportDatePicker.SelectedDate,
                 InspectionReportDate = InspectionReportDatePicker.SelectedDate,
                 DeliveryDate = DeliveryDatePicker.SelectedDate,
                 // Piyasa UYGUNDUR tarihi ayrı bir kullanıcı alanı değildir; aynı tarih geriye dönük uyumluluk için de saklanır.
@@ -1454,6 +1544,21 @@ public partial class MainWindow : Window
                 Province = InstitutionProvinceBox.Text.Trim(), Address = InstitutionAddressBox.Text.Trim(), Phone = InstitutionPhoneBox.Text.Trim(),
                 Email = InstitutionEmailBox.Text.Trim().ToLowerInvariant(), AuthorizedName = AuthorizedNameBox.Text.Trim(),
                 AuthorizedDuty = AuthorizedDutyBox.Text.Trim(), AuthorizedTitle = AuthorizedTitleBox.Text.Trim()
+            },
+            ApprovalDocument = new DogruTemin.Core.Models.ApprovalDocumentInfo
+            {
+                DocumentNumber = ApprovalDocumentNumberBox.Text.Trim(),
+                AvailableBudgetAmount = ApprovalAvailableBudgetBox.Text.Trim(),
+                InvestmentProjectNumber = ApprovalInvestmentProjectBox.Text.Trim(),
+                BudgetCode = ApprovalBudgetCodeBox.Text.Trim(),
+                AdvanceConditions = ApprovalAdvanceConditionsBox.Text.Trim(),
+                TenderProcedure = ApprovalTenderProcedureBox.Text.Trim(),
+                AnnouncementMethod = ApprovalAnnouncementMethodBox.Text.Trim(),
+                PrequalificationDocumentSalePrice = ApprovalPrequalificationSalePriceBox.Text.Trim(),
+                PriceDifferenceBasis = ApprovalPriceDifferenceBasisBox.Text.Trim(),
+                Notes = ApprovalNotesBox.Text.Trim(),
+                SubmittedByName = ApprovalSubmittedByNameBox.Text.Trim(),
+                SubmittedByTitle = ApprovalSubmittedByTitleBox.Text.Trim()
             },
             PreferredWinnerFirmId = _preferredWinnerFirmId,
             AutoBackup = AutoBackupCheckBox.IsChecked == true
@@ -1512,14 +1617,16 @@ public partial class MainWindow : Window
             $"{firms.Count} firma ve tüm teklifler hazır.",
             firmsDone ? $"{firms.Count} firma hazır • tekliflerde eksik var." : $"En az 3 firma gerekli; şu an {firms.Count} firma var.");
 
-        var dateWarnings = _validation.DateLogicWarnings(data);
-        var datesDone = data.Dates.CostCalculationDate.HasValue
+        var dateWarnings = ValidationService.DateLogicWarnings(data);
+        var datesDone = data.Dates.AssignmentDate.HasValue
+            && data.Dates.CostCalculationDate.HasValue
+            && data.Dates.ApprovalDocumentDate.HasValue
             && data.Dates.MarketReportDate.HasValue
             && data.Dates.InspectionReportDate.HasValue
             && data.Dates.DeliveryDate.HasValue
             && dateWarnings.Count == 0;
         SetHomeStage(HomeStageDatesStatus, HomeStageDatesDetail, datesDone,
-            datesDone ? "4 belge tarihi hazır ve zorunlu sıra geçerli." : "Belge tarihlerini tamamlayın; yanlış sıra varsa uyarı verilir.");
+            datesDone ? "Belge tarihleri hazır ve zorunlu kronoloji geçerli." : "Kurul/komisyon, yaklaşık maliyet, Onay Belgesi, piyasa ve muayene/kabul tarihlerini kontrol edin.");
 
         var preparationTypes = new[]
         {
@@ -1529,6 +1636,7 @@ public partial class MainWindow : Window
         var finalProcessTypes = new[]
         {
             OutputDocumentType.ApproximateCostSheet,
+            OutputDocumentType.ApprovalDocument,
             OutputDocumentType.MarketResearchReport,
             OutputDocumentType.InspectionAcceptanceReport
         };
@@ -1562,6 +1670,12 @@ public partial class MainWindow : Window
         {
             _homeNextView = "Offers";
             HomeNextStepText.Text = "Firmaların yaklaşık ve nihai tekliflerini tamamlayın.";
+        }
+        else if (!data.Dates.ApprovalDocumentDate.HasValue || string.IsNullOrWhiteSpace(data.ApprovalDocument.AvailableBudgetAmount)
+            || string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByName) || string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByTitle))
+        {
+            _homeNextView = "ApprovalDocument";
+            HomeNextStepText.Text = "Onay Belgesi'ne özgü bilgileri tamamlayın.";
         }
         else if (!datesDone)
         {
@@ -1612,9 +1726,6 @@ public partial class MainWindow : Window
 
     private void SetHomeOutputStage(bool preparationReady, bool finalReady, int preparationIssueCount, int finalIssueCount)
     {
-        SetHomeDocumentReadiness(HomePreparationDocsBadge, HomePreparationDocsStatusText, HomePreparationDocsDetailText, preparationReady, preparationIssueCount, "2 belge üretime hazır");
-        SetHomeDocumentReadiness(HomeFinalDocsBadge, HomeFinalDocsStatusText, HomeFinalDocsDetailText, finalReady, finalIssueCount, "3 belge üretime hazır");
-
         if (preparationReady && finalReady)
         {
             HomeStageOutputStatus.Text = "TAMAM";
@@ -1638,60 +1749,21 @@ public partial class MainWindow : Window
         var finalText = finalReady ? "Nihai: hazır" : $"Nihai: {finalIssueCount} eksik";
         HomeStageOutputDetail.Text = $"{preparationText} • {finalText}";
     }
-
-    private static void SetHomeDocumentReadiness(Border badge, TextBlock status, TextBlock detail, bool ready, int issueCount, string readyText)
-    {
-        if (ready)
-        {
-            badge.Background = new SolidColorBrush(Color.FromRgb(25, 78, 67));
-            status.Foreground = new SolidColorBrush(Color.FromRgb(126, 226, 166));
-            status.Text = "HAZIR";
-            detail.Text = readyText;
-        }
-        else
-        {
-            badge.Background = new SolidColorBrush(Color.FromRgb(91, 65, 25));
-            status.Foreground = new SolidColorBrush(Color.FromRgb(255, 199, 91));
-            status.Text = "EKSİK";
-            detail.Text = $"{issueCount} temel koşul tamamlanmalı";
-        }
-    }
-
     private void UpdateHomeActivitySummary()
     {
-        if (HomeLastSavedText is null || HomeHeroLastSavedText is null || HomeArchiveCountText is null || HomeLastPdfText is null) return;
-        var savedText = _lastSavedAt.HasValue ? _lastSavedAt.Value.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture) : "Henüz yok";
-        HomeLastSavedText.Text = savedText;
-        HomeHeroLastSavedText.Text = _lastSavedAt.HasValue ? _lastSavedAt.Value.ToString("dd.MM.yyyy • HH:mm", CultureInfo.InvariantCulture) : "Henüz kaydedilmedi";
-        HomeArchiveCountText.Text = $"{ArchiveRecords.Count} işlem";
-        HomeLastPdfText.Text = string.IsNullOrWhiteSpace(_lastPdfPath) ? "Henüz oluşturulmadı" : Path.GetFileName(_lastPdfPath);
-        HomeLastPdfText.ToolTip = string.IsNullOrWhiteSpace(_lastPdfPath) ? null : _lastPdfPath;
+        if (HomeHeroLastSavedText is null) return;
+        HomeHeroLastSavedText.Text = _lastSavedAt.HasValue
+            ? _lastSavedAt.Value.ToString("dd.MM.yyyy • HH:mm", CultureInfo.InvariantCulture)
+            : "Henüz kaydedilmedi";
     }
-
-    private string? FindMostRecentPdf()
-    {
-        try
-        {
-            if (!Directory.Exists(_storage.PdfFolder)) return null;
-            return Directory.EnumerateFiles(_storage.PdfFolder, "*.pdf", SearchOption.TopDirectoryOnly)
-                .Select(path => new FileInfo(path))
-                .OrderByDescending(file => file.LastWriteTimeUtc)
-                .FirstOrDefault()?.FullName;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     private void UpdateDerivedState(ProcurementData? supplied = null)
     {
         if (_suppressDirtyTracking && supplied is null) return;
         var data = supplied ?? BuildDataFromUi();
-        var calc = _engine.Calculate(data);
-        var readiness = _validation.ReadinessPercent(data);
-        var draftIssues = _validation.ValidateDraft(data);
-        var dateWarnings = _validation.DateLogicWarnings(data);
+        var calc = ProcurementEngine.Calculate(data);
+        var readiness = ValidationService.ReadinessPercent(data);
+        var draftIssues = ValidationService.ValidateDraft(data);
+        var dateWarnings = ValidationService.DateLogicWarnings(data);
         var filledCommission = data.InspectionCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title))
             + data.MarketCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title));
         var firmCount = data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name));
@@ -1746,7 +1818,7 @@ public partial class MainWindow : Window
             HomeWinnerHintText.Text = firmCount < 3 ? "En az 3 firma gerekli" : "Nihai teklifler bekleniyor";
         }
 
-        var workflowIssues = _validation.ValidateWorkflow(data);
+        var workflowIssues = ValidationService.ValidateWorkflow(data);
         var homeWarningCount = workflowIssues.Count;
         HomeWarningCountText.Text = $"{homeWarningCount} UYARI";
         UpdateHomeActivitySummary();
@@ -1766,7 +1838,7 @@ public partial class MainWindow : Window
         var selectedCoreIssues = GetExportCoreIssues(data, selectedTypesForOutput);
         var selectedAdvisories = OutputDocuments
             .Where(d => d.IsSelected && OfficialDocumentService.IsImplemented(DocumentTypeFor(d.Name)))
-            .SelectMany(d => _validation.ValidateDocument(data, DocumentTypeFor(d.Name)))
+            .SelectMany(d => ValidationService.ValidateDocument(data, DocumentTypeFor(d.Name)))
             .Select(i => i.Message)
             .Where(m => !string.IsNullOrWhiteSpace(m))
             .Distinct()
@@ -1775,8 +1847,8 @@ public partial class MainWindow : Window
         OutputCommissionText.Text = $"{filledCommission} / 6";
         OutputFirmText.Text = selectedTypesForOutput.Any(IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
         OutputProductText.Text = $"{productCount} / EN AZ 1";
-        OutputCriticalText.Text = selectedCoreIssues.Count.ToString();
-        OutputWarningText.Text = selectedAdvisories.Count.ToString();
+        OutputCriticalText.Text = selectedCoreIssues.Count.ToString(CultureInfo.InvariantCulture);
+        OutputWarningText.Text = selectedAdvisories.Count.ToString(CultureInfo.InvariantCulture);
         OutputReadinessText.Text = $"%{readiness}";
         OutputReadinessBar.Width = 390.0 * readiness / 100.0;
         RefreshControlCenter(data);
@@ -1792,7 +1864,7 @@ public partial class MainWindow : Window
             }
 
             var core = GetExportCoreIssues(data, new[] { type });
-            var advisoryCount = _validation.ValidateDocument(data, type)
+            var advisoryCount = ValidationService.ValidateDocument(data, type)
                 .Select(i => i.Message)
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Distinct()
@@ -1825,6 +1897,7 @@ public partial class MainWindow : Window
     {
         "Yaklaşık Maliyet Talep Yazısı" => OutputDocumentType.ApproximateRequest,
         "Yaklaşık Maliyet Hesap Cetveli" => OutputDocumentType.ApproximateCostSheet,
+        "Onay Belgesi" => OutputDocumentType.ApprovalDocument,
         "Firma Teklif Formu" => OutputDocumentType.FirmOfferForm,
         "Piyasa Fiyat Araştırması Tutanağı" => OutputDocumentType.MarketResearchReport,
         "Muayene ve Kabul Tutanağı" => OutputDocumentType.InspectionAcceptanceReport,
@@ -2088,11 +2161,6 @@ public partial class MainWindow : Window
     }
 
     // ---------------- İŞLEM ARŞİVİ ----------------
-    private void LoadSettingsEditor()
-    {
-        // Varsayılan birim ve varsayılan komisyon şablonları yeni arayüzde kullanılmaz.
-        // Eski ayar dosyaları StorageService tarafından geriye dönük uyumluluk için okunmaya devam eder.
-    }
 
     private DogruTemin.Core.Models.InstitutionInfo BuildInstitutionFromUi() => new()
     {
@@ -2120,7 +2188,7 @@ public partial class MainWindow : Window
                 DefaultMarketCommission = new List<DogruTemin.Core.Models.CommissionMember>()
             };
             _storage.SaveSettings(_settings);
-            MessageBox.Show("Kurum bilgileri kaydedildi. Yeni işlemlerde kurum profili otomatik kullanılacaktır.", "DoğruTemin - Kurum Bilgisi", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, "Kurum bilgileri kaydedildi. Yeni işlemlerde otomatik kullanılacak.", TimeSpan.FromSeconds(4));
         }
         catch (Exception ex)
         {
@@ -2130,12 +2198,27 @@ public partial class MainWindow : Window
 
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.DataFolder);
     private void OpenBackupFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.BackupFolder);
+    private void OpenLogFolder_Click(object sender, RoutedEventArgs e) => OpenFolder(_storage.LogFolder);
+
+    private void CreateDiagnosticPackage_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var path = DiagnosticPackageService.Create(_safety);
+            UiNotificationService.Show(this, "Tanılama paketi oluşturuldu:\n" + path, TimeSpan.FromSeconds(6));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Tanılama paketi oluşturulamadı:\n\n" + ex.Message, "DoğruTemin - Tanılama", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
 
     private void UpdateSafetyPanel(SafetyCheckResult result)
     {
         if (AboutVersionText is null || DataIntegrityText is null) return;
-        AboutVersionText.Text = $"DoğruTemin {_safety.CurrentVersion}  •  {_safety.InformationalVersion}";
-        AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {_safety.RuntimeDescription}";
+        AboutVersionText.Text = $"DoğruTemin {AppVersionInfo.DisplayVersion}";
+        AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {ApplicationSafetyService.RuntimeDescription}";
         AboutDataFolderText.Text = _storage.RootFolder;
         DataIntegrityText.Text = result.Message;
         DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#167A46" : "#B42318"));
@@ -2145,7 +2228,10 @@ public partial class MainWindow : Window
     {
         var result = _safety.CheckIntegrity();
         UpdateSafetyPanel(result);
-        MessageBox.Show(result.Message, "DoğruTemin - Veri Bütünlüğü", MessageBoxButton.OK, result.IsHealthy ? MessageBoxImage.Information : MessageBoxImage.Warning);
+        if (result.IsHealthy)
+            UiNotificationService.Show(this, result.Message, TimeSpan.FromSeconds(4));
+        else
+            MessageBox.Show(result.Message, "DoğruTemin - Veri Bütünlüğü", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     private void CreateSafetyBackup_Click(object sender, RoutedEventArgs e)
@@ -2166,7 +2252,7 @@ public partial class MainWindow : Window
             }
 
             var path = _safety.CreateManualSafetyBackup();
-            MessageBox.Show($"Güvenlik yedeği oluşturuldu:\n{path}", "DoğruTemin - Güvenlik Yedeği", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, $"Güvenlik yedeği oluşturuldu:\n{path}", TimeSpan.FromSeconds(5));
             UpdateSafetyPanel(_safety.CheckIntegrity());
         }
         catch (Exception ex)
@@ -2206,6 +2292,7 @@ public partial class MainWindow : Window
         message += "\n\nYeni verilerin güvenli biçimde yüklenmesi için DoğruTemin yeniden başlatılacak.";
         MessageBox.Show(message, "DoğruTemin - Yedekten Geri Yükle", MessageBoxButton.OK, MessageBoxImage.Information);
         _closeApproved = true;
+        RecoverySessionService.EndCleanly();
         RestartApplication();
     }
 
@@ -2239,7 +2326,10 @@ public partial class MainWindow : Window
 
     private void RefreshStatisticsYears()
     {
-        var selected = StatisticsYearBox?.SelectedItem?.ToString();
+        var statisticsYearBox = StatisticsYearBox;
+        if (statisticsYearBox is null) return;
+
+        var selected = statisticsYearBox.SelectedItem?.ToString();
         var years = _storage.ListRecords()
             .Where(x => x.Dates.ApprovalDate.HasValue)
             .Select(x => x.Dates.ApprovalDate!.Value.Year)
@@ -2257,9 +2347,8 @@ public partial class MainWindow : Window
         var target = !string.IsNullOrWhiteSpace(selected) && StatisticsYears.Contains(selected)
             ? selected
             : DateTime.Now.Year.ToString(CultureInfo.InvariantCulture);
-        StatisticsYearBox.SelectedItem = StatisticsYears.Contains(target) ? target : "Tüm Yıllar";
+        statisticsYearBox.SelectedItem = StatisticsYears.Contains(target) ? target : "Tüm Yıllar";
     }
-
     private void RefreshStatistics_Click(object sender, RoutedEventArgs e)
     {
         RefreshStatisticsYears();
@@ -2297,7 +2386,7 @@ public partial class MainWindow : Window
 
         foreach (var data in records)
         {
-            var calc = _engine.Calculate(data);
+            var calc = ProcurementEngine.Calculate(data);
             var date = data.Dates.ApprovalDate!.Value;
             monthCounts[date.Month]++;
             if (calc.MarketResultTotal > 0m) monthTotals[date.Month] += calc.MarketResultTotal;
@@ -2314,7 +2403,7 @@ public partial class MainWindow : Window
                     RecordId = data.RecordId,
                     JobTitle = string.IsNullOrWhiteSpace(data.JobTitle) ? "Başlıksız işlem" : data.JobTitle,
                     Date = date,
-                    DateText = date.ToString("dd.MM.yyyy"),
+                    DateText = date.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture),
                     ApproximateTotal = calc.ApproximateCostTotal,
                     FinalTotal = calc.MarketResultTotal,
                     Savings = savings,
@@ -2371,7 +2460,7 @@ public partial class MainWindow : Window
     private ManagementReportSnapshot BuildCurrentManagementReport()
     {
         var institutionName = _settings?.Institution?.FullName;
-        return _managementReports.BuildSnapshot(_storage.ListRecords(), SelectedStatisticsYear(), institutionName);
+        return ManagementReportService.BuildSnapshot(_storage.ListRecords(), SelectedStatisticsYear(), institutionName);
     }
 
     private static string ReportPeriodFilePart(string period)
@@ -2402,11 +2491,11 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
 
-            var document = _managementReports.BuildPdf(snapshot);
+            var document = ManagementReportService.BuildPdf(snapshot);
             PdfImageWriter.Save(document, dialog.FileName);
-            _lastPdfPath = dialog.FileName;
+
             UpdateHomeActivitySummary();
-            MessageBox.Show($"Yönetim raporu PDF olarak oluşturuldu:\n{dialog.FileName}", "DoğruTemin - Yönetim Raporu", MessageBoxButton.OK, MessageBoxImage.Information);
+            UiNotificationService.Show(this, $"Yönetim raporu PDF olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -2435,8 +2524,8 @@ public partial class MainWindow : Window
             };
             if (dialog.ShowDialog(this) != true) return;
 
-            _managementReports.SaveExcel(snapshot, dialog.FileName);
-            MessageBox.Show($"Yönetim raporu Excel olarak oluşturuldu:\n{dialog.FileName}", "DoğruTemin - Yönetim Raporu", MessageBoxButton.OK, MessageBoxImage.Information);
+            ManagementReportService.SaveExcel(snapshot, dialog.FileName);
+            UiNotificationService.Show(this, $"Yönetim raporu Excel olarak oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
         }
         catch (Exception ex)
         {
@@ -2458,11 +2547,11 @@ public partial class MainWindow : Window
                 IsActive = isActive,
                 OperationNumber = string.IsNullOrWhiteSpace(data.OperationNumber) ? "—" : data.OperationNumber,
                 JobTitle = string.IsNullOrWhiteSpace(data.JobTitle) ? "Başlıksız işlem" : data.JobTitle,
-                ApprovalDate = data.Dates.ApprovalDate?.ToString("dd.MM.yyyy") ?? "—",
+                ApprovalDate = data.Dates.ApprovalDate?.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) ?? "—",
                 ApprovalSortKey = data.Dates.ApprovalDate ?? DateTime.MinValue,
                 ProductCount = data.Products.Count(p => !string.IsNullOrWhiteSpace(p.Name)),
                 FirmCount = data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name)),
-                LastSaved = lastSaved.ToString("dd.MM.yyyy HH:mm"),
+                LastSaved = lastSaved.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture),
                 LastSavedValue = lastSaved
             });
         }
@@ -2577,8 +2666,9 @@ public partial class MainWindow : Window
     private void NewOperation_Click(object sender, RoutedEventArgs e)
     {
         if (!ConfirmRecordSwitch()) return;
+        ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
-        LoadSettingsEditor();
+
         _suppressDirtyTracking = true;
         InitializeBlankState(_settings);
         _suppressDirtyTracking = false;
@@ -2655,7 +2745,7 @@ public partial class MainWindow : Window
 
         RefreshArchiveRecords();
         SelectArchiveRecord(copy.RecordId);
-        MessageBox.Show("İşlem kopyası arşive eklendi. Yeni kopyanın İşlem No alanı boş bırakıldı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, "İşlem kopyası arşive eklendi. Yeni kopyanın İşlem No alanı boş bırakıldı.", TimeSpan.FromSeconds(4));
     }
 
     private void ExportSelectedArchive_Click(object sender, RoutedEventArgs e)
@@ -2683,7 +2773,7 @@ public partial class MainWindow : Window
             MessageBox.Show(warning ?? "İşlem dışa aktarılamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        MessageBox.Show($"İşlem kaydı dışa aktarıldı:\n{dialog.FileName}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"İşlem kaydı dışa aktarıldı:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
     }
 
     private void ExportArchiveBackup_Click(object sender, RoutedEventArgs e)
@@ -2716,7 +2806,7 @@ public partial class MainWindow : Window
             MessageBox.Show(warning ?? "Arşiv yedeği oluşturulamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
-        MessageBox.Show($"Arşiv yedeği oluşturuldu:\n{dialog.FileName}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"Arşiv yedeği oluşturuldu:\n{dialog.FileName}", TimeSpan.FromSeconds(5));
     }
 
     private void RestoreDeletedArchive_Click(object sender, RoutedEventArgs e)
@@ -2729,7 +2819,7 @@ public partial class MainWindow : Window
         }
         RefreshArchiveRecords();
         SelectArchiveRecord(restored.RecordId);
-        MessageBox.Show($"Son silinen işlem geri alındı:\n{(string.IsNullOrWhiteSpace(restored.JobTitle) ? "Başlıksız işlem" : restored.JobTitle)}", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+        UiNotificationService.Show(this, $"Son silinen işlem geri alındı:\n{(string.IsNullOrWhiteSpace(restored.JobTitle) ? "Başlıksız işlem" : restored.JobTitle)}", TimeSpan.FromSeconds(4));
     }
 
     private void SelectArchiveRecord(string recordId)

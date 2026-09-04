@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.IO.Compression;
 using DogruTemin.Core.Models;
@@ -15,42 +16,64 @@ public class StorageService
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public string RootFolder { get; }
-    public string DataFolder { get; }
-    public string RecordsFolder { get; }
-    public string BackupFolder { get; }
-    public string RecordBackupFolder { get; }
-    public string DeletedFolder { get; }
-    public string PdfFolder { get; }
-    public string ActiveFile { get; }
-    public string InstitutionFile { get; }
-    public string SettingsFile { get; }
+    public string RootFolder { get; private set; } = string.Empty;
+    public string DataFolder { get; private set; } = string.Empty;
+    public string RecordsFolder { get; private set; } = string.Empty;
+    public string BackupFolder { get; private set; } = string.Empty;
+    public string RecordBackupFolder { get; private set; } = string.Empty;
+    public string DeletedFolder { get; private set; } = string.Empty;
+    public string PdfFolder { get; private set; } = string.Empty;
+    public string LogFolder { get; private set; } = string.Empty;
+    public string ActiveFile { get; private set; } = string.Empty;
+    public string InstitutionFile { get; private set; } = string.Empty;
+    public string SettingsFile { get; private set; } = string.Empty;
 
     public StorageService()
     {
-        var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        var preferred = Path.Combine(docs, "DoğruTemin");
+        var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        var documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        var preferred = Path.Combine(desktop, "DoğruTemin");
+        var legacy = Path.Combine(documents, "DoğruTemin");
         var fallback = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DoğruTemin");
         var root = preferred;
+
         try
         {
-            Directory.CreateDirectory(Path.Combine(root, "Veri"));
-            Directory.CreateDirectory(Path.Combine(root, "Veri", "İşlemler"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Kayıtlar"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Silinenler"));
-            Directory.CreateDirectory(Path.Combine(root, "PDF"));
+            EnsureRootFolders(root);
         }
         catch
         {
             root = fallback;
-            Directory.CreateDirectory(Path.Combine(root, "Veri"));
-            Directory.CreateDirectory(Path.Combine(root, "Veri", "İşlemler"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Kayıtlar"));
-            Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Silinenler"));
-            Directory.CreateDirectory(Path.Combine(root, "PDF"));
+            EnsureRootFolders(root);
         }
+
+        InitializePaths(root, legacy);
+    }
+
+    /// <summary>
+    /// Testler ve kontrollü veri taşıma senaryoları için açık kök klasör desteği.
+    /// Normal uygulama akışı parametresiz kurucuyu kullanır.
+    /// </summary>
+    public StorageService(string rootFolder, string? legacyRoot = null)
+    {
+        if (string.IsNullOrWhiteSpace(rootFolder)) throw new ArgumentException("Kök klasör boş olamaz.", nameof(rootFolder));
+        var root = Path.GetFullPath(rootFolder);
+        EnsureRootFolders(root);
+        InitializePaths(root, legacyRoot);
+    }
+
+    private void InitializePaths(string root, string? legacyRoot)
+    {
+        // DoğruFatura ile aynı kullanıcı veri yaklaşımı: yeni kök Masaüstü\DoğruTemin.
+        // Eski Belgeler\DoğruTemin verileri ilk açılışta KOPYALANIR; kaynak silinmez ve
+        // hedefte aynı adla dosya varsa üzerine yazılmaz. Böylece 4.1.x -> 4.2 geçişi güvenlidir.
+        if (!string.IsNullOrWhiteSpace(legacyRoot)
+            && !Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar)
+                .Equals(Path.GetFullPath(legacyRoot).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+        {
+            TryMigrateLegacyFolder(legacyRoot, root);
+        }
+
         RootFolder = root;
         DataFolder = Path.Combine(root, "Veri");
         RecordsFolder = Path.Combine(DataFolder, "İşlemler");
@@ -58,9 +81,47 @@ public class StorageService
         RecordBackupFolder = Path.Combine(BackupFolder, "Kayıtlar");
         DeletedFolder = Path.Combine(BackupFolder, "Silinenler");
         PdfFolder = Path.Combine(root, "PDF");
+        LogFolder = Path.Combine(root, "Loglar");
         ActiveFile = Path.Combine(DataFolder, "aktif_islem.json");
         InstitutionFile = Path.Combine(DataFolder, "kurum_ayarlari.json");
         SettingsFile = Path.Combine(DataFolder, "uygulama_ayarlari.json");
+    }
+
+    private static void EnsureRootFolders(string root)
+    {
+        Directory.CreateDirectory(Path.Combine(root, "Veri"));
+        Directory.CreateDirectory(Path.Combine(root, "Veri", "İşlemler"));
+        Directory.CreateDirectory(Path.Combine(root, "Yedekler"));
+        Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Kayıtlar"));
+        Directory.CreateDirectory(Path.Combine(root, "Yedekler", "Silinenler"));
+        Directory.CreateDirectory(Path.Combine(root, "PDF"));
+        Directory.CreateDirectory(Path.Combine(root, "Loglar"));
+    }
+
+    private static void TryMigrateLegacyFolder(string sourceRoot, string destinationRoot)
+    {
+        try
+        {
+            if (!Directory.Exists(sourceRoot)) return;
+            CopyDirectoryNoOverwrite(sourceRoot, destinationRoot);
+        }
+        catch
+        {
+            // Taşıma yardımcı bir güvenlik katmanıdır. Eski veri yerinde kaldığı için
+            // bir izin/çakışma sorunu programın açılışını engellemez.
+        }
+    }
+
+    private static void CopyDirectoryNoOverwrite(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (var file in Directory.GetFiles(source))
+        {
+            var target = Path.Combine(destination, Path.GetFileName(file));
+            if (!File.Exists(target)) File.Copy(file, target, false);
+        }
+        foreach (var directory in Directory.GetDirectories(source))
+            CopyDirectoryNoOverwrite(directory, Path.Combine(destination, Path.GetFileName(directory)));
     }
 
     public ProcurementData? Load(out string? warning)
@@ -143,7 +204,7 @@ public class StorageService
         {
             try
             {
-                var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");
+                var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
                 if (File.Exists(ActiveFile))
                 {
                     var activeBackup = Path.Combine(BackupFolder, $"DogruTemin_{stamp}.json");
@@ -459,11 +520,11 @@ public class StorageService
 
     private static void Normalize(ProcurementData data)
     {
-        data.SchemaVersion = Math.Max(data.SchemaVersion, 3);
+        data.SchemaVersion = Math.Max(data.SchemaVersion, 4);
         if (string.IsNullOrWhiteSpace(data.RecordId)) data.RecordId = Guid.NewGuid().ToString("N");
         if (data.CreatedAt == default) data.CreatedAt = data.LastSavedAt ?? DateTime.Now;
         data.Products ??= new(); data.Firms ??= new(); data.InspectionCommission ??= new(); data.MarketCommission ??= new();
-        data.Dates ??= new(); data.Institution ??= new();
+        data.Dates ??= new(); data.Institution ??= new(); data.ApprovalDocument ??= new();
         data.Products = data.Products.Take(8).ToList();
         data.Firms = data.Firms.Take(5).ToList();
         for (var i = 0; i < data.Products.Count; i++) { data.Products[i].No = i + 1; if (string.IsNullOrWhiteSpace(data.Products[i].Id)) data.Products[i].Id = Guid.NewGuid().ToString("N"); }

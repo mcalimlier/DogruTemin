@@ -4,7 +4,7 @@
         Icon="Assets/AppIcon.ico"
         Title="DoğruTemin - Belge Önizleme"
         Width="1080" Height="820" MinWidth="820" MinHeight="620"
-        WindowStartupLocation="CenterOwner" Background="#E9EEF4">
+        WindowStartupLocation="CenterOwner" Background="#E9EEF4" UseLayoutRounding="True" SnapsToDevicePixels="True">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="56"/>

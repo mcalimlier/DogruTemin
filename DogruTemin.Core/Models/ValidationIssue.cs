@@ -13,7 +13,8 @@ public enum OutputDocumentType
     ApproximateCostSheet = 2,
     FirmOfferForm = 3,
     MarketResearchReport = 4,
-    InspectionAcceptanceReport = 5
+    InspectionAcceptanceReport = 5,
+    ApprovalDocument = 6
 }
 
 public class ValidationIssue

@@ -1,7 +1,7 @@
-﻿using System;
+using DogruTemin.Core.Services;
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -40,7 +40,15 @@ public partial class App : Application
                 return;
             }
 
-            try { SetCurrentProcessExplicitAppUserModelID("DogruTemin.Wpf.App"); } catch { }
+            try
+            {
+                if (SetCurrentProcessExplicitAppUserModelID("DogruTemin.Wpf.App") != 0)
+                {
+                    // Shell kimliği atanamazsa Windows yürütülebilir dosya kimliğine güvenli biçimde geri döner.
+                }
+            }
+            catch { }
+
             var splash = new SplashWindow();
             splash.Show();
         }
@@ -129,11 +137,10 @@ public partial class App : Application
         string path;
         try
         {
-            var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var logFolder = Path.Combine(docs, "DoğruTemin", "Loglar");
+            var logFolder = new StorageService().LogFolder;
             Directory.CreateDirectory(logFolder);
             path = Path.Combine(logFolder, "DogruTemin_Hata.log");
-            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "bilinmiyor";
+            var version = AppVersionInfo.InformationalVersion;
             File.AppendAllText(path,
                 $"\n===== {DateTime.Now:dd.MM.yyyy HH:mm:ss} =====\n" +
                 $"Sürüm: {version}\nİşletim Sistemi: {Environment.OSVersion}\n.NET: {Environment.Version}\n64-bit: {Environment.Is64BitProcess}\n\n{ex}\n",
@@ -144,7 +151,7 @@ public partial class App : Application
             path = Path.Combine(Path.GetTempPath(), "DogruTemin_Hata.log");
             try
             {
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "bilinmiyor";
+                var version = AppVersionInfo.InformationalVersion;
                 File.AppendAllText(path,
                     $"\n===== {DateTime.Now:dd.MM.yyyy HH:mm:ss} =====\nSürüm: {version}\n.NET: {Environment.Version}\n\n{ex}\n",
                     Encoding.UTF8);

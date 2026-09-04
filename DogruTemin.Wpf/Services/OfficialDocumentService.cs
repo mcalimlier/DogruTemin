@@ -25,9 +25,9 @@ public sealed class OfficialDocumentService
     private static readonly Brush Black = Brushes.Black;
     private static readonly Thickness ThinBorder = new(0.75);
     private static readonly Thickness MediumBorder = new(1.05);
-    private readonly ProcurementEngine _engine = new();
 
-    public FixedDocument BuildDocument(ProcurementData data, IEnumerable<OutputDocumentType> documentTypes)
+
+    public static FixedDocument BuildDocument(ProcurementData data, IEnumerable<OutputDocumentType> documentTypes)
     {
         var doc = new FixedDocument();
         foreach (var type in documentTypes)
@@ -36,6 +36,7 @@ public sealed class OfficialDocumentService
             {
                 OutputDocumentType.ApproximateRequest => BuildApproximateRequestPage(data),
                 OutputDocumentType.ApproximateCostSheet => BuildApproximateCostSheetPage(data),
+                OutputDocumentType.ApprovalDocument => BuildApprovalDocumentPage(data),
                 OutputDocumentType.FirmOfferForm => BuildFirmOfferFormPage(data),
                 OutputDocumentType.MarketResearchReport => BuildMarketResearchPage(data),
                 OutputDocumentType.InspectionAcceptanceReport => BuildInspectionAcceptancePage(data),
@@ -51,11 +52,12 @@ public sealed class OfficialDocumentService
     public static bool IsImplemented(OutputDocumentType type) =>
         type is OutputDocumentType.ApproximateRequest
             or OutputDocumentType.ApproximateCostSheet
+            or OutputDocumentType.ApprovalDocument
             or OutputDocumentType.FirmOfferForm
             or OutputDocumentType.MarketResearchReport
             or OutputDocumentType.InspectionAcceptanceReport;
 
-    private FixedPage BuildApproximateRequestPage(ProcurementData data)
+    private static FixedPage BuildApproximateRequestPage(ProcurementData data)
     {
         var products = ActiveProducts(data);
         var compact = products.Count >= 6;
@@ -100,11 +102,11 @@ public sealed class OfficialDocumentService
         return page;
     }
 
-    private FixedPage BuildApproximateCostSheetPage(ProcurementData data)
+    private static FixedPage BuildApproximateCostSheetPage(ProcurementData data)
     {
         var products = ActiveProducts(data);
         var firms = ActiveFirms(data);
-        var calc = _engine.Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var compact = products.Count >= 6 || firms.Count >= 4;
 
         var page = NewPage(A4LandscapeWidth, A4LandscapeHeight);
@@ -144,7 +146,7 @@ public sealed class OfficialDocumentService
         return page;
     }
 
-    private FixedPage BuildFirmOfferFormPage(ProcurementData data)
+    private static FixedPage BuildFirmOfferFormPage(ProcurementData data)
     {
         var products = ActiveProducts(data);
         var compact = products.Count >= 6;
@@ -216,12 +218,106 @@ public sealed class OfficialDocumentService
         return page;
     }
 
+    private static FixedPage BuildApprovalDocumentPage(ProcurementData data)
+    {
+        var products = ActiveProducts(data);
+        var calc = ProcurementEngine.Calculate(data);
+        var info = data.ApprovalDocument ?? new ApprovalDocumentInfo();
+        var page = NewPage(A4PortraitWidth, A4PortraitHeight);
+        var root = NewPageRoot(page, A4PortraitWidth, A4PortraitHeight);
+        var body = new StackPanel { Orientation = Orientation.Vertical };
+        root.Children.Add(body);
+
+        body.Children.Add(T("ONAY BELGESİ", 15.0, true, TextAlignment.Center, new Thickness(0, 0, 0, 6)));
+
+        var header = new Grid();
+        AddApprovalSplitColumns(header);
+        AddRow(header, 28); AddCell(header, 0, 0, "ALIM YAPAN İDARENİN ADI", true, 9.4, TextAlignment.Left); AddCell(header, 0, 1, data.Institution.FullName, false, 9.4, TextAlignment.Center, 1, 1, "Cambria", 60, 7.4);
+        AddRow(header, 28); AddCell(header, 1, 0, "BELGE TARİH VE SAYISI", true, 9.4, TextAlignment.Left); AddCell(header, 1, 1, $"{DateText(data.Dates.ApprovalDocumentDate)}  /  {Safe(info.DocumentNumber)}", false, 9.4, TextAlignment.Center);
+        body.Children.Add(header);
+
+        var details = new Grid { Margin = new Thickness(0, 0, 0, 0) };
+        AddApprovalSplitColumns(details);
+        AddRow(details, 30); AddCell(details, 0, 0, "DOĞRUDAN TEMİN İLE İLGİLİ BİLGİLER", true, 10.2, TextAlignment.Center, 2, 1);
+        var row = 1;
+        void Detail(string label, string value, double height = 27)
+        {
+            AddRow(details, height); AddCell(details, row, 0, label, true, 8.8, TextAlignment.Left); AddCell(details, row, 1, value, false, 8.8, TextAlignment.Left, 1, 1, "Cambria", 88, 7.0); row++;
+        }
+        Detail("İŞİN TANIMI", data.JobTitle, 36);
+        Detail("İŞİN NİTELİĞİ", data.JobTitle, 36);
+        Detail("İŞİN MİKTARI", ApprovalQuantitySummary(products), 34);
+        Detail("Yaklaşık Maliyet (KDV Hariç)", NumberParser.Money(calc.ApproximateCostTotal));
+        Detail("Kullanılabilir Ödenek Tutarı", ApprovalMoneyText(info.AvailableBudgetAmount));
+        Detail("Yatırım Proje Numarası (varsa)", info.InvestmentProjectNumber);
+        Detail("Bütçe Tertibi (varsa)", info.BudgetCode);
+        Detail("Avans Verilecekse Şartları", info.AdvanceConditions);
+        Detail("İhale Usulü", string.IsNullOrWhiteSpace(info.TenderProcedure) ? "4734 S.K. 22/d Kapsamında" : info.TenderProcedure);
+        Detail("İlanın Şekli ve Adedi", string.IsNullOrWhiteSpace(info.AnnouncementMethod) ? "İlansız" : info.AnnouncementMethod);
+        Detail("Ön Yeterlik/İhale Dokümanı Satış Bedeli", info.PrequalificationDocumentSalePrice);
+        Detail("Fiyat Farkı Ödenecekse Dayanağı", string.IsNullOrWhiteSpace(info.PriceDifferenceBasis) ? "Ödenmeyecektir" : info.PriceDifferenceBasis, 32);
+        body.Children.Add(details);
+
+        var notes = new Grid(); notes.ColumnDefinitions.Add(new ColumnDefinition());
+        AddRow(notes, 28); AddCell(notes, 0, 0, "AÇIKLAMALAR", true, 9.8, TextAlignment.Center);
+        AddRow(notes, 55); AddCell(notes, 1, 0, string.IsNullOrWhiteSpace(info.Notes) ? data.JobTitle : info.Notes, false, 8.8, TextAlignment.Left, 1, 1, "Cambria", 120, 7.0);
+        body.Children.Add(notes);
+
+        body.Children.Add(BuildApprovalCommissionTable("PİYASA ARAŞTIRMA GÖREVLİLERİ", data.MarketCommission));
+        body.Children.Add(BuildApprovalCommissionTable("MUAYENE VE KABUL KOMİSYONU GÖREVLİLERİ", data.InspectionCommission));
+
+        var approval = new Grid();
+        AddApprovalSplitColumns(approval);
+        AddRow(approval, 28); AddCell(approval, 0, 0, "ONAY", true, 10.0, TextAlignment.Center, 2, 1);
+        AddRow(approval, 112);
+        var left = $"Yukarıda belirtilen mal/malzeme/hizmetin alınması hususunu onaylarınıza arz ederim\n\n{DateText(data.Dates.ApprovalDocumentDate)}\n\n{info.SubmittedByName}\n{info.SubmittedByTitle}";
+        var rightTitle = !string.IsNullOrWhiteSpace(data.Institution.AuthorizedTitle) ? data.Institution.AuthorizedTitle : data.Institution.AuthorizedDuty;
+        var right = $"Uygundur\n{DateText(data.Dates.ApprovalDocumentDate)}\nHarcama Yetkilisi\n\n{data.Institution.AuthorizedName}\n{rightTitle}";
+        AddCell(approval, 1, 0, left, false, 8.8, TextAlignment.Center, 1, 1, "Cambria", 95, 7.2);
+        AddCell(approval, 1, 1, right, false, 8.8, TextAlignment.Center, 1, 1, "Cambria", 80, 7.2);
+        body.Children.Add(approval);
+        return page;
+    }
+
+    // Onay Belgesi'nde ONAY bölümünün merkez çizgisi tüm iki sütunlu bloklar için tek referanstır.
+    // Üst başlık, detaylar ve komisyon tabloları aynı %50 / %50 dikey aksı kullanır.
+    private static void AddApprovalSplitColumns(Grid grid)
+    {
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+    }
+
+    private static Grid BuildApprovalCommissionTable(string title, IEnumerable<CommissionMember> source)
+    {
+        var members = source.Take(3).ToList();
+        while (members.Count < 3) members.Add(new CommissionMember());
+        var grid = new Grid();
+        AddApprovalSplitColumns(grid);
+        AddRow(grid, 28); AddCell(grid, 0, 0, title, true, 9.6, TextAlignment.Center, 2, 1);
+        AddRow(grid, 24); AddCell(grid, 1, 0, "Adı Soyadı", true, 8.6); AddCell(grid, 1, 1, "Unvanı", true, 8.6);
+        for (var i = 0; i < 3; i++)
+        {
+            AddRow(grid, 25);
+            AddCell(grid, i + 2, 0, $"{i + 1}. {members[i].Name}", false, 8.3, TextAlignment.Left);
+            AddCell(grid, i + 2, 1, $"{CommissionRole(i)} ({members[i].Title})", false, 8.3, TextAlignment.Left);
+        }
+        return grid;
+    }
+
+    private static string ApprovalQuantitySummary(List<ProductItem> products) =>
+        products.Count == 0 ? string.Empty : string.Join("; ", products.Select(p => $"{p.Quantity} {p.Unit} {p.Name}"));
+
+    private static string ApprovalMoneyText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        return NumberParser.TryPositiveDecimal(value, out var parsed) ? NumberParser.Money(parsed) : value.Trim();
+    }
     // Eski Excel formu görsel referanstır; yeni iş kuralı ise alımın tamamında tek kazanan firmadır.
-    private FixedPage BuildMarketResearchPage(ProcurementData data)
+    private static FixedPage BuildMarketResearchPage(ProcurementData data)
     {
         var products = ActiveProducts(data);
         var firms = ActiveFirms(data);
-        var calc = _engine.Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var winner = firms.FirstOrDefault(f => f.Id == calc.WinningFirmId);
         var compact = products.Count >= 6 || firms.Count >= 5;
         var dense = products.Count >= 7;
@@ -290,11 +386,11 @@ public sealed class OfficialDocumentService
         return page;
     }
 
-    private FixedPage BuildInspectionAcceptancePage(ProcurementData data)
+    private static FixedPage BuildInspectionAcceptancePage(ProcurementData data)
     {
         var products = ActiveProducts(data);
         var firms = ActiveFirms(data);
-        var calc = _engine.Calculate(data);
+        var calc = ProcurementEngine.Calculate(data);
         var winner = firms.FirstOrDefault(f => f.Id == calc.WinningFirmId);
         var compact = products.Count >= 7;
 
@@ -337,7 +433,7 @@ public sealed class OfficialDocumentService
             true, TextAlignment.Center, null, "Cambria"));
     }
 
-    private static FrameworkElement BuildInstitutionContactBlock(ProcurementData data, bool compact, Thickness margin)
+    private static StackPanel BuildInstitutionContactBlock(ProcurementData data, bool compact, Thickness margin)
     {
         var panel = new StackPanel { Margin = margin };
         panel.Children.Add(T("Adres :", compact ? 12.0 : 13.5, false, TextAlignment.Left, null, "Cambria"));
@@ -348,7 +444,7 @@ public sealed class OfficialDocumentService
         return panel;
     }
 
-    private static FrameworkElement BuildSimpleSignatureRow(IEnumerable<CommissionMember> source, bool compact)
+    private static Grid BuildSimpleSignatureRow(IEnumerable<CommissionMember> source, bool compact)
     {
         var members = source.Take(3).ToList();
         while (members.Count < 3) members.Add(new CommissionMember());
@@ -367,7 +463,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static FrameworkElement BuildLabeledSignatureRow(IEnumerable<CommissionMember> source, bool compact)
+    private static Grid BuildLabeledSignatureRow(IEnumerable<CommissionMember> source, bool compact)
     {
         var members = source.Take(3).ToList();
         while (members.Count < 3) members.Add(new CommissionMember());
@@ -391,7 +487,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static FrameworkElement BuildApproximateRequestItemsTable(List<ProductItem> products, bool compact)
+    private static Grid BuildApproximateRequestItemsTable(List<ProductItem> products, bool compact)
     {
         var grid = NewOfferGrid(compact);
 
@@ -410,7 +506,7 @@ public sealed class OfficialDocumentService
         {
             AddRow(grid, compact ? 27 : 34);
             var p = products[i];
-            AddCell(grid, i + 2, 0, (i + 1).ToString(), false, compact ? 11.2 : 12.6, TextAlignment.Center, 1, 1, "Cambria");
+            AddCell(grid, i + 2, 0, (i + 1).ToString(CultureInfo.InvariantCulture), false, compact ? 11.2 : 12.6, TextAlignment.Center, 1, 1, "Cambria");
             AddCell(grid, i + 2, 1, ProductDisplay(p), false, compact ? 11.2 : 12.6, TextAlignment.Center, 1, 1, "Cambria",
                 compact ? 42 : 52, compact ? 8.8 : 9.8);
             AddCell(grid, i + 2, 2, p.Unit, false, compact ? 11.2 : 12.6, TextAlignment.Center, 1, 1, "Cambria");
@@ -427,7 +523,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static FrameworkElement BuildFirmOfferItemsTable(List<ProductItem> products, bool compact)
+    private static Grid BuildFirmOfferItemsTable(List<ProductItem> products, bool compact)
     {
         var grid = NewOfferGrid(compact);
 
@@ -448,7 +544,7 @@ public sealed class OfficialDocumentService
         {
             AddRow(grid, compact ? 27 : 34);
             var p = products[i];
-            AddCell(grid, i + 2, 0, (i + 1).ToString(), false, compact ? 11.1 : 12.5, TextAlignment.Center, 1, 1, "Cambria");
+            AddCell(grid, i + 2, 0, (i + 1).ToString(CultureInfo.InvariantCulture), false, compact ? 11.1 : 12.5, TextAlignment.Center, 1, 1, "Cambria");
             AddCell(grid, i + 2, 1, ProductDisplay(p), false, compact ? 11.1 : 12.5, TextAlignment.Center, 1, 1, "Cambria",
                 compact ? 42 : 52, compact ? 8.8 : 9.8);
             AddCell(grid, i + 2, 2, p.Unit, false, compact ? 11.1 : 12.5, TextAlignment.Center, 1, 1, "Cambria");
@@ -501,7 +597,7 @@ public sealed class OfficialDocumentService
         }
     }
 
-    private static FrameworkElement BuildApproximateCostTable(List<ProductItem> products, List<Firm> firms, CalculationResult calc, bool compact)
+    private static Grid BuildApproximateCostTable(List<ProductItem> products, List<Firm> firms, CalculationResult calc, bool compact)
     {
         const int firmSlots = 5;
         var grid = new Grid();
@@ -546,7 +642,7 @@ public sealed class OfficialDocumentService
             AddRow(grid, compact ? 31 : 38);
             var p = products[i];
             var pc = calc.Products.FirstOrDefault(x => x.ProductId == p.Id);
-            AddCell(grid, i + 2, 0, (i + 1).ToString(), true, compact ? 8.5 : 9.5);
+            AddCell(grid, i + 2, 0, (i + 1).ToString(CultureInfo.InvariantCulture), true, compact ? 8.5 : 9.5);
             AddCell(grid, i + 2, 1, ProductDisplay(p), false, compact ? 8.5 : 9.5, TextAlignment.Center,
                 1, 1, "Cambria", compact ? 34 : 42, compact ? 6.8 : 7.4);
             AddCell(grid, i + 2, 2, p.Quantity, false, compact ? 8.5 : 9.5);
@@ -570,7 +666,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private FrameworkElement BuildAllFirmOffersTable(List<ProductItem> products, List<Firm> firms, bool compact, bool dense)
+    private static Grid BuildAllFirmOffersTable(List<ProductItem> products, List<Firm> firms, bool compact, bool dense)
     {
         const int firmSlots = 5;
         var grid = new Grid();
@@ -601,7 +697,7 @@ public sealed class OfficialDocumentService
         {
             AddRow(grid, rowHeight);
             var p = products[r];
-            AddCell(grid, r + 2, 0, (r + 1).ToString(), false, dense ? 7.8 : compact ? 9.4 : 11.5);
+            AddCell(grid, r + 2, 0, (r + 1).ToString(CultureInfo.InvariantCulture), false, dense ? 7.8 : compact ? 9.4 : 11.5);
             AddCell(grid, r + 2, 1, ProductDisplay(p), false, dense ? 7.8 : compact ? 9.3 : 11.5, TextAlignment.Center,
                 1, 1, "Cambria", dense ? 32 : compact ? 38 : 46, dense ? 6.2 : compact ? 7.0 : 8.2);
         }
@@ -617,7 +713,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private FrameworkElement BuildWinningFirmTable(List<ProductItem> products, Firm? winner, CalculationResult calc, bool compact, bool dense)
+    private static Grid BuildWinningFirmTable(List<ProductItem> products, Firm? winner, CalculationResult calc, bool compact, bool dense)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(34) });
@@ -640,7 +736,7 @@ public sealed class OfficialDocumentService
         {
             AddRow(grid, rowHeight);
             var p = products[r];
-            AddCell(grid, r + 2, 0, (r + 1).ToString(), false, dense ? 7.8 : compact ? 9.4 : 11.5);
+            AddCell(grid, r + 2, 0, (r + 1).ToString(CultureInfo.InvariantCulture), false, dense ? 7.8 : compact ? 9.4 : 11.5);
             AddCell(grid, r + 2, 1, ProductDisplay(p), false, dense ? 7.8 : compact ? 9.3 : 11.5,
                 TextAlignment.Center, 1, 1, "Cambria", dense ? 32 : compact ? 38 : 46, dense ? 6.2 : compact ? 7.0 : 8.2);
         }
@@ -660,7 +756,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private FrameworkElement BuildInspectionItemsTable(List<ProductItem> products, bool compact)
+    private static Grid BuildInspectionItemsTable(List<ProductItem> products, bool compact)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(58) });
@@ -676,7 +772,7 @@ public sealed class OfficialDocumentService
         {
             AddRow(grid, compact ? 37 : 48);
             var p = products[i];
-            AddCell(grid, i + 1, 0, (i + 1).ToString(), true, compact ? 12.8 : 14.0);
+            AddCell(grid, i + 1, 0, (i + 1).ToString(CultureInfo.InvariantCulture), true, compact ? 12.8 : 14.0);
             AddCell(grid, i + 1, 1, ProductDisplay(p), false, compact ? 12.3 : 13.8,
                 TextAlignment.Center, 1, 1, "Cambria", compact ? 36 : 44, compact ? 8.8 : 10.0);
             AddCell(grid, i + 1, 2, p.Unit, false, compact ? 12.5 : 14.0);
@@ -685,7 +781,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static FrameworkElement BuildMarketSignatureRow(IEnumerable<CommissionMember> source, bool compact, bool dense)
+    private static Grid BuildMarketSignatureRow(IEnumerable<CommissionMember> source, bool compact, bool dense)
     {
         var members = source.Take(3).ToList();
         while (members.Count < 3) members.Add(new CommissionMember());
@@ -706,7 +802,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static FrameworkElement BuildInspectionSignatureTable(IEnumerable<CommissionMember> source)
+    private static Grid BuildInspectionSignatureTable(IEnumerable<CommissionMember> source)
     {
         var members = source.Take(3).ToList();
         while (members.Count < 3) members.Add(new CommissionMember());

@@ -16,7 +16,7 @@ public static class EngineSelfTest
             data.Firms.Add(F("Test Firma B", p1, 12, 6, p2, 15, 5)); // nihai: 69 -> kazanan
             data.Firms.Add(F("Eksik Firma", p1, 1, 6, p2, null, 5));  // değerlendirme dışı
 
-            var result = new ProcurementEngine().Calculate(data);
+            var result = ProcurementEngine.Calculate(data);
             if (result.MarketResultTotal != 69m || result.WinningFirmName != "Test Firma B")
                 return (false, "Miktar x nihai birim fiyat toplamı öz testi başarısız.");
             if (result.Products.First(x => x.ProductId == p1.Id).WinningLineTotal != 24m ||
@@ -32,12 +32,12 @@ public static class EngineSelfTest
             var tie = new ProcurementData { Products = new() { p1 } };
             tie.Firms.Add(F("Eşit A", p1, 10, 6, p2, null, null));
             tie.Firms.Add(F("Eşit B", p1, 10, 6, p2, null, null));
-            var tieResult = new ProcurementEngine().Calculate(tie);
+            var tieResult = ProcurementEngine.Calculate(tie);
             if (!tieResult.HasWinnerTie || !string.IsNullOrWhiteSpace(tieResult.WinningFirmId))
                 return (false, "Eşit teklif güvenlik öz testi başarısız.");
 
             tie.PreferredWinnerFirmId = tie.Firms[1].Id;
-            tieResult = new ProcurementEngine().Calculate(tie);
+            tieResult = ProcurementEngine.Calculate(tie);
             if (tieResult.WinningFirmId != tie.Firms[1].Id)
                 return (false, "Eşit teklif kullanıcı seçimi öz testi başarısız.");
 
