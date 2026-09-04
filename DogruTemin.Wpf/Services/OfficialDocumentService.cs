@@ -231,15 +231,13 @@ public sealed class OfficialDocumentService
         body.Children.Add(T("ONAY BELGESİ", 15.0, true, TextAlignment.Center, new Thickness(0, 0, 0, 6)));
 
         var header = new Grid();
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(285) });
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        AddApprovalSplitColumns(header);
         AddRow(header, 28); AddCell(header, 0, 0, "ALIM YAPAN İDARENİN ADI", true, 9.4, TextAlignment.Left); AddCell(header, 0, 1, data.Institution.FullName, false, 9.4, TextAlignment.Center, 1, 1, "Cambria", 60, 7.4);
         AddRow(header, 28); AddCell(header, 1, 0, "BELGE TARİH VE SAYISI", true, 9.4, TextAlignment.Left); AddCell(header, 1, 1, $"{DateText(data.Dates.ApprovalDocumentDate)}  /  {Safe(info.DocumentNumber)}", false, 9.4, TextAlignment.Center);
         body.Children.Add(header);
 
         var details = new Grid { Margin = new Thickness(0, 0, 0, 0) };
-        details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(285) });
-        details.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        AddApprovalSplitColumns(details);
         AddRow(details, 30); AddCell(details, 0, 0, "DOĞRUDAN TEMİN İLE İLGİLİ BİLGİLER", true, 10.2, TextAlignment.Center, 2, 1);
         var row = 1;
         void Detail(string label, string value, double height = 27)
@@ -269,7 +267,7 @@ public sealed class OfficialDocumentService
         body.Children.Add(BuildApprovalCommissionTable("MUAYENE VE KABUL KOMİSYONU GÖREVLİLERİ", data.InspectionCommission));
 
         var approval = new Grid();
-        approval.ColumnDefinitions.Add(new ColumnDefinition()); approval.ColumnDefinitions.Add(new ColumnDefinition());
+        AddApprovalSplitColumns(approval);
         AddRow(approval, 28); AddCell(approval, 0, 0, "ONAY", true, 10.0, TextAlignment.Center, 2, 1);
         AddRow(approval, 112);
         var left = $"Yukarıda belirtilen mal/malzeme/hizmetin alınması hususunu onaylarınıza arz ederim\n\n{DateText(data.Dates.ApprovalDocumentDate)}\n\n{info.SubmittedByName}\n{info.SubmittedByTitle}";
@@ -281,13 +279,20 @@ public sealed class OfficialDocumentService
         return page;
     }
 
+    // Onay Belgesi'nde ONAY bölümünün merkez çizgisi tüm iki sütunlu bloklar için tek referanstır.
+    // Üst başlık, detaylar ve komisyon tabloları aynı %50 / %50 dikey aksı kullanır.
+    private static void AddApprovalSplitColumns(Grid grid)
+    {
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+    }
+
     private static Grid BuildApprovalCommissionTable(string title, IEnumerable<CommissionMember> source)
     {
         var members = source.Take(3).ToList();
         while (members.Count < 3) members.Add(new CommissionMember());
         var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(260) });
+        AddApprovalSplitColumns(grid);
         AddRow(grid, 28); AddCell(grid, 0, 0, title, true, 9.6, TextAlignment.Center, 2, 1);
         AddRow(grid, 24); AddCell(grid, 1, 0, "Adı Soyadı", true, 8.6); AddCell(grid, 1, 1, "Unvanı", true, 8.6);
         for (var i = 0; i < 3; i++)
