@@ -52,6 +52,7 @@ public sealed class OfficialDocumentService
     public static bool IsImplemented(OutputDocumentType type) =>
         type is OutputDocumentType.ApproximateRequest
             or OutputDocumentType.ApproximateCostSheet
+            or OutputDocumentType.ApprovalDocument
             or OutputDocumentType.FirmOfferForm
             or OutputDocumentType.MarketResearchReport
             or OutputDocumentType.InspectionAcceptanceReport;
@@ -298,7 +299,7 @@ public sealed class OfficialDocumentService
         return grid;
     }
 
-    private static string ApprovalQuantitySummary(IReadOnlyCollection<ProductItem> products) =>
+    private static string ApprovalQuantitySummary(List<ProductItem> products) =>
         products.Count == 0 ? string.Empty : string.Join("; ", products.Select(p => $"{p.Quantity} {p.Unit} {p.Name}"));
 
     private static string ApprovalMoneyText(string? value)
