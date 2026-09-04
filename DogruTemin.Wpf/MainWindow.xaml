@@ -380,7 +380,7 @@
                     <ScrollViewer x:Name="ApprovalDocumentView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,8,16">
                             <TextBlock Text="ONAY BELGESİ" Style="{StaticResource PageTitle}"/>
-                            <TextBlock Text="Yalnız Onay Belgesi'ne özgü bilgileri girin. Kurum, mal/hizmet, yaklaşık maliyet, komisyonlar ve harcama yetkilisi mevcut işlemden otomatik alınır." Style="{StaticResource PageSubtitle}" Margin="2,0,0,10"/>
+                            <TextBlock Text="Referansta karşılığı dolu bilgiler zorunludur (*). Opsiyonel alanlar boş bırakılabilir; Açıklamalar boşsa İşin Tanımı otomatik kullanılır." Style="{StaticResource PageSubtitle}" Margin="2,0,0,10"/>
 
                             <Border Style="{StaticResource PremiumPanel}" Padding="18,16" Margin="0,0,0,12">
                                 <StackPanel>
@@ -388,11 +388,11 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock Text="Onay Belgesi Tarihi" Style="{StaticResource PremiumFieldLabel}"/>
+                                            <TextBlock Text="Onay Belgesi Tarihi *" Style="{StaticResource PremiumFieldLabel}"/>
                                             <local:LargeDatePicker x:Name="ApprovalDocumentDatePicker" SelectedDateChanged="AnyDate_Changed"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
-                                            <TextBlock Text="Belge Sayısı" Style="{StaticResource PremiumFieldLabel}"/>
+                                            <TextBlock Text="Belge Sayısı (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/>
                                             <TextBox x:Name="ApprovalDocumentNumberBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/>
                                         </StackPanel>
                                     </Grid>
@@ -405,15 +405,15 @@
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/></Grid.RowDefinitions>
-                                        <StackPanel><TextBlock Text="Kullanılabilir Ödenek Tutarı" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAvailableBudgetBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Column="2"><TextBlock Text="Yatırım Proje Numarası (varsa)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalInvestmentProjectBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="2"><TextBlock Text="Bütçe Tertibi (varsa)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalBudgetCodeBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="Avans Verilecekse Şartları" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAdvanceConditionsBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="4"><TextBlock Text="İhale Usulü" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalTenderProcedureBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="4" Grid.Column="2"><TextBlock Text="İlanın Şekli ve Adedi" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAnnouncementMethodBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="6"><TextBlock Text="Ön Yeterlik / İhale Dokümanı Satış Bedeli" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPrequalificationSalePriceBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="6" Grid.Column="2"><TextBlock Text="Fiyat Farkı Ödenecekse Dayanağı" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPriceDifferenceBasisBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="8" Grid.ColumnSpan="3"><TextBlock Text="Açıklamalar" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalNotesBox" Style="{StaticResource PremiumFieldTextBox}" MinHeight="72" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel><TextBlock Text="Kullanılabilir Ödenek Tutarı *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAvailableBudgetBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Yatırım Proje Numarası (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalInvestmentProjectBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="2"><TextBlock Text="Bütçe Tertibi *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalBudgetCodeBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="Avans Verilecekse Şartları (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAdvanceConditionsBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="4"><TextBlock Text="İhale Usulü *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalTenderProcedureBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="4" Grid.Column="2"><TextBlock Text="İlanın Şekli ve Adedi *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAnnouncementMethodBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="6"><TextBlock Text="Ön Yeterlik / İhale Dokümanı Satış Bedeli (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPrequalificationSalePriceBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="6" Grid.Column="2"><TextBlock Text="Fiyat Farkı Ödenecekse Dayanağı *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPriceDifferenceBasisBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="8" Grid.ColumnSpan="3"><TextBlock Text="Açıklamalar (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalNotesBox" Style="{StaticResource PremiumFieldTextBox}" MinHeight="72" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -423,8 +423,8 @@
                                     <TextBlock Text="ONAYA SUNAN" Style="{StaticResource PremiumSectionTitle}" FontSize="16" Margin="0,0,0,10"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                        <StackPanel><TextBlock Text="Ad Soyad" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalSubmittedByNameBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Column="2"><TextBlock Text="Unvanı" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalSubmittedByTitleBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel><TextBlock Text="Ad Soyad *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalSubmittedByNameBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Column="2"><TextBlock Text="Unvanı *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalSubmittedByTitleBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>

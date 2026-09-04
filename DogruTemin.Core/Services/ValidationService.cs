@@ -110,6 +110,13 @@ public static class ValidationService
         RequireText(data.Dates.ApprovalNo, issues, "Harcama belgesi sayısı");
         RequireDate(data.Dates.CostCalculationDate, issues, "Yaklaşık Maliyet Hesap Cetveli tarihi");
         RequireDate(data.Dates.ApprovalDocumentDate, issues, "Onay Belgesi tarihi");
+        RequireText(data.ApprovalDocument.AvailableBudgetAmount, issues, "Kullanılabilir ödenek tutarı");
+        RequireText(data.ApprovalDocument.BudgetCode, issues, "Bütçe tertibi");
+        RequireText(data.ApprovalDocument.TenderProcedure, issues, "İhale usulü");
+        RequireText(data.ApprovalDocument.AnnouncementMethod, issues, "İlanın şekli ve adedi");
+        RequireText(data.ApprovalDocument.PriceDifferenceBasis, issues, "Fiyat farkı dayanağı");
+        RequireText(data.ApprovalDocument.SubmittedByName, issues, "Onaya sunan ad soyad");
+        RequireText(data.ApprovalDocument.SubmittedByTitle, issues, "Onaya sunan unvanı");
         RequireDate(data.Dates.MarketReportDate, issues, "Piyasa Fiyat Araştırması Tutanağı tarihi");
         RequireDate(data.Dates.InspectionReportDate, issues, "Muayene ve Kabul Tutanağı tarihi");
         RequireDate(data.Dates.DeliveryDate, issues, "Teslim Alma / Kabul tarihi");
@@ -204,6 +211,10 @@ public static class ValidationService
             case OutputDocumentType.ApprovalDocument:
                 RequireDate(data.Dates.ApprovalDocumentDate, issues, "Onay Belgesi tarihi");
                 RequireText(data.ApprovalDocument.AvailableBudgetAmount, issues, "Kullanılabilir ödenek tutarı");
+                RequireText(data.ApprovalDocument.BudgetCode, issues, "Bütçe tertibi");
+                RequireText(data.ApprovalDocument.TenderProcedure, issues, "İhale usulü");
+                RequireText(data.ApprovalDocument.AnnouncementMethod, issues, "İlanın şekli ve adedi");
+                RequireText(data.ApprovalDocument.PriceDifferenceBasis, issues, "Fiyat farkı dayanağı");
                 RequireText(data.ApprovalDocument.SubmittedByName, issues, "Onaya sunan ad soyad");
                 RequireText(data.ApprovalDocument.SubmittedByTitle, issues, "Onaya sunan unvanı");
                 RequireText(data.Institution.AuthorizedName, issues, "Harcama yetkilisi adı soyadı");
@@ -254,7 +265,13 @@ public static class ValidationService
             data.Dates.ApprovalDate.HasValue,
             !string.IsNullOrWhiteSpace(data.Dates.ApprovalNo),
             data.Dates.ApprovalDocumentDate.HasValue,
-            !string.IsNullOrWhiteSpace(data.ApprovalDocument.AvailableBudgetAmount)
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.AvailableBudgetAmount),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.BudgetCode),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.TenderProcedure),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.AnnouncementMethod),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.PriceDifferenceBasis),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByName),
+            !string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByTitle)
         };
         return (int)Math.Round(checks.Count(c => c) * 100.0 / checks.Count);
     }
