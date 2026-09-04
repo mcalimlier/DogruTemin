@@ -7,7 +7,20 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-echo DogruTemin 4.2.0 RC1 Release derleniyor ve aciliyor...
+
+echo [1/2] DogruTemin 4.2.0 Final otomatik testleri calisiyor...
+dotnet test "DogruTemin.Tests\DogruTemin.Tests.csproj" -c Release
+if errorlevel 1 (
+  echo.
+  echo HATA: Otomatik testlerden biri basarisiz. Program acilmadi.
+  pause
+  exit /b 1
+)
+
+echo.
+echo [2/2] Testler basarili. DogruTemin 4.2.0 Final aciliyor...
+echo Kisa kontrol: coklu urun/firma, Adet-Miktar, hesaplama, Onay Belgesi, PDF ve kaydet-ac.
+echo.
 dotnet run --project "DogruTemin.Wpf\DogruTemin.Wpf.csproj" -c Release
 if errorlevel 1 (
   echo.
