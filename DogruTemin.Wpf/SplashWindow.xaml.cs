@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 
@@ -11,8 +9,7 @@ namespace DogruTemin.Wpf;
 public partial class SplashWindow : Window
 {
     private const double ProgressTrackWidth = 410.0;
-    private static readonly TimeSpan MinimumDisplayTime = TimeSpan.FromMilliseconds(3500);
-    private static readonly TimeSpan CompletionAnimationTime = TimeSpan.FromMilliseconds(180);
+    private int _reportedPercent;
 
     public SplashWindow()
     {
@@ -22,34 +19,32 @@ public partial class SplashWindow : Window
 
     private async void SplashWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        var visibleTime = Stopwatch.StartNew();
         VersionText.Text = AppVersionInfo.DisplayVersion;
         var spin = new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1))
         {
             RepeatBehavior = RepeatBehavior.Forever
         };
         SpinnerRotate.BeginAnimation(System.Windows.Media.RotateTransform.AngleProperty, spin);
-        StartSmoothProgress();
 
         try
         {
-            SetProgress(8, "DoğruTemin başlatılıyor...");
-            await Dispatcher.Yield(DispatcherPriority.Background);
+            SetProgress(StartupProgressProfile.InitialPercent, "DoğruTemin başlatılıyor...");
+            await Dispatcher.Yield(DispatcherPriority.Render);
 
-            // Ana pencere gerçek başlangıç kilometre taşlarını bildirmeye devam eder;
-            // yalnız ilerleme çubuğu bu kilometre taşlarına atlamaz, tek akış halinde ilerler.
+            // MainWindow kurulumu UI iş parçacığını kısa süre meşgul edebildiği için önce
+            // kullanıcıya gerçekten kesintisiz görünen bir ön yükleme akışı tamamlanır.
+            await RunSmoothPreloadAsync();
+
+            SetProgress(StartupProgressProfile.PreloadPercent, "Veriler ve uygulama bileşenleri hazırlanıyor...");
             var main = new MainWindow(SetProgress);
 
-            SetProgress(96, "Son kontroller yapılıyor...");
-            var remaining = MinimumDisplayTime - visibleTime.Elapsed;
-            if (remaining > TimeSpan.Zero)
-                await Task.Delay(remaining);
-
-            SetProgress(100, "Hazır. Program açılıyor...");
-            await CompleteProgressAsync();
+            CompleteProgress("Hazır. Program açılıyor...");
+            await Task.Delay(StartupProgressProfile.CompletionDurationMs);
 
             Application.Current.MainWindow = main;
             main.Show();
+            await Task.Delay(100);
+
             Close();
             Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
         }
@@ -65,54 +60,77 @@ public partial class SplashWindow : Window
         }
     }
 
-    private void StartSmoothProgress()
+    private async Task RunSmoothPreloadAsync()
     {
-        ProgressFill.Width = 0;
-        PercentText.Text = "%0";
-        CompositionTarget.Rendering += UpdateAnimatedPercent;
+        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, null);
+        ProgressFill.Width = ProgressTrackWidth * (StartupProgressProfile.InitialPercent / 100.0);
+        _reportedPercent = StartupProgressProfile.InitialPercent;
+        PercentText.Text = $"%{_reportedPercent}";
 
         var animation = new DoubleAnimation
         {
-            From = 0,
-            To = ProgressTrackWidth * 0.96,
-            Duration = new Duration(MinimumDisplayTime),
+            From = ProgressFill.Width,
+            To = ProgressTrackWidth * (StartupProgressProfile.PreloadPercent / 100.0),
+            Duration = TimeSpan.FromMilliseconds(StartupProgressProfile.PreloadDurationMs),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
             FillBehavior = FillBehavior.HoldEnd
         };
-        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, animation, HandoffBehavior.SnapshotAndReplace);
-    }
 
-    private async Task CompleteProgressAsync()
-    {
-        var currentWidth = Math.Clamp(ProgressFill.Width, 0, ProgressTrackWidth);
-        var animation = new DoubleAnimation(currentWidth, ProgressTrackWidth, CompletionAnimationTime)
+        ProgressFill.BeginAnimation(
+            FrameworkElement.WidthProperty,
+            animation,
+            HandoffBehavior.SnapshotAndReplace);
+
+        var start = Environment.TickCount64;
+        while (Environment.TickCount64 - start < StartupProgressProfile.PreloadDurationMs)
         {
-            FillBehavior = FillBehavior.HoldEnd,
-            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-        };
-        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, animation, HandoffBehavior.SnapshotAndReplace);
-        await Task.Delay(CompletionAnimationTime);
-        PercentText.Text = "%100";
-    }
+            var elapsed = Math.Clamp(
+                (Environment.TickCount64 - start) / (double)StartupProgressProfile.PreloadDurationMs,
+                0.0,
+                1.0);
+            var percent = StartupProgressProfile.CalculatePreloadPercent(elapsed);
+            if (percent > _reportedPercent)
+            {
+                _reportedPercent = percent;
+                PercentText.Text = $"%{percent}";
+            }
+            await Task.Delay(StartupProgressProfile.FrameDelayMs);
+        }
 
-    private void UpdateAnimatedPercent(object? sender, EventArgs e)
-    {
-        var width = Math.Clamp(ProgressFill.Width, 0, ProgressTrackWidth);
-        var percent = (int)Math.Round(width / ProgressTrackWidth * 100.0, MidpointRounding.AwayFromZero);
-        PercentText.Text = $"%{percent}";
+        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, null);
+        ProgressFill.Width = ProgressTrackWidth * (StartupProgressProfile.PreloadPercent / 100.0);
+        _reportedPercent = StartupProgressProfile.PreloadPercent;
+        PercentText.Text = $"%{_reportedPercent}";
     }
 
     private void SetProgress(int percent, string stage)
     {
-        // Yüzde bilgisi MainWindow ile API uyumluluğu için korunur. Görsel yüzde ve bar,
-        // tek bir zaman çizelgesiyle akıcı ilerlediği için burada sıçratılmaz.
-        _ = percent;
+        _reportedPercent = Math.Max(
+            _reportedPercent,
+            Math.Clamp(percent, 0, StartupProgressProfile.MaximumReportedBeforeComplete));
+        PercentText.Text = $"%{_reportedPercent}";
         StageText.Text = stage;
         Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
     }
 
-    protected override void OnClosed(EventArgs e)
+    private void CompleteProgress(string stage)
     {
-        CompositionTarget.Rendering -= UpdateAnimatedPercent;
-        base.OnClosed(e);
+        ProgressFill.BeginAnimation(FrameworkElement.WidthProperty, null);
+        var currentWidth = ProgressFill.Width;
+        ProgressFill.BeginAnimation(
+            FrameworkElement.WidthProperty,
+            new DoubleAnimation(
+                currentWidth,
+                ProgressTrackWidth,
+                TimeSpan.FromMilliseconds(StartupProgressProfile.CompletionDurationMs))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                FillBehavior = FillBehavior.HoldEnd
+            },
+            HandoffBehavior.SnapshotAndReplace);
+
+        _reportedPercent = 100;
+        PercentText.Text = "%100";
+        StageText.Text = stage;
     }
 }
