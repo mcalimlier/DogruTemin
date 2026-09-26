@@ -163,13 +163,13 @@ public partial class MainWindow
                 lines.Add($"{doc.Name}: BU SÜRÜMDE DESTEKLENMİYOR");
                 continue;
             }
-            var core = GetExportCoreIssues(data, new[] { type });
+            var core = DocumentReadinessService.GetExportCoreIssues(data, new[] { type });
             var advisory = ValidationService.ValidateDocument(data, type).Select(i => i.Message).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().Count();
             missingCount += core.Count;
             lines.Add(core.Count == 0 ? $"{doc.Name}: ÇIKTIYA HAZIR" + (advisory > 0 ? $" • {advisory} uyarı" : string.Empty) : $"{doc.Name}: {core.Count} temel eksik");
         }
         var selectedTypes = selected.Where(d => OfficialDocumentService.IsImplemented(DocumentTypeFor(d.Name))).Select(d => DocumentTypeFor(d.Name)).ToList();
-        var coreIssues = GetExportCoreIssues(data, selectedTypes);
+        var coreIssues = DocumentReadinessService.GetExportCoreIssues(data, selectedTypes);
         var body = string.Join("\n", lines);
         body += coreIssues.Count == 0 ? "\n\nPDF / YAZDIR: TEMEL KOŞULLAR HAZIR" : "\n\nPDF / YAZDIR İÇİN TAMAMLANMASI GEREKEN TEMEL KOŞULLAR:\n" + string.Join("\n", coreIssues.Take(12).Select(i => "• " + i));
         body += "\n\nNot: Önizleme eksik bilgilerle de çalışır. Temel çıktı koşulları hazırsa diğer eksikler yalnız uyarıdır; kullanıcı isterse PDF kaydedebilir veya yazdırabilir.";
@@ -191,75 +191,6 @@ public partial class MainWindow
             return null;
         }
         return selected.Select(d => DocumentTypeFor(d.Name)).ToList();
-    }
-
-    private static bool IsPreparationDocument(OutputDocumentType type) => type is OutputDocumentType.ApproximateRequest or OutputDocumentType.FirmOfferForm;
-    private static bool IsFinalProcessDocument(OutputDocumentType type) => type is OutputDocumentType.ApproximateCostSheet or OutputDocumentType.ApprovalDocument or OutputDocumentType.MarketResearchReport or OutputDocumentType.InspectionAcceptanceReport;
-
-    private static List<string> GetExportCoreIssues(ProcurementData data, IReadOnlyCollection<OutputDocumentType> types)
-    {
-        var issues = new List<string>();
-        if (types.Any(IsPreparationDocument)) AddPreparationDocumentCoreIssues(data, issues);
-        if (types.Any(IsFinalProcessDocument)) AddFinalProcessDocumentCoreIssues(data, issues);
-        return issues.Distinct().ToList();
-    }
-
-    private static void AddPreparationDocumentCoreIssues(ProcurementData data, List<string> issues)
-    {
-        AddProductCoreIssues(data, issues);
-        AddCommissionCoreIssues(data.MarketCommission, "Piyasa Fiyat Araştırması Komisyonu", issues);
-        AddCommissionCoreIssues(data.InspectionCommission, "Muayene ve Kabul Komisyonu", issues);
-        if (string.IsNullOrWhiteSpace(data.Institution.TopAuthority)) issues.Add("Kurum Bilgisi: Üst Makam eksik.");
-        if (string.IsNullOrWhiteSpace(data.Institution.FullName)) issues.Add("Kurum Bilgisi: İdarenin Tam Adı eksik.");
-        if (string.IsNullOrWhiteSpace(data.Institution.Province)) issues.Add("Kurum Bilgisi: İl eksik.");
-        if (string.IsNullOrWhiteSpace(data.Institution.Address)) issues.Add("Kurum Bilgisi: Adres eksik.");
-        if (!ValidationService.ValidPhone(data.Institution.Phone)) issues.Add("Kurum Bilgisi: Geçerli telefon bilgisi eksik.");
-        if (!ValidationService.ValidEmail(data.Institution.Email)) issues.Add("Kurum Bilgisi: Geçerli e-posta bilgisi eksik.");
-    }
-
-    private static void AddFinalProcessDocumentCoreIssues(ProcurementData data, List<string> issues)
-    {
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
-        var firms = data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();
-        AddProductCoreIssues(data, issues);
-        if (firms.Count < 3) issues.Add($"En az 3 firma bulunmalıdır. Şu an {firms.Count} firma var.");
-        if (products.Count > 0 && firms.Count >= 3)
-        {
-            foreach (var firm in firms)
-            foreach (var product in products)
-            {
-                var offer = firm.Offers.FirstOrDefault(o => o.ProductId == product.Id);
-                if (!(offer?.ApproximateUnitPrice > 0)) issues.Add($"{firm.No}. firma / {product.No}. ürün yaklaşık teklifi eksik.");
-                if (!(offer?.FinalUnitPrice > 0)) issues.Add($"{firm.No}. firma / {product.No}. ürün nihai teklifi eksik.");
-            }
-        }
-        AddCommissionCoreIssues(data.MarketCommission, "Piyasa Fiyat Araştırması Komisyonu", issues);
-        AddCommissionCoreIssues(data.InspectionCommission, "Muayene ve Kabul Komisyonu", issues);
-    }
-
-    private static void AddProductCoreIssues(ProcurementData data, List<string> issues)
-    {
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
-        if (products.Count == 0)
-        {
-            issues.Add("En az 1 ürün / mal / hizmet bulunmalıdır.");
-            return;
-        }
-        foreach (var product in products)
-        {
-            if (product.Unit is not ("Adet" or "Miktar")) issues.Add($"{product.No}. ürün için birim Adet veya Miktar olmalıdır.");
-            if (!NumberParser.TryPositiveDecimal(product.Quantity, out _)) issues.Add($"{product.No}. ürün için miktar/adet 0'dan büyük geçerli bir sayı olmalıdır.");
-        }
-    }
-
-    private static void AddCommissionCoreIssues(IEnumerable<DogruTemin.Core.Models.CommissionMember> members, string label, List<string> issues)
-    {
-        var list = members.Take(3).ToList();
-        for (var i = 0; i < 3; i++)
-        {
-            var member = i < list.Count ? list[i] : null;
-            if (member is null || string.IsNullOrWhiteSpace(member.Name) || string.IsNullOrWhiteSpace(member.Title)) issues.Add($"{label} {i + 1}. üye için ad soyad ve unvan bilgisi tamamlanmalıdır.");
-        }
     }
 
     private static bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
@@ -284,7 +215,7 @@ public partial class MainWindow
         var types = GetSelectedImplementedDocumentTypes("DoğruTemin - Çıktı");
         if (types is null) return null;
         var data = BuildDataFromUi();
-        var coreIssues = GetExportCoreIssues(data, types);
+        var coreIssues = DocumentReadinessService.GetExportCoreIssues(data, types);
         if (coreIssues.Count > 0)
         {
             MessageBox.Show("Seçili belge grubu için temel çıktı koşulları tamamlanmalıdır.\n\n1. grup (Ön Hazırlık): Kurum bilgisi + her iki komisyon + ürün(ler) ve miktar/adet.\n2. grup (Nihai İşlem): En az 1 ürün + en az 3 firma + yaklaşık/nihai teklifler + her iki komisyon.\n\nEksik olanlar:\n" + string.Join("\n", coreIssues.Take(18).Select(i => "• " + i)), "DoğruTemin - Temel Çıktı Koşulları", MessageBoxButton.OK, MessageBoxImage.Warning);
