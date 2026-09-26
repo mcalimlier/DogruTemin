@@ -69,12 +69,10 @@ Temel prensip:
 - Eski `ValidationService.ValidTaxNo/ValidPhone/ValidEmail` çağrıları geriye dönük uyumluluk için korundu.
 - Mevcut iş kuralları ve kullanıcı akışı değiştirilmedi.
 
-
 ## Phase 5.1 — CI düzeltmesi
 - CI kontrolünde `ValidationService` içindeki `Regex` namespace bağımlılığı eksikliği tespit edildi ve düzeltildi.
 - `InputValidationService` içindeki e-posta kontrolü analyzer uyarısı vermeyecek şekilde açık `StringComparison` kullanacak biçimde temizlendi.
 - İş kuralları ve kullanıcı akışı değiştirilmedi.
-
 
 ## Phase 6 — Tarih doğrulamasını bağımsız Core servisine ayırma
 - Tarih kronolojisi kuralları `DateValidationService` içine taşındı.
@@ -82,12 +80,10 @@ Temel prensip:
 - `DateLogicWarnings` ve belge/iş akışı kontrollerinin mevcut dış API davranışı korunuyor.
 - Kullanıcı arayüzü ve iş kuralları değiştirilmedi; amaç sorumluluk sınırını netleştirmek ve sonraki Golden Scenario testlerine daha küçük birimler sunmak.
 
-
 ## Phase 6.1 — CI derleme düzeltmesi
 - CI kontrolünde `ValidationService.DateLogicWarnings` içinde tarih servisine dönüşten sonra kalan erişilemez `return` satırı tespit edildi.
 - Erişilemeyen kod kaldırıldı; tarih doğrulama davranışı değiştirilmedi.
 - Sonraki doğrulama: Release derlemesi, test/coverage ve setup smoke kontrolleri.
-
 
 ## Phase 7 — Belge doğrulamasını bağımsız Core servisine ayırma
 - Belgeye özel doğrulama kuralları `DocumentValidationService` sınıfına taşındı.
@@ -96,9 +92,15 @@ Temel prensip:
 - Belge türlerine göre gerekli alanlar, komisyonlar, firma/teklif kontrolleri ve kazanan firma adresi kontrolü mevcut davranış korunarak yeni serviste toplandı.
 - Amaç: `ValidationService` içindeki sorumlulukları küçük, test edilebilir Core servislerine ayırmak; WPF arayüzünü değiştirmemek.
 
-
 ## Phase 7.1 — CI derleme düzeltmesi
 - PR #10 CI kontrolünde belge doğrulama yardımcıları ayrıştırılırken `ValidationService` içinde hâlâ kullanılan ortak yardımcıların da taşındığı tespit edildi.
 - `OfferFor`, `RequireCommission`, `RequireText`, `RequireDate`, `Critical` ve `Warning` yardımcıları `ValidationService` içinde korunarak workflow doğrulamasının mevcut davranışı tamamlandı.
 - Belgeye özel yardımcılar `DocumentValidationService` içinde kalmaya devam ediyor.
 - Kullanıcı akışı ve doğrulama kuralları değiştirilmedi.
+
+## Phase 8 — İş akışı doğrulamasını bağımsız Core servisine ayırma
+- `ValidateWorkflow` içindeki işlem hazırlığı, ürün/firma/komisyon, tarih, teklif ve kazanan firma kontrolleri `WorkflowValidationService` sınıfına taşındı.
+- `ValidationService.ValidateWorkflow(...)` geriye dönük uyumluluk korunacak şekilde yeni servise delegasyon yapıyor.
+- `ValidationService` artık taslak doğrulama, tarih doğrulama, belge doğrulama ve hazırlık yüzdesi gibi daha sınırlı sorumlulukları taşıyor.
+- Kullanıcı akışı ve mevcut doğrulama mesajları değiştirilmedi.
+- Amaç: doğrulama servisinin büyümesini durdurmak ve Golden Scenario testinde iş akışı doğrulamasını bağımsız olarak test edilebilir hale getirmek.
