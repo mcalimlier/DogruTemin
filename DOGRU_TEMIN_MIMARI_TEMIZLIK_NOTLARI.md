@@ -158,3 +158,18 @@ Temel prensip:
 - Eski sürüm yükseltme, ileri sürüm reddi ve gerçek StorageService yükleme akışı için testler eklendi.
 - Mevcut UI ve iş kuralları değiştirilmedi.
 - Amaç: gelecekte SchemaVersion 5+ gibi değişiklikler geldiğinde tüm veri dönüşümlerinin tek, test edilebilir bir noktadan yönetilmesini sağlamak.
+
+
+## Phase 14.1 — ProcurementWorkflow başlangıcı
+
+- `ProcurementWorkflow` oluşturuldu.
+- Kaydetme orkestrasyonu Core içinde tek bir workflow sonucunda toplandı:
+  - taslak kritik doğrulaması,
+  - tarih uyarılarının ayrıştırılması,
+  - StorageService ile kayıt/yedekleme.
+- UI'nin hangi mesajı nasıl göstereceğine workflow karar vermiyor; yalnızca yapılandırılmış sonuç döndürüyor.
+- Kritik hata varsa kayıt yapılmıyor.
+- Geçerli veri için kayıt sonucu ve yedekleme uyarısı ayrı olarak döndürülüyor.
+- Workflow için bloklanan ve başarılı kayıt senaryoları test edildi.
+- İlk adım bilinçli olarak UI'ya bağlanmadı; sonraki adım mevcut `Save_Click` akışını bu workflow'a geçirerek davranış değişimini küçük tutmak.
+- Amaç: WPF'nin validation/storage orkestrasyonundan çıkarılması ve Application Workflow sınırının güvenli biçimde oluşturulması.
