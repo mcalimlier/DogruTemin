@@ -81,3 +81,9 @@ Temel prensip:
 - `ValidationService` artık tarih sıralama ayrıntısını kendi içinde uygulamak yerine ortak tarih servisini kullanıyor.
 - `DateLogicWarnings` ve belge/iş akışı kontrollerinin mevcut dış API davranışı korunuyor.
 - Kullanıcı arayüzü ve iş kuralları değiştirilmedi; amaç sorumluluk sınırını netleştirmek ve sonraki Golden Scenario testlerine daha küçük birimler sunmak.
+
+
+## Phase 6.1 — CI derleme düzeltmesi
+- CI kontrolünde `ValidationService.DateLogicWarnings` içinde tarih servisine dönüşten sonra kalan erişilemez `return` satırı tespit edildi.
+- Erişilemeyen kod kaldırıldı; tarih doğrulama davranışı değiştirilmedi.
+- Sonraki doğrulama: Release derlemesi, test/coverage ve setup smoke kontrolleri.
