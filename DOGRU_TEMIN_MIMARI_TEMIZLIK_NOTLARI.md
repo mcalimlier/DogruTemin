@@ -105,7 +105,6 @@ Temel prensip:
 - Kullanıcı akışı ve mevcut doğrulama mesajları değiştirilmedi.
 - Amaç: doğrulama servisinin büyümesini durdurmak ve Golden Scenario testinde iş akışı doğrulamasını bağımsız olarak test edilebilir hale getirmek.
 
-
 ## Phase 9 — Hazırlık yüzdesini bağımsız Core servisine ayırma
 - `ValidationService.ReadinessPercent(...)` içindeki hazırlık kontrol listesi `ReadinessService` sınıfına taşındı.
 - `ValidationService.ReadinessPercent(...)` geriye dönük uyumluluk için facade olarak korunarak yeni servise delegasyon yapıyor.
@@ -113,12 +112,20 @@ Temel prensip:
 - Amaç: `ValidationService` sorumluluğunu daha da daraltmak ve hazırlık durumunu bağımsız test edilebilir bir Core servisi haline getirmek.
 - Kullanıcı arayüzü ve mevcut iş akışı değiştirilmedi.
 
-
 ## Phase 10 — Taslak doğrulamasını bağımsız Core servisine ayırma
-
-- ValidateDraft(...) içindeki taslak/alan doğrulama kuralları DraftValidationService sınıfına taşındı.
-- ValidationService.ValidateDraft(...) geriye dönük uyumluluk için facade olarak korunarak yeni servise delegasyon yapıyor.
+- `ValidateDraft(...)` içindeki taslak/alan doğrulama kuralları `DraftValidationService` sınıfına taşındı.
+- `ValidationService.ValidateDraft(...)` geriye dönük uyumluluk için facade olarak korunarak yeni servise delegasyon yapıyor.
 - Ürün birimi/miktarı, firma sınırları, firma vergi no/telefon/e-posta, teklif fiyatları, mükerrer firma ve kurum iletişim bilgileri kontrollerinin mevcut davranışı korunmuştur.
 - Doğrulama mesajları ve alan anahtarları değiştirilmedi.
-- Amaç: ValidationService içindeki kalan gerçek iş mantığını da küçük, bağımsız ve test edilebilir Core servislerine ayırmak.
+- Amaç: `ValidationService` içindeki kalan gerçek iş mantığını da küçük, bağımsız ve test edilebilir Core servislerine ayırmak.
 - Kullanıcı arayüzü ve workflow akışı değiştirilmedi.
+
+## Phase 11 — ValidationService son temizlik
+
+- Phase 10 sonrasında `ValidationService` tekrar incelendi.
+- `ValidateDraft`, `ValidateWorkflow`, `DateLogicWarnings`, `ValidateDocument` ve `ReadinessPercent` artık ilgili bağımsız Core servislerine yalnızca delegasyon yapıyor.
+- `ValidTaxNo`, `ValidPhone` ve `ValidEmail` geriye dönük uyumluluk facade'ı olarak korunuyor.
+- Artık herhangi bir çağrı tarafından kullanılmayan özel `Critical` yardımcı metodu kaldırıldı.
+- Böylece `ValidationService` içinde gerçek doğrulama iş mantığı yerine yalnızca geriye dönük uyumluluk yüzeyi kaldı.
+- Kullanıcı arayüzü, iş kuralları ve mevcut doğrulama davranışı değiştirilmedi.
+- Bu aşamanın amacı, sonraki Golden Scenario ve servis testlerine geçmeden önce doğrulama facade'ını gereksiz koddan arındırmaktır.
