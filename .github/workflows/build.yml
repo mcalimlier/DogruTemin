@@ -9,6 +9,7 @@ on:
       - 'fix/**'
       - 'chore/**'
       - 'hardening/**'
+      - 'refactor/**'
   pull_request:
     branches:
       - main
