@@ -87,3 +87,18 @@ Temel prensip:
 - CI kontrolünde `ValidationService.DateLogicWarnings` içinde tarih servisine dönüşten sonra kalan erişilemez `return` satırı tespit edildi.
 - Erişilemeyen kod kaldırıldı; tarih doğrulama davranışı değiştirilmedi.
 - Sonraki doğrulama: Release derlemesi, test/coverage ve setup smoke kontrolleri.
+
+
+## Phase 7 — Belge doğrulamasını bağımsız Core servisine ayırma
+- Belgeye özel doğrulama kuralları `DocumentValidationService` sınıfına taşındı.
+- `ValidationService.ValidateDocument(...)` geriye dönük uyumluluk için korunarak yeni servise delegasyon yapıyor.
+- Tarih sıralaması `DateValidationService` üzerinden kullanılmaya devam ediyor.
+- Belge türlerine göre gerekli alanlar, komisyonlar, firma/teklif kontrolleri ve kazanan firma adresi kontrolü mevcut davranış korunarak yeni serviste toplandı.
+- Amaç: `ValidationService` içindeki sorumlulukları küçük, test edilebilir Core servislerine ayırmak; WPF arayüzünü değiştirmemek.
+
+
+## Phase 7.1 — CI derleme düzeltmesi
+- PR #10 CI kontrolünde belge doğrulama yardımcıları ayrıştırılırken `ValidationService` içinde hâlâ kullanılan ortak yardımcıların da taşındığı tespit edildi.
+- `OfferFor`, `RequireCommission`, `RequireText`, `RequireDate`, `Critical` ve `Warning` yardımcıları `ValidationService` içinde korunarak workflow doğrulamasının mevcut davranışı tamamlandı.
+- Belgeye özel yardımcılar `DocumentValidationService` içinde kalmaya devam ediyor.
+- Kullanıcı akışı ve doğrulama kuralları değiştirilmedi.
