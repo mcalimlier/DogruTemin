@@ -177,3 +177,19 @@ PHASE 9 TAMAMLANDI. SIRADAKİ İŞ PHASE 10 MİMARİ REFACTOR.
 - ValidationService.ValidateDraft(...) facade olarak korunuyor.
 - Mevcut taslak doğrulama kuralları ve mesajları korunmuştur.
 - Bir sonraki başlangıç noktası: Phase 11; ValidationService içinde kalan gerçek mantığın incelenmesi ve en küçük güvenli sorumluluk ayrıştırmasının uygulanması.
+
+
+## Phase 11 tamamlandı
+- PR #14: `ValidationService` son temizliği
+- CI Run #296: SUCCESS / GREEN
+- PR #14 squash merge edildi.
+- Main merge commit: `200c445600e69fdc540549472766ca99fbebf730`
+- `ValidationService` artık gerçek doğrulama iş mantığı taşımayan backward-compatible facade durumunda.
+
+## Phase 12 başladı
+- Branch: `refactor/architecture-cleanup-phase8`
+- Golden Scenario testi eklendi: `DogruTemin.Tests/GoldenScenarioTests.cs`
+- Test; doğrulama → hazırlık → hesaplama → kaydetme/yedek → yeniden yükleme → tekrar hesaplama zincirini tek senaryoda güvence altına alıyor.
+- İlk hedef: CI ile testin mevcut modeller ve iş kurallarıyla sorunsuz çalıştığını doğrulamak.
+- CI yeşil olduktan sonra PR squash merge edilecek.
+- Sonraki başlangıç noktası: Phase 13; schema migration hattını veya Application workflow ayrıştırmasını mevcut kod incelenerek en küçük güvenli adımla ele almak.
