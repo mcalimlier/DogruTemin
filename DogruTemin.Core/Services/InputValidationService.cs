@@ -23,6 +23,6 @@ public static class InputValidationService
     {
         var s = (text ?? string.Empty).Trim();
         if (s.Contains(' ', StringComparison.Ordinal)) return false;
-        return Regex.IsMatch(s, @"^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+        return Regex.IsMatch(s, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
     }
 }
