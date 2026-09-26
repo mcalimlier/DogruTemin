@@ -168,9 +168,7 @@ public static class ValidationService
         // Zorunlu kronoloji:
         // Kurul/Komisyon Onay <= Yaklaşık Maliyet < Onay Belgesi < Piyasa Fiyat Araştırması <= Muayene/Kabul.
         // Harcama belgesi ve teslim/kabul tarihi bu zincirin dışında ayrıca yönetilir.
-        var issues = new List<ValidationIssue>();
         return DateValidationService.RequiredSequenceIssues(data.Dates, ValidationSeverity.Warning);
-        return issues;
     }
 
     public static IReadOnlyList<ValidationIssue> ValidateDocument(ProcurementData data, OutputDocumentType document)
