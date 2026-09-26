@@ -74,3 +74,16 @@ Temel prensip:
 - CI kontrolünde `ValidationService` içindeki `Regex` namespace bağımlılığı eksikliği tespit edildi ve düzeltildi.
 - `InputValidationService` içindeki e-posta kontrolü analyzer uyarısı vermeyecek şekilde açık `StringComparison` kullanacak biçimde temizlendi.
 - İş kuralları ve kullanıcı akışı değiştirilmedi.
+
+
+## Phase 6 — Tarih doğrulamasını bağımsız Core servisine ayırma
+- Tarih kronolojisi kuralları `DateValidationService` içine taşındı.
+- `ValidationService` artık tarih sıralama ayrıntısını kendi içinde uygulamak yerine ortak tarih servisini kullanıyor.
+- `DateLogicWarnings` ve belge/iş akışı kontrollerinin mevcut dış API davranışı korunuyor.
+- Kullanıcı arayüzü ve iş kuralları değiştirilmedi; amaç sorumluluk sınırını netleştirmek ve sonraki Golden Scenario testlerine daha küçük birimler sunmak.
+
+
+## Phase 6.1 — CI derleme düzeltmesi
+- CI kontrolünde `ValidationService.DateLogicWarnings` içinde tarih servisine dönüşten sonra kalan erişilemez `return` satırı tespit edildi.
+- Erişilemeyen kod kaldırıldı; tarih doğrulama davranışı değiştirilmedi.
+- Sonraki doğrulama: Release derlemesi, test/coverage ve setup smoke kontrolleri.
