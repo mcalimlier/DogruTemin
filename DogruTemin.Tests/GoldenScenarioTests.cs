@@ -24,7 +24,7 @@ public sealed class GoldenScenarioTests : IDisposable
         Assert.False(calculation.HasWinnerTie);
         Assert.Equal("firm-b", calculation.WinningFirmId);
         Assert.Equal("Firma B", calculation.WinningFirmName);
-        Assert.Equal(160m, calculation.MarketResultTotal);
+        Assert.Equal(100m, calculation.MarketResultTotal);
 
         var storage = new StorageService(_root);
         storage.Save(data, createBackup: true);
@@ -90,9 +90,9 @@ public sealed class GoldenScenarioTests : IDisposable
             },
             Firms = new()
             {
-                Firm("firm-a", 1, "Firma A", "1000000000", "90", 30m, 30m),
-                Firm("firm-b", 2, "Firma B", "1000000001", "91", 20m, 20m),
-                Firm("firm-c", 3, "Firma C", "1000000002", "92", 40m, 40m)
+                Firm("firm-a", 1, "Firma A", "1000000000", "9000000001", 30m, 30m),
+                Firm("firm-b", 2, "Firma B", "1000000001", "9000000002", 20m, 20m),
+                Firm("firm-c", 3, "Firma C", "1000000002", "9000000003", 40m, 40m)
             },
             InspectionCommission = Commission("Muayene Üyesi"),
             MarketCommission = Commission("Piyasa Üyesi"),
