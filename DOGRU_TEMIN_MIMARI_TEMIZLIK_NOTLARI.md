@@ -57,3 +57,8 @@ Temel prensip:
 - Branch main karşısında 14 commit ileride ve 0 commit geride.
 - GitHub tarafında kayıp commit görünmüyor. GitHub Desktop'ta görünmeyen/eski kalan içerik için Fetch origin ile yerel remote referansı yenilenmeli.
 - Yerel branch uzak branch ile eşleşmiyorsa yerel değişiklikler korunarak Origin/refactor/architecture-cleanup-phase1 üzerinden checkout edilmelidir.
+
+## Phase 4 — CI doğrulaması ve bir sonraki temizlik adımı
+- `refactor/architecture-cleanup-phase1` için Windows CI yeniden çalıştırıldı ve başarılı tamamlandı.
+- Release derlemesi, otomatik testler ve setup smoke testleri başarılı.
+- Sonraki temizlikte UI dosyalarındaki gereksiz bağımlılık/using yükünü azaltma ve doğrulama sorumluluklarını daha net sınırlara ayırma hedefleniyor.
