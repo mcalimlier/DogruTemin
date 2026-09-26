@@ -62,3 +62,9 @@ Temel prensip:
 - `refactor/architecture-cleanup-phase1` için Windows CI yeniden çalıştırıldı ve başarılı tamamlandı.
 - Release derlemesi, otomatik testler ve setup smoke testleri başarılı.
 - Sonraki temizlikte UI dosyalarındaki gereksiz bağımlılık/using yükünü azaltma ve doğrulama sorumluluklarını daha net sınırlara ayırma hedefleniyor.
+
+## Phase 5 — Doğrulama sorumluluklarının ayrıştırılması
+- Temel alan doğrulamaları ayrı `InputValidationService` sınıfına taşındı: vergi no, telefon ve e-posta.
+- `ValidationService` iş akışı ve belge kurallarının merkezi olarak kaldı.
+- Eski `ValidationService.ValidTaxNo/ValidPhone/ValidEmail` çağrıları geriye dönük uyumluluk için korundu.
+- Mevcut iş kuralları ve kullanıcı akışı değiştirilmedi.
