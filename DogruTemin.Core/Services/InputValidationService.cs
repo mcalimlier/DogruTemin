@@ -22,7 +22,7 @@ public static class InputValidationService
     public static bool ValidEmail(string? text)
     {
         var s = (text ?? string.Empty).Trim();
-        if (s.Contains(' ')) return false;
+        if (s.Contains(' ', StringComparison.Ordinal)) return false;
         return Regex.IsMatch(s, @"^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     }
 }
