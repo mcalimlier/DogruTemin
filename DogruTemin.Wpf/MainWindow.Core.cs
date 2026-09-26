@@ -6,7 +6,6 @@ using FirmOfferCore = DogruTemin.Core.Models.FirmOffer;
 using AppSettings = DogruTemin.Core.Models.ApplicationSettings;
 using DogruTemin.Core.Services;
 using DogruTemin.Wpf.Services;
-using Microsoft.Win32;
 using System.Windows.Documents;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
