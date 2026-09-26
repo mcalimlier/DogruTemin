@@ -4,6 +4,7 @@ using AppSettings = DogruTemin.Core.Models.ApplicationSettings;
 using DogruTemin.Core.Services;
 using DogruTemin.Wpf.Services;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Interop;
