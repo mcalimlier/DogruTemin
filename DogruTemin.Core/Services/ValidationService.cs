@@ -350,22 +350,4 @@ public static class ValidationService
     private static void Critical(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Critical, Field = field, Message = message });
     private static void Warning(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Warning, Field = field, Message = message });
 
-    public static bool InputValidationService.ValidTaxNo(string? text)
-    {
-        var clean = TextNormalizer.DigitsOnly(text);
-        return clean.All(char.IsDigit) && clean.Length is 10 or 11;
-    }
-
-    public static bool InputValidationService.ValidPhone(string? text)
-    {
-        var clean = TextNormalizer.DigitsOnly(text);
-        return clean.All(char.IsDigit) && clean.Length is >= 10 and <= 15;
-    }
-
-    public static bool InputValidationService.ValidEmail(string? text)
-    {
-        var s = (text ?? string.Empty).Trim();
-        if (s.Contains(' ')) return false;
-        return Regex.IsMatch(s, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-    }
 }
