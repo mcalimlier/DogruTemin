@@ -104,3 +104,11 @@ Temel prensip:
 - `ValidationService` artık taslak doğrulama, tarih doğrulama, belge doğrulama ve hazırlık yüzdesi gibi daha sınırlı sorumlulukları taşıyor.
 - Kullanıcı akışı ve mevcut doğrulama mesajları değiştirilmedi.
 - Amaç: doğrulama servisinin büyümesini durdurmak ve Golden Scenario testinde iş akışı doğrulamasını bağımsız olarak test edilebilir hale getirmek.
+
+
+## Phase 9 — Hazırlık yüzdesini bağımsız Core servisine ayırma
+- `ValidationService.ReadinessPercent(...)` içindeki hazırlık kontrol listesi `ReadinessService` sınıfına taşındı.
+- `ValidationService.ReadinessPercent(...)` geriye dönük uyumluluk için facade olarak korunarak yeni servise delegasyon yapıyor.
+- Mevcut 19 hazırlık kontrolü, yüzde hesaplama yöntemi ve veri alanları değiştirilmedi.
+- Amaç: `ValidationService` sorumluluğunu daha da daraltmak ve hazırlık durumunu bağımsız test edilebilir bir Core servisi haline getirmek.
+- Kullanıcı arayüzü ve mevcut iş akışı değiştirilmedi.
