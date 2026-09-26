@@ -112,3 +112,13 @@ Temel prensip:
 - Mevcut 19 hazırlık kontrolü, yüzde hesaplama yöntemi ve veri alanları değiştirilmedi.
 - Amaç: `ValidationService` sorumluluğunu daha da daraltmak ve hazırlık durumunu bağımsız test edilebilir bir Core servisi haline getirmek.
 - Kullanıcı arayüzü ve mevcut iş akışı değiştirilmedi.
+
+
+## Phase 10 — Taslak doğrulamasını bağımsız Core servisine ayırma
+
+- ValidateDraft(...) içindeki taslak/alan doğrulama kuralları DraftValidationService sınıfına taşındı.
+- ValidationService.ValidateDraft(...) geriye dönük uyumluluk için facade olarak korunarak yeni servise delegasyon yapıyor.
+- Ürün birimi/miktarı, firma sınırları, firma vergi no/telefon/e-posta, teklif fiyatları, mükerrer firma ve kurum iletişim bilgileri kontrollerinin mevcut davranışı korunmuştur.
+- Doğrulama mesajları ve alan anahtarları değiştirilmedi.
+- Amaç: ValidationService içindeki kalan gerçek iş mantığını da küçük, bağımsız ve test edilebilir Core servislerine ayırmak.
+- Kullanıcı arayüzü ve workflow akışı değiştirilmedi.
