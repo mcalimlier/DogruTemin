@@ -350,4 +350,9 @@ public static class ValidationService
     private static void Critical(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Critical, Field = field, Message = message });
     private static void Warning(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Warning, Field = field, Message = message });
 
+
+    // Backward-compatible facade for existing callers/tests.
+    public static bool ValidTaxNo(string? text) => InputValidationService.ValidTaxNo(text);
+    public static bool ValidPhone(string? text) => InputValidationService.ValidPhone(text);
+    public static bool ValidEmail(string? text) => InputValidationService.ValidEmail(text);
 }
