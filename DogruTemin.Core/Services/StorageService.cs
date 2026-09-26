@@ -482,7 +482,7 @@ public class StorageService
     {
         var data = JsonSerializer.Deserialize<ProcurementData>(json, _json);
         if (data is null) throw new InvalidDataException("Kayıt dosyası boş.");
-        return data;
+        return SchemaMigrationService.Migrate(data);
     }
 
     private string RecordFile(string recordId) => Path.Combine(RecordsFolder, $"islem_{recordId}.json");
@@ -520,7 +520,7 @@ public class StorageService
 
     private static void Normalize(ProcurementData data)
     {
-        data.SchemaVersion = Math.Max(data.SchemaVersion, 4);
+        data.SchemaVersion = SchemaMigrationService.CurrentSchemaVersion;
         if (string.IsNullOrWhiteSpace(data.RecordId)) data.RecordId = Guid.NewGuid().ToString("N");
         if (data.CreatedAt == default) data.CreatedAt = data.LastSavedAt ?? DateTime.Now;
         data.Products ??= new(); data.Firms ??= new(); data.InspectionCommission ??= new(); data.MarketCommission ??= new();

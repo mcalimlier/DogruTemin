@@ -193,3 +193,25 @@ PHASE 9 TAMAMLANDI. SIRADAKİ İŞ PHASE 10 MİMARİ REFACTOR.
 - İlk hedef: CI ile testin mevcut modeller ve iş kurallarıyla sorunsuz çalıştığını doğrulamak.
 - CI yeşil olduktan sonra PR squash merge edilecek.
 - Sonraki başlangıç noktası: Phase 13; schema migration hattını veya Application workflow ayrıştırmasını mevcut kod incelenerek en küçük güvenli adımla ele almak.
+
+
+## Phase 12 tamamlandı
+- PR #15: `Golden Scenario ile ana akışı güvence altına al`
+- İlk CI denemelerinde test verisi ve test beklentisi kaynaklı iki hata düzeltildi.
+- Son düzeltmeler:
+  - `InputValidationService.ValidEmail` regex'i düzeltildi.
+  - Golden Scenario backup beklentisi gerçek `StorageService` akışına uyarlandı.
+- Son CI Run #309: SUCCESS / GREEN.
+- PR #15 squash merge edildi.
+- Main merge commit: `5f3296ea747236a92cdb70b7789276975cbdc51a`
+- Golden Scenario artık doğrulama → readiness → hesaplama → kayıt/yedek → yeniden yükleme → tekrar hesaplama zincirini CI'da koruyor.
+
+## Phase 13 başladı
+- Branch: `refactor/architecture-cleanup-phase9`
+- `SchemaMigrationService` eklendi.
+- Current persisted schema sürümü: `4`.
+- Eski 1-3 sürümleri için açık migration noktası oluşturuldu.
+- Gelecekteki/desteklenmeyen daha yeni schema sürümleri açık hata ile reddediliyor.
+- `StorageService.Deserialize(...)` migration katmanını kullanıyor.
+- Schema migration ve ileri sürüm koruması için testler eklendi.
+- Sonraki adım: CI yeşil olunca PR oluşturup squash merge etmek; ardından Application workflow ayrıştırmasını incelemek.

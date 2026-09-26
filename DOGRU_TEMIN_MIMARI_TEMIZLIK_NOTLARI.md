@@ -145,3 +145,16 @@ Temel prensip:
 - Test, kritik doğrulama hatası olmadan tam hazırlanmış bir işlemin hesaplanıp kaydedilebildiğini ve yeniden yüklendiğinde aynı sonucu verdiğini güvence altına alıyor.
 - Mevcut UI veya iş kuralları değiştirilmedi.
 - Amaç: sonraki mimari refactorlarda ana satın alma akışının sessizce bozulmasını CI seviyesinde yakalamak.
+
+
+## Phase 13 — SchemaVersion migration hattının oluşturulması
+
+- `SchemaMigrationService` oluşturuldu.
+- Mevcut persisted model sürümü `4` tek bir merkezi sabit üzerinden yönetiliyor.
+- Eski sürümler için açık migration noktası oluşturuldu; mevcut 1-3 sürümleri model varsayılanlarıyla uyumlu şekilde 4'e yükseltiyor.
+- Uygulamanın tanımadığı daha yeni bir schema sürümü sessizce açılmıyor; `InvalidDataException` ile açıkça reddediliyor.
+- `StorageService.Deserialize(...)` artık kayıtları doğrudan döndürmek yerine migration katmanından geçiriyor.
+- `StorageService.Normalize(...)` schema sürümünü kendi başına yükseltmek yerine migration katmanının sonucunu kullanıyor.
+- Eski sürüm yükseltme, ileri sürüm reddi ve gerçek StorageService yükleme akışı için testler eklendi.
+- Mevcut UI ve iş kuralları değiştirilmedi.
+- Amaç: gelecekte SchemaVersion 5+ gibi değişiklikler geldiğinde tüm veri dönüşümlerinin tek, test edilebilir bir noktadan yönetilmesini sağlamak.
