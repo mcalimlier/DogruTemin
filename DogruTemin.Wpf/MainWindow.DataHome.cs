@@ -360,7 +360,7 @@ public partial class MainWindow
             .SelectMany(d => ValidationService.ValidateDocument(data, DocumentTypeFor(d.Name))).Select(i => i.Message).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().ToList();
 
         OutputCommissionText.Text = $"{filledCommission} / 6";
-        OutputFirmText.Text = selectedTypesForOutput.Any(IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
+        OutputFirmText.Text = selectedTypesForOutput.Any(DocumentReadinessService.IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
         OutputProductText.Text = $"{productCount} / EN AZ 1";
         OutputCriticalText.Text = selectedCoreIssues.Count.ToString(CultureInfo.InvariantCulture);
         OutputWarningText.Text = selectedAdvisories.Count.ToString(CultureInfo.InvariantCulture);
