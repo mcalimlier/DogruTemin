@@ -136,7 +136,7 @@ public sealed class GoldenScenarioTests : IDisposable
             Name = name,
             TaxNo = taxNo,
             Phone = phone,
-            Email = $"firma{no}@example.com",
+            Email = $"firma{no}@example.gov.tr",
             Address = $"Örnek Firma {no} Adresi",
             Offers = new()
             {
