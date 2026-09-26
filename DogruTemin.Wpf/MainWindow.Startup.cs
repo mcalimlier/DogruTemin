@@ -3,6 +3,7 @@ using DogruTemin.Core.Services;
 using DogruTemin.Wpf.Services;
 using System;
 using System.Windows;
+using System.Windows.Data;
 
 namespace DogruTemin.Wpf;
 
