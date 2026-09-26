@@ -215,3 +215,12 @@ PHASE 9 TAMAMLANDI. SIRADAKİ İŞ PHASE 10 MİMARİ REFACTOR.
 - `StorageService.Deserialize(...)` migration katmanını kullanıyor.
 - Schema migration ve ileri sürüm koruması için testler eklendi.
 - Sonraki adım: CI yeşil olunca PR oluşturup squash merge etmek; ardından Application workflow ayrıştırmasını incelemek.
+
+
+## Phase 14.1 başladı
+- Branch: `refactor/architecture-cleanup-phase10`
+- `ProcurementWorkflow` oluşturuldu.
+- Workflow; draft kritik doğrulamasını, tarih uyarılarını ve StorageService kaydetme/yedekleme orkestrasyonunu tek bir Core workflow sonucunda topluyor.
+- Başarılı ve bloklanan kayıt senaryoları için testler eklendi.
+- İlk adım UI'ya bağlanmadı; mevcut `Save_Click` davranışını değiştirmeden workflow sözleşmesini doğrulamak hedeflendi.
+- Sonraki adım: CI yeşil olduktan sonra `Save_Click` içindeki validation/storage orkestrasyonunu `ProcurementWorkflow` kullanacak şekilde küçültmek.
