@@ -68,3 +68,9 @@ Temel prensip:
 - `ValidationService` iş akışı ve belge kurallarının merkezi olarak kaldı.
 - Eski `ValidationService.ValidTaxNo/ValidPhone/ValidEmail` çağrıları geriye dönük uyumluluk için korundu.
 - Mevcut iş kuralları ve kullanıcı akışı değiştirilmedi.
+
+
+## Phase 5.1 — CI düzeltmesi
+- CI kontrolünde `ValidationService` içindeki `Regex` namespace bağımlılığı eksikliği tespit edildi ve düzeltildi.
+- `InputValidationService` içindeki e-posta kontrolü analyzer uyarısı vermeyecek şekilde açık `StringComparison` kullanacak biçimde temizlendi.
+- İş kuralları ve kullanıcı akışı değiştirilmedi.
