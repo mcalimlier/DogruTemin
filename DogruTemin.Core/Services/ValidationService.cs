@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+
 using DogruTemin.Core.Models;
 
 namespace DogruTemin.Core.Services;
@@ -21,11 +22,11 @@ public static class ValidationService
 
         foreach (var firm in data.Firms.Take(5))
         {
-            if (!string.IsNullOrWhiteSpace(firm.TaxNo) && !ValidTaxNo(firm.TaxNo))
+            if (!string.IsNullOrWhiteSpace(firm.TaxNo) && !InputValidationService.ValidTaxNo(firm.TaxNo))
                 Critical(issues, $"Firm:{firm.Id}:TaxNo", $"{firm.No}. firmanın vergi numarası 10 veya 11 rakam olmalıdır.");
-            if (!string.IsNullOrWhiteSpace(firm.Phone) && !ValidPhone(firm.Phone))
+            if (!string.IsNullOrWhiteSpace(firm.Phone) && !InputValidationService.ValidPhone(firm.Phone))
                 Critical(issues, $"Firm:{firm.Id}:Phone", $"{firm.No}. firmanın telefonu geçersiz.");
-            if (!string.IsNullOrWhiteSpace(firm.Email) && !ValidEmail(firm.Email))
+            if (!string.IsNullOrWhiteSpace(firm.Email) && !InputValidationService.ValidEmail(firm.Email))
                 Critical(issues, $"Firm:{firm.Id}:Email", $"{firm.No}. firmanın e-posta adresi geçersiz.");
             foreach (var offer in firm.Offers)
             {
@@ -45,9 +46,9 @@ public static class ValidationService
             if (sameName || sameTax) Critical(issues, "Firms", $"{activeFirms[i].No}. ve {activeFirms[j].No}. firma mükerrer görünüyor.");
         }
 
-        if (!string.IsNullOrWhiteSpace(data.Institution.Phone) && !ValidPhone(data.Institution.Phone))
+        if (!string.IsNullOrWhiteSpace(data.Institution.Phone) && !InputValidationService.ValidPhone(data.Institution.Phone))
             Critical(issues, "Institution.Phone", "Kurum telefonu 10-15 rakam içermelidir.");
-        if (!string.IsNullOrWhiteSpace(data.Institution.Email) && !ValidEmail(data.Institution.Email))
+        if (!string.IsNullOrWhiteSpace(data.Institution.Email) && !InputValidationService.ValidEmail(data.Institution.Email))
             Critical(issues, "Institution.Email", "Geçerli bir kurum e-posta adresi giriniz.");
 
         return issues;
@@ -101,8 +102,8 @@ public static class ValidationService
         RequireText(data.Institution.Address, issues, "Kurum adresi");
         RequireText(data.Institution.AuthorizedName, issues, "Harcama yetkilisi adı soyadı");
         RequireText(data.Institution.AuthorizedDuty, issues, "Harcama yetkilisi görevi");
-        if (!ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu 10-15 rakam içermelidir.");
-        if (!ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Geçerli bir kurum e-posta adresi giriniz.");
+        if (!InputValidationService.ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu 10-15 rakam içermelidir.");
+        if (!InputValidationService.ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Geçerli bir kurum e-posta adresi giriniz.");
 
         RequireDate(data.Dates.AssignmentDate, issues, "Komisyon görevlendirme tarihi");
         RequireText(data.Dates.AssignmentNo, issues, "Komisyon sayısı");
@@ -189,8 +190,8 @@ public static class ValidationService
                 RequireDate(data.Dates.AssignmentDate, issues, "Komisyon görevlendirme tarihi");
                 RequireText(data.Dates.AssignmentNo, issues, "Komisyon sayısı");
                 RequireText(data.Institution.Address, issues, "Kurum adresi");
-                if (!ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu");
-                if (!ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Kurum e-posta adresi");
+                if (!InputValidationService.ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu");
+                if (!InputValidationService.ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Kurum e-posta adresi");
                 RequireCommission(data.MarketCommission, issues, "Piyasa komisyonu");
                 break;
             case OutputDocumentType.ApproximateCostSheet:
@@ -204,8 +205,8 @@ public static class ValidationService
                 RequireDate(data.Dates.ApprovalDate, issues, "Harcama belgesi tarihi");
                 RequireText(data.Dates.ApprovalNo, issues, "Harcama belgesi sayısı");
                 RequireText(data.Institution.Address, issues, "Kurum adresi");
-                if (!ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu");
-                if (!ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Kurum e-posta adresi");
+                if (!InputValidationService.ValidPhone(data.Institution.Phone)) Critical(issues, "Institution.Phone", "Kurum telefonu");
+                if (!InputValidationService.ValidEmail(data.Institution.Email)) Critical(issues, "Institution.Email", "Kurum e-posta adresi");
                 RequireCommission(data.MarketCommission, issues, "Teklif formu komisyonu");
                 break;
             case OutputDocumentType.ApprovalDocument:
@@ -351,22 +352,9 @@ public static class ValidationService
     private static void Critical(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Critical, Field = field, Message = message });
     private static void Warning(List<ValidationIssue> issues, string field, string message) => issues.Add(new ValidationIssue { Severity = ValidationSeverity.Warning, Field = field, Message = message });
 
-    public static bool ValidTaxNo(string? text)
-    {
-        var clean = TextNormalizer.DigitsOnly(text);
-        return clean.All(char.IsDigit) && clean.Length is 10 or 11;
-    }
 
-    public static bool ValidPhone(string? text)
-    {
-        var clean = TextNormalizer.DigitsOnly(text);
-        return clean.All(char.IsDigit) && clean.Length is >= 10 and <= 15;
-    }
-
-    public static bool ValidEmail(string? text)
-    {
-        var s = (text ?? string.Empty).Trim();
-        if (s.Contains(' ')) return false;
-        return Regex.IsMatch(s, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-    }
+    // Backward-compatible facade for existing callers/tests.
+    public static bool ValidTaxNo(string? text) => InputValidationService.ValidTaxNo(text);
+    public static bool ValidPhone(string? text) => InputValidationService.ValidPhone(text);
+    public static bool ValidEmail(string? text) => InputValidationService.ValidEmail(text);
 }

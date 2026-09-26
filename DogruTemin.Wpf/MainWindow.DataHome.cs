@@ -178,8 +178,8 @@ public partial class MainWindow
 
         var preparationTypes = new[] { OutputDocumentType.ApproximateRequest, OutputDocumentType.FirmOfferForm };
         var finalProcessTypes = new[] { OutputDocumentType.ApproximateCostSheet, OutputDocumentType.ApprovalDocument, OutputDocumentType.MarketResearchReport, OutputDocumentType.InspectionAcceptanceReport };
-        var preparationIssues = GetExportCoreIssues(data, preparationTypes);
-        var finalProcessIssues = GetExportCoreIssues(data, finalProcessTypes);
+        var preparationIssues = DocumentReadinessService.GetExportCoreIssues(data, preparationTypes);
+        var finalProcessIssues = DocumentReadinessService.GetExportCoreIssues(data, finalProcessTypes);
         var preparationReady = preparationIssues.Count == 0;
         var finalProcessReady = finalProcessIssues.Count == 0;
         var outputDone = preparationReady && finalProcessReady;
@@ -355,12 +355,12 @@ public partial class MainWindow
         UpdateHomeProcessMap(data);
 
         var selectedTypesForOutput = OutputDocuments.Where(d => d.IsSelected && OfficialDocumentService.IsImplemented(DocumentTypeFor(d.Name))).Select(d => DocumentTypeFor(d.Name)).ToList();
-        var selectedCoreIssues = GetExportCoreIssues(data, selectedTypesForOutput);
+        var selectedCoreIssues = DocumentReadinessService.GetExportCoreIssues(data, selectedTypesForOutput);
         var selectedAdvisories = OutputDocuments.Where(d => d.IsSelected && OfficialDocumentService.IsImplemented(DocumentTypeFor(d.Name)))
             .SelectMany(d => ValidationService.ValidateDocument(data, DocumentTypeFor(d.Name))).Select(i => i.Message).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().ToList();
 
         OutputCommissionText.Text = $"{filledCommission} / 6";
-        OutputFirmText.Text = selectedTypesForOutput.Any(IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
+        OutputFirmText.Text = selectedTypesForOutput.Any(DocumentReadinessService.IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
         OutputProductText.Text = $"{productCount} / EN AZ 1";
         OutputCriticalText.Text = selectedCoreIssues.Count.ToString(CultureInfo.InvariantCulture);
         OutputWarningText.Text = selectedAdvisories.Count.ToString(CultureInfo.InvariantCulture);
@@ -377,7 +377,7 @@ public partial class MainWindow
                 doc.Note = "Bu sürümde belge motoruna bağlı değil";
                 continue;
             }
-            var core = GetExportCoreIssues(data, new[] { type });
+            var core = DocumentReadinessService.GetExportCoreIssues(data, new[] { type });
             var advisoryCount = ValidationService.ValidateDocument(data, type).Select(i => i.Message).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().Count();
             doc.Status = core.Count == 0 ? "Hazır" : "Uyarı";
             doc.Note = core.Count == 0 ? (advisoryCount == 0 ? "Çıktı koşulları hazır" : $"Çıktı alınabilir • {advisoryCount} bilgi uyarısı") : core[0] + (core.Count > 1 ? $" (+{core.Count - 1})" : string.Empty);
