@@ -129,3 +129,19 @@ Temel prensip:
 - Böylece `ValidationService` içinde gerçek doğrulama iş mantığı yerine yalnızca geriye dönük uyumluluk yüzeyi kaldı.
 - Kullanıcı arayüzü, iş kuralları ve mevcut doğrulama davranışı değiştirilmedi.
 - Bu aşamanın amacı, sonraki Golden Scenario ve servis testlerine geçmeden önce doğrulama facade'ını gereksiz koddan arındırmaktır.
+
+
+## Phase 12 — Golden Scenario entegrasyon testi
+
+- `DogruTemin.Tests/GoldenScenarioTests.cs` eklendi.
+- Tek bir gerçekçi satın alma senaryosu üzerinden ana Core akışı birlikte doğrulanıyor:
+  - taslak doğrulaması,
+  - workflow doğrulaması,
+  - %100 hazırlık kontrolü,
+  - `ProcurementEngine` kazanan firma ve toplam hesabı,
+  - kayıt ve yedek oluşturma,
+  - kaydı yeniden yükleme,
+  - yeniden yüklenen veride hesap sonucunun korunması.
+- Test, kritik doğrulama hatası olmadan tam hazırlanmış bir işlemin hesaplanıp kaydedilebildiğini ve yeniden yüklendiğinde aynı sonucu verdiğini güvence altına alıyor.
+- Mevcut UI veya iş kuralları değiştirilmedi.
+- Amaç: sonraki mimari refactorlarda ana satın alma akışının sessizce bozulmasını CI seviyesinde yakalamak.
