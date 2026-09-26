@@ -27,6 +27,11 @@ public sealed class GoldenScenarioTests : IDisposable
         Assert.Equal(100m, calculation.MarketResultTotal);
 
         var storage = new StorageService(_root);
+
+        // İlk kayıt mevcut aktif dosya olmadığı için yedek üretmez.
+        // İkinci kayıt, gerçek uygulamadaki mevcut kaydın üzerine yazma akışını
+        // temsil eder ve önceki aktif dosyanın yedeğini oluşturur.
+        storage.Save(data, createBackup: true);
         storage.Save(data, createBackup: true);
 
         var loaded = storage.Load(out var loadError);
