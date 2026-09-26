@@ -42,3 +42,18 @@ Bu değişiklik çalışma mantığını değiştirmeden Core katmanının bakı
 Temel prensip:
 
 > İçeride uzman bir sistem, dışarıda basit bir program.
+
+## Faz 3 — Belge uygunluk kurallarının Core'a taşınması
+
+- DocumentReadinessService oluşturuldu.
+- Belge üretimi için temel zorunluluklar artık MainWindow.Documents.cs içinde hesaplanmıyor.
+- Ana ekran da aynı merkezi servisi kullanıyor; böylece aynı kuralın farklı ekranlarda farklı uygulanması riski azaltıldı.
+- WPF tarafı belge kurallarının ayrıntısını bilmek yerine sonucu tüketiyor.
+- Kullanıcı arayüzü sade kalırken iç taraftaki iş kuralları daha test edilebilir hale getirildi.
+
+## GitHub Desktop / Fetch notu
+
+- refactor/architecture-cleanup-phase1 uzak repoda doğrulandı.
+- Branch main karşısında 14 commit ileride ve 0 commit geride.
+- GitHub tarafında kayıp commit görünmüyor. GitHub Desktop'ta görünmeyen/eski kalan içerik için Fetch origin ile yerel remote referansı yenilenmeli.
+- Yerel branch uzak branch ile eşleşmiyorsa yerel değişiklikler korunarak Origin/refactor/architecture-cleanup-phase1 üzerinden checkout edilmelidir.
