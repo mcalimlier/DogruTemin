@@ -1,26 +1,11 @@
 using DogruTemin.Wpf.Models;
 using ProcurementData = DogruTemin.Core.Models.ProcurementData;
-using ValidationSeverity = DogruTemin.Core.Models.ValidationSeverity;
-using OutputDocumentType = DogruTemin.Core.Models.OutputDocumentType;
-using FirmOfferCore = DogruTemin.Core.Models.FirmOffer;
 using AppSettings = DogruTemin.Core.Models.ApplicationSettings;
 using DogruTemin.Core.Services;
 using DogruTemin.Wpf.Services;
-using System.Windows.Documents;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Data;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Interop;
 
 namespace DogruTemin.Wpf;
