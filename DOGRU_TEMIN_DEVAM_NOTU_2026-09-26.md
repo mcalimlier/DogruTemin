@@ -166,3 +166,14 @@ GREEN CI → PR #12 MERGED → main güncellendi.
 
 Yeni sohbet başlangıç noktası:
 PHASE 9 TAMAMLANDI. SIRADAKİ İŞ PHASE 10 MİMARİ REFACTOR.
+
+
+## Phase 10 tamamlandı
+- PR #13: Taslak doğrulamasını Core servisine ayırma
+- CI Run #289: SUCCESS / GREEN
+- PR #13 squash merge edildi.
+- Main merge commit: 96d585a72029aca622ecdd1b55715dce57d6c0a8
+- Yeni servis: DogruTemin.Core/Services/DraftValidationService.cs
+- ValidationService.ValidateDraft(...) facade olarak korunuyor.
+- Mevcut taslak doğrulama kuralları ve mesajları korunmuştur.
+- Bir sonraki başlangıç noktası: Phase 11; ValidationService içinde kalan gerçek mantığın incelenmesi ve en küçük güvenli sorumluluk ayrıştırmasının uygulanması.
