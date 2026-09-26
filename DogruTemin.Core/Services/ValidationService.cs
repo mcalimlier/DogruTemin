@@ -121,7 +121,7 @@ public static class ValidationService
         RequireDate(data.Dates.MarketReportDate, issues, "Piyasa Fiyat Araştırması Tutanağı tarihi");
         RequireDate(data.Dates.InspectionReportDate, issues, "Muayene ve Kabul Tutanağı tarihi");
         RequireDate(data.Dates.DeliveryDate, issues, "Teslim Alma / Kabul tarihi");
-        AddRequiredDateSequenceIssues(data.Dates, issues, ValidationSeverity.Critical);
+        issues.AddRange(DateValidationService.RequiredSequenceIssues(data.Dates, ValidationSeverity.Critical));
 
         foreach (var firm in firms)
         {
@@ -169,7 +169,7 @@ public static class ValidationService
         // Kurul/Komisyon Onay <= Yaklaşık Maliyet < Onay Belgesi < Piyasa Fiyat Araştırması <= Muayene/Kabul.
         // Harcama belgesi ve teslim/kabul tarihi bu zincirin dışında ayrıca yönetilir.
         var issues = new List<ValidationIssue>();
-        AddRequiredDateSequenceIssues(data.Dates, issues, ValidationSeverity.Warning);
+        return DateValidationService.RequiredSequenceIssues(data.Dates, ValidationSeverity.Warning);
         return issues;
     }
 
@@ -182,7 +182,7 @@ public static class ValidationService
 
         // Tarihler girilmişse zorunlu üçlü sıra bozulmuş bir resmî belge üretme.
         // Taslak kayıt yine mümkündür; böylece kullanıcı verisini kaybetmez.
-        AddRequiredDateSequenceIssues(data.Dates, issues, ValidationSeverity.Critical);
+        issues.AddRange(DateValidationService.RequiredSequenceIssues(data.Dates, ValidationSeverity.Critical));
 
         switch (document)
         {
@@ -275,31 +275,6 @@ public static class ValidationService
             !string.IsNullOrWhiteSpace(data.ApprovalDocument.SubmittedByTitle)
         };
         return (int)Math.Round(checks.Count(c => c) * 100.0 / checks.Count);
-    }
-
-    private static void AddRequiredDateSequenceIssues(ProcessDates d, List<ValidationIssue> issues, ValidationSeverity severity)
-    {
-        if (d.AssignmentDate.HasValue && d.CostCalculationDate.HasValue &&
-            d.AssignmentDate.Value.Date > d.CostCalculationDate.Value.Date)
-            AddDateSequenceIssue(issues, severity, "Kurul / Komisyon Onay Tarihi, Yaklaşık Maliyet Hesap Cetveli tarihinden sonra olamaz.");
-
-        if (d.CostCalculationDate.HasValue && d.ApprovalDocumentDate.HasValue &&
-            d.CostCalculationDate.Value.Date >= d.ApprovalDocumentDate.Value.Date)
-            AddDateSequenceIssue(issues, severity, "Yaklaşık Maliyet Hesap Cetveli Tarihi, Onay Belgesi tarihinden MUTLAKA önce olmalıdır.");
-
-        if (d.ApprovalDocumentDate.HasValue && d.MarketReportDate.HasValue &&
-            d.ApprovalDocumentDate.Value.Date >= d.MarketReportDate.Value.Date)
-            AddDateSequenceIssue(issues, severity, "Onay Belgesi tarihi, Piyasa Fiyat Araştırması Tutanağı tarihinden MUTLAKA önce olmalıdır.");
-
-        if (d.MarketReportDate.HasValue && d.InspectionReportDate.HasValue &&
-            d.MarketReportDate.Value.Date > d.InspectionReportDate.Value.Date)
-            AddDateSequenceIssue(issues, severity, "Piyasa Fiyat Araştırması Tutanağı tarihi, Muayene ve Kabul Tutanağı tarihinden sonra olamaz.");
-    }
-
-    private static void AddDateSequenceIssue(List<ValidationIssue> issues, ValidationSeverity severity, string message)
-    {
-        if (severity == ValidationSeverity.Critical) Critical(issues, "Dates.RequiredSequence", message);
-        else Warning(issues, "Dates.RequiredSequence", message);
     }
 
     private static void CommonDocumentRequirements(ProcurementData data, List<ValidationIssue> issues)
