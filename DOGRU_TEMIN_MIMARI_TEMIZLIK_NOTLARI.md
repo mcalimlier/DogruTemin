@@ -95,3 +95,10 @@ Temel prensip:
 - Tarih sıralaması `DateValidationService` üzerinden kullanılmaya devam ediyor.
 - Belge türlerine göre gerekli alanlar, komisyonlar, firma/teklif kontrolleri ve kazanan firma adresi kontrolü mevcut davranış korunarak yeni serviste toplandı.
 - Amaç: `ValidationService` içindeki sorumlulukları küçük, test edilebilir Core servislerine ayırmak; WPF arayüzünü değiştirmemek.
+
+
+## Phase 7.1 — CI derleme düzeltmesi
+- PR #10 CI kontrolünde belge doğrulama yardımcıları ayrıştırılırken `ValidationService` içinde hâlâ kullanılan ortak yardımcıların da taşındığı tespit edildi.
+- `OfferFor`, `RequireCommission`, `RequireText`, `RequireDate`, `Critical` ve `Warning` yardımcıları `ValidationService` içinde korunarak workflow doğrulamasının mevcut davranışı tamamlandı.
+- Belgeye özel yardımcılar `DocumentValidationService` içinde kalmaya devam ediyor.
+- Kullanıcı akışı ve doğrulama kuralları değiştirilmedi.
