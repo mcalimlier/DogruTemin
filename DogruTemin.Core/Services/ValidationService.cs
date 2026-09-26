@@ -201,6 +201,50 @@ public static class ValidationService
         return (int)Math.Round(checks.Count(c => c) * 100.0 / checks.Count);
     }
 
+
+    private static FirmOffer? OfferFor(Firm firm, string productId) =>
+        firm.Offers.FirstOrDefault(o => o.ProductId == productId);
+
+    private static void RequireCommission(List<CommissionMember> members, List<ValidationIssue> issues, string label)
+    {
+        for (var i = 0; i < 3; i++)
+        {
+            var m = i < members.Count ? members[i] : null;
+            if (m is null || string.IsNullOrWhiteSpace(m.Name))
+                Critical(issues, "Commission", $"{label} {i + 1}. ad soyad");
+            if (m is null || string.IsNullOrWhiteSpace(m.Title))
+                Critical(issues, "Commission", $"{label} {i + 1}. unvan");
+        }
+    }
+
+    private static void RequireText(string? value, List<ValidationIssue> issues, string message)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            Critical(issues, message, message);
+    }
+
+    private static void RequireDate(DateTime? value, List<ValidationIssue> issues, string message)
+    {
+        if (!value.HasValue)
+            Critical(issues, message, message);
+    }
+
+    private static void Critical(List<ValidationIssue> issues, string field, string message) =>
+        issues.Add(new ValidationIssue
+        {
+            Severity = ValidationSeverity.Critical,
+            Field = field,
+            Message = message
+        });
+
+    private static void Warning(List<ValidationIssue> issues, string field, string message) =>
+        issues.Add(new ValidationIssue
+        {
+            Severity = ValidationSeverity.Warning,
+            Field = field,
+            Message = message
+        });
+
     // Backward-compatible facade for existing callers/tests.
     public static bool ValidTaxNo(string? text) => InputValidationService.ValidTaxNo(text);
     public static bool ValidPhone(string? text) => InputValidationService.ValidPhone(text);
