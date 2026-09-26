@@ -19,6 +19,18 @@ public sealed class ProcurementWorkflowTests : IDisposable
             OperationNumber = "DT-2026-BLOCKED"
         };
 
+        for (var i = 1; i <= 9; i++)
+        {
+            data.Products.Add(new ProductItem
+            {
+                Id = $"product-{i}",
+                No = i,
+                Name = $"Ürün {i}",
+                Unit = "Adet",
+                Quantity = "1"
+            });
+        }
+
         var result = workflow.Save(data);
 
         Assert.False(result.SavedSuccessfully);
