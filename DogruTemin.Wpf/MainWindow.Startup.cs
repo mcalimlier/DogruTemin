@@ -16,6 +16,7 @@ public partial class MainWindow
     public MainWindow(Action<int, string>? startupProgress)
     {
         _startupProgress = startupProgress;
+        _procurementWorkflow = new ProcurementWorkflow(_storage);
         _safety = new ApplicationSafetyService(_storage);
         ReportStartup(22, "Arayüz bileşenleri hazırlanıyor...");
         InitializeComponent();

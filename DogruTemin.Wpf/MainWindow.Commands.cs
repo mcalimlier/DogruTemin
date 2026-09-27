@@ -141,15 +141,22 @@ public partial class MainWindow
                 if (answer != MessageBoxResult.Yes) return;
             }
 
-            _storage.Save(data, data.AutoBackup);
-            _recordId = data.RecordId;
-            _recordCreatedAt = data.CreatedAt;
-            UpdateDerivedState(data);
-            SetSavedStatus(data.LastSavedAt);
-            RefreshArchiveRecords();
-            if (!string.IsNullOrWhiteSpace(_storage.LastBackupWarning))
+            var saveResult = _procurementWorkflow.Save(data, data.AutoBackup);
+            if (!saveResult.SavedSuccessfully)
             {
-                MessageBox.Show("Kayıt tamamlandı; ancak otomatik yedekleme sırasında uyarı oluştu:\n\n" + _storage.LastBackupWarning,
+                MessageBox.Show(string.Join("\n", saveResult.BlockingIssues.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var savedData = saveResult.Data!;
+            _recordId = savedData.RecordId;
+            _recordCreatedAt = savedData.CreatedAt;
+            UpdateDerivedState(savedData);
+            SetSavedStatus(savedData.LastSavedAt);
+            RefreshArchiveRecords();
+            if (!string.IsNullOrWhiteSpace(saveResult.BackupWarning))
+            {
+                MessageBox.Show("Kayıt tamamlandı; ancak otomatik yedekleme sırasında uyarı oluştu:\n\n" + saveResult.BackupWarning,
                     "DoğruTemin - Yedekleme Uyarısı", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
