@@ -1,6 +1,6 @@
 # DoğruTemin Windows Kod İmzalama
 
-DoğruTemin final dağıtım paketinde Authenticode kod imzası zorunludur. Depoya sertifika, PFX dosyası, özel anahtar veya parola **asla** eklenmez.
+DoğruTemin final dağıtımlarında Authenticode kod imzası kullanılır; yalnız aşağıda açıklanan 4.3.0 sürümü açık dağıtım kararıyla bu zorunluluktan muaftır. Depoya sertifika, PFX dosyası, özel anahtar veya parola **asla** eklenmez.
 
 ## Üretim kullanımı
 
@@ -19,8 +19,12 @@ $env:DOGRUTEMIN_SIGN_CERT_SHA1 = '<sertifika-thumbprint>'
 
 `Directory.Build.props` içindeki `VersionSuffix` boşsa sürüm final kabul edilir. Final sürümde sertifika tanımlı değilse Setup üretimi durur.
 
-`-AllowUnsignedFinal` yalnız GitHub Actions veya yerel smoke testi içindir. Bu seçenekle üretilen imzasız paket dağıtım paketi olarak kullanılmamalıdır.
+Normal final üretiminde sertifika yoksa Setup oluşturulmaz. 4.3.0 için `-AllowUnsignedFinal` seçeneği yalnız `exe_olustur\EXE_OLUSTUR.bat` tarafından kullanılır; başka final sürümlerinde bu seçenek sürüm koruması nedeniyle üretimi durdurur.
 
 ## RC/test sürümleri
 
 `VersionSuffix` doluyken normal final Setup üretilmez. `-AllowPrerelease` yalnız RC/CI kurulum testleri için kullanılabilir.
+
+## 4.3.0 imzasız dağıtım istisnası
+
+Bakım sorumlusunun açık kararıyla 4.3.0 sürümü Authenticode sertifikası olmadan dağıtılabilir. Windows SmartScreen / "Bilinmeyen yayıncı" uyarısı beklenebilir. Bu istisna yalnız 4.3.0 sürümünü kapsar; sonraki final sürümlerde yukarıdaki imzalama zorunluluğu geçerlidir. 4.3.0 paketini `exe_olustur\EXE_OLUSTUR.bat` üretir ve pakete SHA-256 doğrulama dosyası ekler.

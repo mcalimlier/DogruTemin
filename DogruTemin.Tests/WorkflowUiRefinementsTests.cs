@@ -104,6 +104,40 @@ public sealed class WorkflowUiRefinementsTests
         Assert.Equal("Stretch", (string?)toggle.Attribute("HorizontalAlignment"));
     }
 
+    [Fact]
+    public void InstitutionSaveButtonFitsItsCaption()
+    {
+        var document = LoadMainWindowXaml();
+        var button = document.Descendants().Single(element => (string?)element.Attribute("Content") == "KURUM BİLGİSİNİ KAYDET");
+        Assert.Null(button.Attribute("Width"));
+        Assert.True(double.Parse((string)button.Attribute("MinWidth")!, System.Globalization.CultureInfo.InvariantCulture) >= 240);
+    }
+
+    [Fact]
+    public void ApprovalDateReferenceIsProminentAndAboveDateCard()
+    {
+        var document = LoadMainWindowXaml();
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+        var datesView = document.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "DatesView");
+        var children = datesView.Elements().ToList();
+        var referenceIndex = children.FindIndex(element => element.Descendants().Any(descendant => (string?)descendant.Attribute(x + "Name") == "ApprovalDateReferenceText"));
+        var dateCardIndex = children.FindIndex(element => (string?)element.Attribute("Style") == "{StaticResource PremiumPanel}");
+        Assert.InRange(referenceIndex, 0, dateCardIndex - 1);
+
+        var reference = document.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "ApprovalDateReferenceText");
+        Assert.Equal("15", (string?)reference.Attribute("FontSize"));
+        Assert.Equal("SemiBold", (string?)reference.Attribute("FontWeight"));
+    }
+
+    [Fact]
+    public void OutputCardsHaveMoreVerticalRoomAndReadableText()
+    {
+        var document = LoadMainWindowXaml();
+        var cardGrid = document.Descendants().Single(element => (string?)element.Attribute("MinHeight") == "390");
+        Assert.Equal("390", (string?)cardGrid.Attribute("MinHeight"));
+        Assert.Equal("Auto", (string?)document.Descendants().Single(element => (string?)element.Attribute("{http://schemas.microsoft.com/winfx/2006/xaml}Name") == "DocumentsDatesView").Attribute("VerticalScrollBarVisibility"));
+    }
+
     private static XDocument LoadMainWindowXaml()
     {
         var root = FindRepositoryRoot();

@@ -433,7 +433,7 @@
                     </ScrollViewer>
                     <!-- BELGE TARİHLERİ -->
                     <!-- R16: varsayılan pencereye sığan, ekstra dikey scroll gerektirmeyen kompakt çıktı yerleşimi -->
-                    <ScrollViewer x:Name="DocumentsDatesView" Visibility="Collapsed" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="DocumentsDatesView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,8,8">
                             <TextBlock Text="BELGELER / TARİHLER" Style="{StaticResource PageTitle}"/>
                             <TextBlock Text="Belge tarihleri ve çıktılar tek sayfada yönetilir." Style="{StaticResource PageSubtitle}" Margin="2,0,0,6"/>
@@ -444,6 +444,9 @@
                                     <TextBlock Text="BELGE TARİHLERİ" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
                                     <Button Grid.Column="1" Style="{StaticResource ModernButton}" Content="TARİHLERİ KAYDET" Padding="14,7" Click="SaveDates_Click"/>
                                 </Grid>
+                                <Border Background="#FFF4D6" BorderBrush="#D7A21B" BorderThickness="1.5" CornerRadius="6" Padding="12,8" Margin="0,0,0,8">
+                                    <TextBlock x:Name="ApprovalDateReferenceText" Text="Onay Belgesi tarihi: Henüz girilmedi" Foreground="#163B5C" FontSize="15" FontWeight="SemiBold"/>
+                                </Border>
                                 <Border Style="{StaticResource PremiumPanel}" Padding="12,10">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -454,9 +457,6 @@
                                         <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="Teslim Alma / Kabul Tarihi" Style="{StaticResource PremiumFieldLabel}"/><local:LargeDatePicker x:Name="DeliveryDatePicker" SelectedDateChanged="AnyDate_Changed"/></StackPanel>
                                     </Grid>
                                 </Border>
-                                <Border Background="#E9F2FF" CornerRadius="6" Padding="9,5" Margin="0,6,0,0">
-                                    <TextBlock x:Name="ApprovalDateReferenceText" Text="Onay Belgesi tarihi: Henüz girilmedi" Foreground="#173B5B" FontSize="12"/>
-                                </Border>
                             </StackPanel>
 
                             <Border Height="3" Background="#D5DEE8" Margin="0,10,0,10" CornerRadius="1.5"/>
@@ -464,7 +464,7 @@
                             <StackPanel x:Name="OutputView">
                                 <TextBlock Text="BELGELER / ÇIKTILAR" Style="{StaticResource SectionTitle}" Margin="2,0,0,3"/>
                                 <TextBlock Text="Belgeyi seçin; önizleme serbesttir. PDF/Yazdır sırasında gerekli kontroller otomatik yapılır." Style="{StaticResource SectionSubtitle}" Margin="2,0,0,5"/>
-                                <Grid>
+                                <Grid MinHeight="390">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="1.35*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
 
                                     <!-- Sol: belge seçimi daha dar -->
@@ -474,18 +474,18 @@
 
                                             <Border Background="#082744" BorderBrush="#C88B09" BorderThickness="1.5" CornerRadius="9" Padding="9,7" Margin="0,0,0,7">
                                                 <StackPanel>
-                                                    <TextBlock Text="1. ÖN HAZIRLIK BELGELERİ" Foreground="#FFB41F" FontSize="13" FontWeight="Bold"/>
-                                                    <TextBlock Text="Firma/teklif dönüşlerinden önce hazırlanır." Foreground="#B9CBDA" FontSize="10.5" Margin="0,1,0,3"/>
+                                                    <TextBlock Text="1. ÖN HAZIRLIK BELGELERİ" Foreground="#FFB41F" FontSize="14" FontWeight="Bold"/>
+                                                    <TextBlock Text="Firma/teklif dönüşlerinden önce hazırlanır." Foreground="#B9CBDA" FontSize="11.5" Margin="0,2,0,4"/>
                                                     <ItemsControl ItemsSource="{Binding PreparationOutputDocuments}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <Border BorderBrush="#294963" BorderThickness="0,0,0,1" Padding="3,4">
+                                                                <Border BorderBrush="#294963" BorderThickness="0,0,0,1" Padding="5,6">
                                                                     <Grid>
                                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="26"/><ColumnDefinition/><ColumnDefinition Width="76"/></Grid.ColumnDefinitions>
                                                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Checked="OutputSelection_Changed" Unchecked="OutputSelection_Changed"/>
                                                                         <StackPanel Grid.Column="1">
-                                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="12.5" FontWeight="SemiBold"/>
-                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="10.3" Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13.5" FontWeight="SemiBold"/>
+                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                                                                         </StackPanel>
                                                                         <Border Grid.Column="2" CornerRadius="10" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                             <Border.Style>
@@ -497,7 +497,7 @@
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <TextBlock Text="{Binding Status}" FontSize="10.8" FontWeight="Bold">
+                                                                            <TextBlock Text="{Binding Status}" FontSize="11.5" FontWeight="Bold">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">
                                                                                         <Setter Property="Foreground" Value="#248A50"/>
@@ -519,18 +519,18 @@
 
                                             <Border Background="#082744" BorderBrush="#C88B09" BorderThickness="1.5" CornerRadius="9" Padding="9,7">
                                                 <StackPanel>
-                                                    <TextBlock Text="2. NİHAİ İŞLEM BELGELERİ" Foreground="#FFB41F" FontSize="13" FontWeight="Bold"/>
-                                                    <TextBlock Text="Firma teklifleri geldikten sonra süreç sonuçlarını oluşturur." Foreground="#B9CBDA" FontSize="10.5" Margin="0,1,0,3"/>
+                                                    <TextBlock Text="2. NİHAİ İŞLEM BELGELERİ" Foreground="#FFB41F" FontSize="14" FontWeight="Bold"/>
+                                                    <TextBlock Text="Firma teklifleri geldikten sonra süreç sonuçlarını oluşturur." Foreground="#B9CBDA" FontSize="11.5" Margin="0,2,0,4"/>
                                                     <ItemsControl ItemsSource="{Binding FinalOutputDocuments}">
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate>
-                                                                <Border BorderBrush="#294963" BorderThickness="0,0,0,1" Padding="3,4">
+                                                                <Border BorderBrush="#294963" BorderThickness="0,0,0,1" Padding="5,6">
                                                                     <Grid>
                                                                         <Grid.ColumnDefinitions><ColumnDefinition Width="26"/><ColumnDefinition/><ColumnDefinition Width="76"/></Grid.ColumnDefinitions>
                                                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Checked="OutputSelection_Changed" Unchecked="OutputSelection_Changed"/>
                                                                         <StackPanel Grid.Column="1">
-                                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="12.5" FontWeight="SemiBold"/>
-                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="10.3" Margin="0,1,0,0" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13.5" FontWeight="SemiBold"/>
+                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                                                                         </StackPanel>
                                                                         <Border Grid.Column="2" CornerRadius="10" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                             <Border.Style>
@@ -542,7 +542,7 @@
                                                                                     </Style.Triggers>
                                                                                 </Style>
                                                                             </Border.Style>
-                                                                            <TextBlock Text="{Binding Status}" FontSize="10.8" FontWeight="Bold">
+                                                                            <TextBlock Text="{Binding Status}" FontSize="11.5" FontWeight="Bold">
                                                                                 <TextBlock.Style>
                                                                                     <Style TargetType="TextBlock">
                                                                                         <Setter Property="Foreground" Value="#248A50"/>
@@ -569,12 +569,12 @@
                                     <!-- Sağ: durum + tüm çıktı eylemleri aynı kartta -->
                                     <Border Grid.Column="2" Style="{StaticResource PremiumPanel}" Padding="12,10">
                                         <StackPanel>
-                                            <TextBlock Text="ÇIKTI DURUMU" Style="{StaticResource PremiumSectionTitle}" FontSize="15.5" Margin="0,0,0,7"/>
-                                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Komisyon" Foreground="White"/><TextBlock x:Name="OutputCommissionText" Grid.Column="1" Text="0 / 6" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold"/></Grid>
-                                            <Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Firmalar" Foreground="White"/><TextBlock x:Name="OutputFirmText" Grid.Column="1" Text="0 / EN AZ 3" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold"/></Grid>
-                                            <Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Ürünler" Foreground="White"/><TextBlock x:Name="OutputProductText" Grid.Column="1" Text="0 / EN AZ 1" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold"/></Grid>
-                                            <Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Belge eksikleri" Foreground="White"/><TextBlock x:Name="OutputCriticalText" Grid.Column="1" Text="0" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold"/></Grid>
-                                            <Grid Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Uyarı" Foreground="White"/><TextBlock x:Name="OutputWarningText" Grid.Column="1" Text="0" HorizontalAlignment="Right" Foreground="#FFC04D" FontWeight="Bold"/></Grid>
+                                            <TextBlock Text="ÇIKTI DURUMU" Style="{StaticResource PremiumSectionTitle}" FontSize="16.5" Margin="0,0,0,9"/>
+                                            <Grid Margin="0,2"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Komisyon" Foreground="White" FontSize="13"/><TextBlock x:Name="OutputCommissionText" Grid.Column="1" Text="0 / 6" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold" FontSize="13"/></Grid>
+                                            <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Firmalar" Foreground="White" FontSize="13"/><TextBlock x:Name="OutputFirmText" Grid.Column="1" Text="0 / EN AZ 3" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold" FontSize="13"/></Grid>
+                                            <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Ürünler" Foreground="White" FontSize="13"/><TextBlock x:Name="OutputProductText" Grid.Column="1" Text="0 / EN AZ 1" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold" FontSize="13"/></Grid>
+                                            <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Belge eksikleri" Foreground="White" FontSize="13"/><TextBlock x:Name="OutputCriticalText" Grid.Column="1" Text="0" HorizontalAlignment="Right" Foreground="#5AD98B" FontWeight="Bold" FontSize="13"/></Grid>
+                                            <Grid Margin="0,5"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Uyarı" Foreground="White" FontSize="13"/><TextBlock x:Name="OutputWarningText" Grid.Column="1" Text="0" HorizontalAlignment="Right" Foreground="#FFC04D" FontWeight="Bold" FontSize="13"/></Grid>
 
                                             <TextBlock Text="GENEL HAZIRLIK" Foreground="White" FontWeight="Bold" Margin="0,9,0,4"/>
                                             <Grid><Border Height="9" Background="#315371" CornerRadius="5"/><Border x:Name="OutputReadinessBar" Width="0" Height="9" Background="#D87300" CornerRadius="5" HorizontalAlignment="Left"/></Grid>
@@ -670,7 +670,7 @@
 
                             <Border Background="White" CornerRadius="12" Padding="12">
                                 <Grid>
-                                    <Button HorizontalAlignment="Right" Style="{StaticResource ModernButton}" Content="KURUM BİLGİSİNİ KAYDET" Width="220" Height="40" Padding="10,6" FontSize="13" Click="SaveApplicationSettings_Click"/>
+                                    <Button HorizontalAlignment="Right" Style="{StaticResource ModernButton}" Content="KURUM BİLGİSİNİ KAYDET" MinWidth="240" Height="40" Padding="16,6" FontSize="13" Click="SaveApplicationSettings_Click"/>
                                 </Grid>
                             </Border>
                         </StackPanel>

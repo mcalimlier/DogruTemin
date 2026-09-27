@@ -50,10 +50,11 @@ if ($isPrerelease) {
     Write-Host "UYARI: $packageVersion yalnız RC/CI kurulum testi için üretilecek." -ForegroundColor Yellow
 }
 if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and -not $AllowUnsignedFinal) {
-    Fail 'Final Setup için kod imzalama sertifikası zorunludur. DOGRUTEMIN_SIGN_CERT_SHA1 tanımlayın. Yalnız CI/yerel smoke testi için -AllowUnsignedFinal kullanılabilir.'
+    Fail 'Final Setup için kod imzalama sertifikası zorunludur. 4.3.0 imzasız istisnası için exe_olustur\EXE_OLUSTUR.bat kullanın.'
 }
 if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and $AllowUnsignedFinal) {
-    Write-Host 'UYARI: Final sürüm CI/yerel smoke testi amacıyla imzasız üretilecek. Bu paket dağıtım için kullanılmamalıdır.' -ForegroundColor Yellow
+    if ($version -ne '4.3.0') { Fail 'Sertifikasız final dağıtım yalnızca onaylanmış 4.3.0 sürümü için açıktır.' }
+    Write-Host 'UYARI: Onaylanmış 4.3.0 dağıtımı kod imzası olmadan üretilecek. Windows SmartScreen bilinmeyen yayıncı uyarısı gösterebilir.' -ForegroundColor Yellow
 }
 
 $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
@@ -95,7 +96,7 @@ foreach ($file in 'DogruTemin.exe','coreclr.dll','hostfxr.dll','PresentationFram
 }
 
 if ([string]::IsNullOrWhiteSpace($CertificateThumbprint)) {
-    Write-Host 'Kod imzalama sertifikası tanımlı değil; yalnız açıkça izin verilen smoke paketi imzasız üretilecek.' -ForegroundColor Yellow
+    Write-Host 'Kod imzalama sertifikası tanımlı değil; onaylanmış 4.3.0 Setup imzasız üretilecek.' -ForegroundColor Yellow
 } else {
     Sign-File (Join-Path $appOut 'DogruTemin.exe')
 }
@@ -119,14 +120,20 @@ if (-not [string]::IsNullOrWhiteSpace($CertificateThumbprint)) { Sign-File $setu
 
 $finalExe = Join-Path $dist "DogruTemin_Setup_${packageVersion}_x64.exe"
 Move-Item $setupExe $finalExe -Force
-foreach ($file in 'KURULUM_NOTU.txt','KULLANICI_KILAVUZU.md','RELEASE_NOTES_4.2.0.md','RC1_DEGISIKLIK_NOTU.md') {
+$releaseNotesFile = "RELEASE_NOTES_${packageVersion}.md"
+foreach ($file in 'KURULUM_NOTU.txt','KULLANICI_KILAVUZU.md',$releaseNotesFile) {
     if (Test-Path $file) { Copy-Item $file (Join-Path $dist $file) -Force }
 }
 $smartScreenNote = Join-Path $PSScriptRoot 'Kurulum\SMARTSCREEN_BILGILENDIRME.txt'
 if (Test-Path $smartScreenNote) {
     Copy-Item $smartScreenNote (Join-Path $dist 'SMARTSCREEN_BILGILENDIRME.txt') -Force
 }
-$hash = (Get-FileHash $finalExe -Algorithm SHA256).Hash
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $hash = ([BitConverter]::ToString($sha256.ComputeHash([IO.File]::ReadAllBytes($finalExe)))).Replace('-', '')
+} finally {
+    $sha256.Dispose()
+}
 $hashFile = Join-Path $dist "DogruTemin_Setup_${packageVersion}_x64_SHA256.txt"
 @('DogruTemin Setup SHA-256','',"Dosya : $(Split-Path $finalExe -Leaf)","SHA256: $hash") | Set-Content $hashFile -Encoding UTF8
 $notePath = Join-Path $dist 'KURULUM_NOTU.txt'
