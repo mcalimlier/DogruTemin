@@ -23,4 +23,5 @@ public sealed record DocumentWorkflowResult(
     IReadOnlyList<string> CoreIssues,
     IReadOnlyList<string> ConfirmationMessages,
     IReadOnlyList<string> TiedWinnerFirmIds,
+    decimal? TiedMarketTotal = null,
     Exception? Error = null);

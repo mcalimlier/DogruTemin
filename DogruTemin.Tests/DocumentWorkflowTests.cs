@@ -77,6 +77,7 @@ public sealed class DocumentWorkflowTests
 
         Assert.Equal(DocumentPreparationStatus.WinnerSelectionRequired, result.Status);
         Assert.Equal(expectedIds, result.TiedWinnerFirmIds);
+        Assert.Equal(10m, result.TiedMarketTotal);
         Assert.Null(result.Document);
         Assert.Equal(preferredWinnerBefore, data.PreferredWinnerFirmId);
     }

@@ -60,7 +60,8 @@ public static class DocumentWorkflow
                     null,
                     Array.Empty<string>(),
                     confirmationMessages,
-                    calculation.TiedWinnerFirmIds.ToList());
+                    calculation.TiedWinnerFirmIds.ToList(),
+                    calculation.MarketResultTotal);
             }
 
             return Ready(OfficialDocumentService.BuildDocument(data, types), confirmationMessages);
@@ -73,7 +74,7 @@ public static class DocumentWorkflow
                 Array.Empty<string>(),
                 Array.Empty<string>(),
                 Array.Empty<string>(),
-                ex);
+                Error: ex);
         }
     }
 
