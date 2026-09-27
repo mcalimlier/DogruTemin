@@ -1,6 +1,5 @@
 using DogruTemin.Wpf.Models;
 using ProcurementData = DogruTemin.Core.Models.ProcurementData;
-using ValidationSeverity = DogruTemin.Core.Models.ValidationSeverity;
 using OutputDocumentType = DogruTemin.Core.Models.OutputDocumentType;
 using FirmOfferCore = DogruTemin.Core.Models.FirmOffer;
 using AppSettings = DogruTemin.Core.Models.ApplicationSettings;
@@ -125,23 +124,17 @@ public partial class MainWindow
                 return;
             }
             var data = BuildDataFromUi();
-            var errors = ValidationService.ValidateDraft(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
-            if (errors.Count > 0)
-            {
-                MessageBox.Show(string.Join("\n", errors.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var dateWarnings = ValidationService.DateLogicWarnings(data);
-            if (dateWarnings.Count > 0)
+            var saveResult = _procurementWorkflow.Save(data, data.AutoBackup);
+            if (saveResult.RequiresWarningConfirmation)
             {
                 var answer = MessageBox.Show("Tarih sıralamasında kontrol edilmesi gereken noktalar var:\n\n" +
-                    string.Join("\n", dateWarnings.Select(i => "• " + i.Message)) +
+                    string.Join("\n", saveResult.Warnings.Select(i => "• " + i.Message)) +
                     "\n\nYine de taslak kaydedilsin mi?", "DoğruTemin - Tarih sırası", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (answer != MessageBoxResult.Yes) return;
+
+                saveResult = _procurementWorkflow.Save(data, data.AutoBackup, allowDateWarnings: true);
             }
 
-            var saveResult = _procurementWorkflow.Save(data, data.AutoBackup);
             if (!saveResult.SavedSuccessfully)
             {
                 MessageBox.Show(string.Join("\n", saveResult.BlockingIssues.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);

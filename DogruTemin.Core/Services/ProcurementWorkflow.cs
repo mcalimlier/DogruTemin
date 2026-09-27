@@ -17,7 +17,8 @@ public sealed class ProcurementWorkflow
 
     public ProcurementWorkflowResult Save(
         ProcurementData data,
-        bool createBackup = true)
+        bool createBackup = true,
+        bool allowDateWarnings = false)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -30,6 +31,8 @@ public sealed class ProcurementWorkflow
             return ProcurementWorkflowResult.Blocked(criticalDraftIssues);
 
         var dateWarnings = ValidationService.DateLogicWarnings(data);
+        if (dateWarnings.Count > 0 && !allowDateWarnings)
+            return ProcurementWorkflowResult.AwaitingWarningConfirmation(dateWarnings);
 
         _storage.Save(data, createBackup);
 
@@ -51,13 +54,15 @@ public sealed class ProcurementWorkflowResult
         IReadOnlyList<ValidationIssue> blockingIssues,
         IReadOnlyList<ValidationIssue> warnings,
         string? backupWarning,
-        ProcurementData? data)
+        ProcurementData? data,
+        bool requiresWarningConfirmation)
     {
         SavedSuccessfully = saved;
         BlockingIssues = blockingIssues;
         Warnings = warnings;
         BackupWarning = backupWarning;
         Data = data;
+        RequiresWarningConfirmation = requiresWarningConfirmation;
     }
 
     public bool SavedSuccessfully { get; }
@@ -65,14 +70,19 @@ public sealed class ProcurementWorkflowResult
     public IReadOnlyList<ValidationIssue> Warnings { get; }
     public string? BackupWarning { get; }
     public ProcurementData? Data { get; }
+    public bool RequiresWarningConfirmation { get; }
 
     public static ProcurementWorkflowResult Blocked(
         IReadOnlyList<ValidationIssue> blockingIssues) =>
-        new(false, blockingIssues, Array.Empty<ValidationIssue>(), null, null);
+        new(false, blockingIssues, Array.Empty<ValidationIssue>(), null, null, false);
+
+    public static ProcurementWorkflowResult AwaitingWarningConfirmation(
+        IReadOnlyList<ValidationIssue> warnings) =>
+        new(false, Array.Empty<ValidationIssue>(), warnings, null, null, true);
 
     public static ProcurementWorkflowResult Saved(
         ProcurementData data,
         IReadOnlyList<ValidationIssue> warnings,
         string? backupWarning) =>
-        new(true, Array.Empty<ValidationIssue>(), warnings, backupWarning, data);
+        new(true, Array.Empty<ValidationIssue>(), warnings, backupWarning, data, false);
 }

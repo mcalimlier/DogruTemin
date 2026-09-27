@@ -16,7 +16,12 @@ public sealed class ProcurementWorkflowTests : IDisposable
         var data = new ProcurementData
         {
             RecordId = "blocked",
-            OperationNumber = "DT-2026-BLOCKED"
+            OperationNumber = "DT-2026-BLOCKED",
+            Dates = new ProcessDates
+            {
+                AssignmentDate = new DateTime(2026, 2, 2),
+                CostCalculationDate = new DateTime(2026, 2, 1)
+            }
         };
 
         for (var i = 1; i <= 9; i++)
@@ -34,6 +39,7 @@ public sealed class ProcurementWorkflowTests : IDisposable
         var result = workflow.Save(data);
 
         Assert.False(result.SavedSuccessfully);
+        Assert.False(result.RequiresWarningConfirmation);
         Assert.NotEmpty(result.BlockingIssues);
         Assert.Null(result.Data);
         Assert.False(File.Exists(storage.ActiveFile));
@@ -80,6 +86,37 @@ public sealed class ProcurementWorkflowTests : IDisposable
         Assert.Equal(data.RecordId, result.Data.RecordId);
         Assert.True(File.Exists(storage.ActiveFile));
         Assert.True(File.Exists(Path.Combine(storage.RecordsFolder, $"islem_{data.RecordId}.json")));
+    }
+
+    [Fact]
+    public void SaveDoesNotPersistDateWarningsWithoutExplicitConfirmation()
+    {
+        var storage = new StorageService(_root);
+        var workflow = new ProcurementWorkflow(storage);
+        var data = new ProcurementData
+        {
+            RecordId = "date-warning",
+            Dates = new ProcessDates
+            {
+                AssignmentDate = new DateTime(2026, 2, 2),
+                CostCalculationDate = new DateTime(2026, 2, 1)
+            }
+        };
+
+        var result = workflow.Save(data, createBackup: false);
+
+        Assert.False(result.SavedSuccessfully);
+        Assert.True(result.RequiresWarningConfirmation);
+        Assert.Empty(result.BlockingIssues);
+        Assert.NotEmpty(result.Warnings);
+        Assert.False(File.Exists(storage.ActiveFile));
+
+        var confirmed = workflow.Save(data, createBackup: false, allowDateWarnings: true);
+
+        Assert.True(confirmed.SavedSuccessfully);
+        Assert.False(confirmed.RequiresWarningConfirmation);
+        Assert.NotEmpty(confirmed.Warnings);
+        Assert.True(File.Exists(storage.ActiveFile));
     }
 
     public void Dispose()
