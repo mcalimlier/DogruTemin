@@ -50,7 +50,7 @@ if ($isPrerelease) {
     Write-Host "UYARI: $packageVersion yalnız RC/CI kurulum testi için üretilecek." -ForegroundColor Yellow
 }
 if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and -not $AllowUnsignedFinal) {
-    Fail 'Final Setup için kod imzalama sertifikası zorunludur. DOGRUTEMIN_SIGN_CERT_SHA1 tanımlayın. Yalnız CI/yerel smoke testi için -AllowUnsignedFinal kullanılabilir.'
+    Fail 'Final Setup için kod imzalama sertifikası zorunludur. 4.3.0 imzasız istisnası için exe_olustur\EXE_OLUSTUR.bat kullanın.'
 }
 if (-not $isPrerelease -and [string]::IsNullOrWhiteSpace($CertificateThumbprint) -and $AllowUnsignedFinal) {
     if ($version -ne '4.3.0') { Fail 'Sertifikasız final dağıtım yalnızca onaylanmış 4.3.0 sürümü için açıktır.' }
