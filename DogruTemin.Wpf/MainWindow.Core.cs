@@ -49,6 +49,7 @@ public partial class MainWindow : Window
     private string _currentView = "Home";
     private readonly StorageService _storage = new();
     private readonly ProcurementWorkflow _procurementWorkflow;
+    private readonly ArchiveWorkflow _archiveWorkflow;
     private readonly ApplicationSafetyService _safety;
     private AppSettings _settings = new();
     private string _operationNumber = string.Empty;

@@ -1,4 +1,5 @@
 using DogruTemin.Wpf.Models;
+using DogruTemin.Core.Services;
 using DogruTemin.Wpf.Services;
 using Microsoft.Win32;
 using System.ComponentModel;
@@ -263,12 +264,14 @@ public partial class MainWindow
 
     private void RestoreDeletedArchive_Click(object sender, RoutedEventArgs e)
     {
-        var restored = _storage.RestoreMostRecentlyDeleted(out var warning);
-        if (restored is null)
+        var result = _archiveWorkflow.RestoreMostRecentlyDeleted();
+        if (result.Status == ArchiveWorkflowStatus.Failed)
         {
-            MessageBox.Show(warning ?? "Geri alınabilecek kayıt bulunamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(result.Warning ?? "Geri alınabilecek kayıt bulunamadı.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
+        var restored = result.RestoredRecord;
+        if (restored is null) return;
         RefreshArchiveRecords();
         SelectArchiveRecord(restored.RecordId);
         UiNotificationService.Show(this, $"Son silinen işlem geri alındı:\n{(string.IsNullOrWhiteSpace(restored.JobTitle) ? "Başlıksız işlem" : restored.JobTitle)}", TimeSpan.FromSeconds(4));
@@ -297,14 +300,20 @@ public partial class MainWindow
             MessageBox.Show("Silmek için arşivden bir işlem seçiniz.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
-        if (row.RecordId == _recordId)
+        if (ArchiveWorkflow.CanDelete(row.RecordId, _recordId).Status == ArchiveWorkflowStatus.Blocked)
         {
             MessageBox.Show("Aktif işlem arşivden silinemez. Önce YENİ İŞLEM başlatın veya başka bir işlemi açın.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
         var answer = MessageBox.Show($"'{row.JobTitle}' kaydı arşivden silinsin mi?\n\nKayıt güvenli 'Silinenler' yedeğine taşınacak ve SON SİLİNENİ GERİ AL ile geri getirilebilecektir.", "DoğruTemin - Arşiv", MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (answer != MessageBoxResult.Yes) return;
-        if (!_storage.DeleteRecord(row.RecordId))
+        var result = _archiveWorkflow.Delete(row.RecordId, _recordId);
+        if (result.Status == ArchiveWorkflowStatus.Blocked)
+        {
+            MessageBox.Show("Aktif işlem arşivden silinemez. Önce YENİ İŞLEM başlatın veya başka bir işlemi açın.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+        if (result.Status == ArchiveWorkflowStatus.Failed)
         {
             MessageBox.Show("Arşiv kaydı silinemedi.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
