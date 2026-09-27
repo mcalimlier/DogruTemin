@@ -60,6 +60,8 @@ public partial class MainWindow
 
         _preferredWinnerFirmId = string.Empty;
         ReNumberFirms();
+        if ((_currentView is "Firms" or "Offers") && _offerEditingFirm is null)
+            PrepareOffersView();
         MarkDirty();
         ClearFirmForm();
     }

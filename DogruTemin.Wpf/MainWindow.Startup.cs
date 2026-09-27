@@ -14,7 +14,13 @@ public partial class MainWindow
     }
 
     public MainWindow(Action<int, string>? startupProgress)
+        : this(new StorageService(), startupProgress)
     {
+    }
+
+    internal MainWindow(StorageService storage, Action<int, string>? startupProgress = null)
+    {
+        _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         _startupProgress = startupProgress;
         _procurementWorkflow = new ProcurementWorkflow(_storage);
         _archiveWorkflow = new ArchiveWorkflow(_storage);

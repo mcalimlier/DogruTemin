@@ -286,7 +286,12 @@ public partial class MainWindow
         Dispatcher.BeginInvoke(new Action(() => InstitutionView.ScrollToTop()));
     }
 
-    private void NavFirmsOffers_Click(object sender, RoutedEventArgs e) => ShowView("Firms");
+    private void NavFirmsOffers_Click(object sender, RoutedEventArgs e)
+    {
+        ShowView("Firms");
+        if (_offerEditingFirm is null)
+            PrepareOffersView();
+    }
     private void NavApprovalDocument_Click(object sender, RoutedEventArgs e) => ShowView("ApprovalDocument");
     private void NavDocumentsDates_Click(object sender, RoutedEventArgs e) => ShowView("Dates");
     private void NavOutput_Click(object sender, RoutedEventArgs e) => ShowView("Output");

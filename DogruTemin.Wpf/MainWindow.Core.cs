@@ -47,7 +47,7 @@ public partial class MainWindow : Window
     private string _lastDateSequenceWarning = string.Empty;
     private bool _closeApproved;
     private string _currentView = "Home";
-    private readonly StorageService _storage = new();
+    private readonly StorageService _storage;
     private readonly ProcurementWorkflow _procurementWorkflow;
     private readonly ArchiveWorkflow _archiveWorkflow;
     private readonly ApplicationSafetyService _safety;
