@@ -10,7 +10,7 @@ Kurum, firma/teklif, onay belgesi, belge tarihleri ve çıktı ekranlarını dah
 ## Kapsam ve kararlar
 
 1. **Kurum ve komisyon alanları:** “Mal/Hizmet Bilgisi” ekranındaki “Kurul / Komisyon Onay Tarihi” ile “Komisyon Sayısı” alanları “Kurum Bilgisi” ekranına taşınır. Sayı alanının görünür adı “Komisyon Onay Sayısı” olur. Verilerin mevcut `ProcessDates.AssignmentDate` ve `ProcessDates.AssignmentNo` alanlarında saklanması sürdürülür; böylece mevcut kayıtlar ve belgelerle uyumluluk korunur.
-2. **Firma telefonu:** Firma telefon girişinde `(0)` sabit, düzenlenemeyen önek olarak gösterilir; kullanıcı numaranın kalanını yazar. Saklanan telefon değeri tek bir `0` öneki içerecek şekilde düzenlenir. Var olan kayıt yüklenirken baştaki `0` arayüzde ikinci kez gösterilmez. Diğer numara karakterlerine yönelik yeni bir doğrulama veya ülke/uzunluk kısıtı bu değişikliğin kapsamına girmez.
+2. **Firma telefonu:** Firma telefon girişinde `(0)` sabit, düzenlenemeyen önek olarak gösterilir; kullanıcı numaranın kalanını yazar. Telefon alanı boş bırakılabilir; bir numara girildiğinde sabit önek dışında tam 10 rakam olmalıdır. Saklanan telefon değeri tek bir `0` öneki içerecek şekilde düzenlenir. Var olan kayıt yüklenirken baştaki `0` arayüzde ikinci kez gösterilmez.
 3. **Firma/Teklifler hizası:** Sol firma formu ve firma listesi, sağdaki teklif düzenleme alanıyla ortak alt hizaya gelecek biçimde yeniden düzenlenir. Sabit ekran yüksekliğinde taşmayı önlemek için mevcut kolon ve içerik boyutları birlikte ayarlanır; gerekirse iç listeler kendi kaydırma alanlarını kullanır.
 4. **Açılır listeler:** Ortak ComboBox arayüzünün seçim alanı, metin bölgesi ve ok dâhil herhangi bir yerine tıklamak listeyi açar. Açık listeden seçim ve listenin kapanması mevcut davranışı korur.
 5. **Onay Belgesi ekranı:** Dikey kaydırma çubuğu kaldırılır. Kart aralıkları, iç boşluklar ve metin alanı yüksekliği uygulamanın kullanılabilir pencere alanına sığacak şekilde düzenlenir; gerekli bilgiler ve alanlar kaldırılmaz.
@@ -22,14 +22,14 @@ Kurum, firma/teklif, onay belgesi, belge tarihleri ve çıktı ekranlarını dah
 
 - Veri şeması veya eski kayıtların biçimi değiştirilmez.
 - Tarih sıralama kuralları yeniden tanımlanmaz; mevcut `DateValidationService` kuralları kullanılır.
-- Telefon alanına yeni telefon doğrulama, ülke kodu seçimi veya numara uzunluğu kısıtı eklenmez.
+- Telefon alanına 10 rakamlı ulusal numara kontrolü dışında ülke kodu seçimi veya başka biçim kısıtı eklenmez.
 - Çıktı seçiminin işlem verisine kalıcı olarak yazılması bu çalışmada yapılmaz.
 
 ## Kabul ölçütleri
 
 - Kurul/komisyon onay tarihi ve sayısı yalnızca Kurum Bilgisi ekranında düzenlenebilir; kaydedilip yeniden açıldığında mevcut değerler korunur.
 - Komisyon sayı alanı ekranda “Komisyon Onay Sayısı” olarak görünür ve mevcut belgelerde aynı sayı üretilir.
-- Telefon girişinde sabit `(0)` görünür; eski veya yeni numarada baştaki sıfır iki kez gösterilmez ve kaydedilen değer tek sıfır öneki taşır.
+- Telefon girişinde sabit `(0)` görünür; alan boş kalabilir, girilmiş numara bu önek dışında tam 10 rakamdan oluşur; baştaki sıfır iki kez gösterilmez ve kaydedilen değer tek sıfır öneki taşır.
 - Firma ve teklif panellerinin alt kenarları aynı hizadadır; alanlar dar pencerede erişilebilir kalır.
 - Ortak görsel stile sahip açılır listelerde ok dışındaki seçim alanına tıklamak listeyi açar; listeden seçim çalışır.
 - Onay Belgesi sayfasında dikey kaydırma çubuğu görünmez ve alanlara erişilebilir.
