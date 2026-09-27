@@ -1,12 +1,12 @@
 <Project>
   <PropertyGroup>
     <!-- DoğruTemin için tek sürüm kaynağı. Final yayında VersionSuffix boş bırakılır. -->
-    <VersionPrefix>4.2.0</VersionPrefix>
+    <VersionPrefix>4.3.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <Version Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</Version>
     <Version Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
-    <AssemblyVersion>4.2.0.0</AssemblyVersion>
-    <FileVersion>4.2.0.0</FileVersion>
+    <AssemblyVersion>4.3.0.0</AssemblyVersion>
+    <FileVersion>4.3.0.0</FileVersion>
     <InformationalVersion>$(Version)</InformationalVersion>
     <Product>DoğruTemin</Product>
     <Company>DoğruTemin</Company>

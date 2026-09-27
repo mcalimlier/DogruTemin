@@ -38,7 +38,7 @@ VIAddVersionKey /LANG=1055 "LegalCopyright" "DoğruTemin"
 !define MUI_ICON "..\DogruTemin.Wpf\Assets\AppIcon.ico"
 !define MUI_UNICON "..\DogruTemin.Wpf\Assets\AppIcon.ico"
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "DoğruTemin 4.2.0 Kurulumuna Hoş Geldiniz"
+!define MUI_WELCOMEPAGE_TITLE "DoğruTemin ${APPVERSION} Kurulumuna Hoş Geldiniz"
 !define MUI_WELCOMEPAGE_TEXT "DoğruTemin Windows 10/11 64-bit için self-contained hazırlanmıştır. Hedef bilgisayarda .NET SDK, .NET Runtime, Visual Studio veya Excel gerekmez.$\r$\n$\r$\nMevcut DoğruTemin kullanıcı verileri ve arşivleri korunur. Kurulumdan önce açık DoğruTemin pencerelerini kapatmanız önerilir."
 !define MUI_FINISHPAGE_TITLE "DoğruTemin Kurulumu Tamamlandı"
 !define MUI_FINISHPAGE_TEXT "DoğruTemin başarıyla kuruldu.$\r$\n$\r$\nKullanıcı verileriniz Masaüstü\DoğruTemin klasöründe tutulur ve program kaldırıldığında silinmez."

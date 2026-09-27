@@ -4,6 +4,8 @@
 .idea/
 _YAYIN/
 DAGITIM/
+exe_olustur/DAGITIM/
+exe_olustur/.gecici/
 *.user
 *.suo
 *.cache

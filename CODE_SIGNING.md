@@ -24,3 +24,7 @@ $env:DOGRUTEMIN_SIGN_CERT_SHA1 = '<sertifika-thumbprint>'
 ## RC/test sürümleri
 
 `VersionSuffix` doluyken normal final Setup üretilmez. `-AllowPrerelease` yalnız RC/CI kurulum testleri için kullanılabilir.
+
+## 4.3.0 imzasız dağıtım istisnası
+
+Bakım sorumlusunun açık kararıyla 4.3.0 sürümü Authenticode sertifikası olmadan dağıtılabilir. Windows SmartScreen / "Bilinmeyen yayıncı" uyarısı beklenebilir. Bu istisna yalnız 4.3.0 sürümünü kapsar; sonraki final sürümlerde yukarıdaki imzalama zorunluluğu geçerlidir. 4.3.0 paketini `exe_olustur\EXE_OLUSTUR.bat` üretir ve pakete SHA-256 doğrulama dosyası ekler.
