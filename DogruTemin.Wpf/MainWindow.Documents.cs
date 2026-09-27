@@ -193,21 +193,23 @@ public partial class MainWindow
         return selected.Select(d => DocumentTypeFor(d.Name)).ToList();
     }
 
-    private static bool ConfirmNonBlockingDocumentIssues(ProcurementData data, IReadOnlyList<OutputDocumentType> types, string actionName)
+    private static bool ConfirmNonBlockingDocumentIssues(IReadOnlyList<string> messages, string actionName)
     {
-        var messages = types.SelectMany(type => ValidationService.ValidateDocument(data, type)).Select(i => i.Message)
-            .Concat(ValidationService.DateLogicWarnings(data).Select(i => i.Message)).Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().Take(14).ToList();
-        if (messages.Count == 0) return true;
+        var distinctMessages = messages.Where(message => !string.IsNullOrWhiteSpace(message)).Distinct().Take(14).ToList();
+        if (distinctMessages.Count == 0) return true;
         var body = "Belgede eksik veya kontrol edilmesi gereken bilgiler var.\n" +
                    "Bunlar önizlemeyi engellemez; temel çıktı koşulları sağlandığı için " + actionName + " işlemine devam edebilirsiniz.\n\n" +
-                   string.Join("\n", messages.Select(m => "• " + m)) + "\n\nYine de devam etmek istiyor musunuz?";
+                   string.Join("\n", distinctMessages.Select(message => "• " + message)) + "\n\nYine de devam etmek istiyor musunuz?";
         return MessageBox.Show(body, "DoğruTemin - Eksik Bilgi Uyarısı", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
     }
 
     private FixedDocument? BuildSelectedOfficialDocumentForPreview()
     {
         var types = GetSelectedImplementedDocumentTypes("DoğruTemin - Önizleme");
-        return types is null ? null : OfficialDocumentService.BuildDocument(BuildDataFromUi(), types);
+        if (types is null) return null;
+
+        var result = DocumentWorkflow.Prepare(BuildDataFromUi(), types, DocumentPreparationMode.Preview);
+        return GetDocumentOrThrow(result);
     }
 
     private FixedDocument? BuildSelectedOfficialDocumentForExport(string actionName)
@@ -215,25 +217,39 @@ public partial class MainWindow
         var types = GetSelectedImplementedDocumentTypes("DoğruTemin - Çıktı");
         if (types is null) return null;
         var data = BuildDataFromUi();
-        var coreIssues = DocumentReadinessService.GetExportCoreIssues(data, types);
-        if (coreIssues.Count > 0)
+        var result = DocumentWorkflow.Prepare(data, types, DocumentPreparationMode.Export);
+        if (result.Status == DocumentPreparationStatus.Blocked)
         {
-            MessageBox.Show("Seçili belge grubu için temel çıktı koşulları tamamlanmalıdır.\n\n1. grup (Ön Hazırlık): Kurum bilgisi + her iki komisyon + ürün(ler) ve miktar/adet.\n2. grup (Nihai İşlem): En az 1 ürün + en az 3 firma + yaklaşık/nihai teklifler + her iki komisyon.\n\nEksik olanlar:\n" + string.Join("\n", coreIssues.Take(18).Select(i => "• " + i)), "DoğruTemin - Temel Çıktı Koşulları", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("Seçili belge grubu için temel çıktı koşulları tamamlanmalıdır.\n\n1. grup (Ön Hazırlık): Kurum bilgisi + her iki komisyon + ürün(ler) ve miktar/adet.\n2. grup (Nihai İşlem): En az 1 ürün + en az 3 firma + yaklaşık/nihai teklifler + her iki komisyon.\n\nEksik olanlar:\n" + string.Join("\n", result.CoreIssues.Take(18).Select(i => "• " + i)), "DoğruTemin - Temel Çıktı Koşulları", MessageBoxButton.OK, MessageBoxImage.Warning);
             return null;
         }
-        if (!ConfirmNonBlockingDocumentIssues(data, types, actionName)) return null;
-        var calc = ProcurementEngine.Calculate(data);
-        var requiresWinner = types.Any(t => t is OutputDocumentType.MarketResearchReport or OutputDocumentType.InspectionAcceptanceReport);
-        if (requiresWinner && calc.HasWinnerTie && string.IsNullOrWhiteSpace(calc.WinningFirmId))
+
+        if (result.Status == DocumentPreparationStatus.ConfirmationRequired)
         {
-            var tiedFirms = Firms.Where(f => calc.TiedWinnerFirmIds.Contains(f.Id)).ToList();
-            var chooser = new TieWinnerSelectionWindow(tiedFirms, NumberParser.Money(calc.MarketResultTotal)) { Owner = this };
+            if (!ConfirmNonBlockingDocumentIssues(result.ConfirmationMessages, actionName)) return null;
+            result = DocumentWorkflow.Prepare(data, types, DocumentPreparationMode.Export, advisoriesConfirmed: true);
+        }
+
+        if (result.Status == DocumentPreparationStatus.WinnerSelectionRequired)
+        {
+            var tiedFirms = Firms.Where(f => result.TiedWinnerFirmIds.Contains(f.Id)).ToList();
+            var chooser = new TieWinnerSelectionWindow(tiedFirms, NumberParser.Money(result.TiedMarketTotal ?? 0m)) { Owner = this };
             if (chooser.ShowDialog() != true || string.IsNullOrWhiteSpace(chooser.SelectedFirmId)) return null;
             _preferredWinnerFirmId = chooser.SelectedFirmId;
             MarkDirty();
             data = BuildDataFromUi();
+            result = DocumentWorkflow.Prepare(data, types, DocumentPreparationMode.Export, advisoriesConfirmed: true);
         }
-        return OfficialDocumentService.BuildDocument(data, types);
+
+        return GetDocumentOrThrow(result);
+    }
+
+    private static FixedDocument? GetDocumentOrThrow(DocumentWorkflowResult result)
+    {
+        if (result.Status == DocumentPreparationStatus.Failed)
+            throw result.Error ?? new InvalidOperationException("Belge hazırlığı başarısız oldu.");
+
+        return result.Status == DocumentPreparationStatus.Ready ? result.Document : null;
     }
 
     private void OutputPreview_Click(object sender, RoutedEventArgs e)
