@@ -201,9 +201,9 @@ public partial class MainWindow
         PreparationOutputDocuments.Clear();
         FinalOutputDocuments.Clear();
 
-        var approximateRequest = new OutputDocument { Name = "Yaklaşık Maliyet Talep Yazısı", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
-        var firmOfferForm = new OutputDocument { Name = "Firma Teklif Formu", IsSelected = false, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
-        var approximateCostSheet = new OutputDocument { Name = "Yaklaşık Maliyet Hesap Cetveli", IsSelected = false, Status = "Uyarı", Note = "Nihai işlem belgesi" };
+        var approximateRequest = new OutputDocument { Name = "Yaklaşık Maliyet Talep Yazısı", IsSelected = true, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
+        var firmOfferForm = new OutputDocument { Name = "Firma Teklif Formu", IsSelected = true, Status = "Uyarı", Note = "Ön hazırlık belgesi" };
+        var approximateCostSheet = new OutputDocument { Name = "Yaklaşık Maliyet Hesap Cetveli", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var approvalDocument = new OutputDocument { Name = "Onay Belgesi", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var marketResearchReport = new OutputDocument { Name = "Piyasa Fiyat Araştırması Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };
         var inspectionReport = new OutputDocument { Name = "Muayene ve Kabul Tutanağı", IsSelected = true, Status = "Uyarı", Note = "Nihai işlem belgesi" };

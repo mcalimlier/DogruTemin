@@ -18,6 +18,13 @@ public partial class MainWindow
             return;
         }
 
+        if (!IsValidPhoneEntry(PhoneBox.Text))
+        {
+            MessageBox.Show("Telefon numarası boş bırakılabilir; girilirse (0) dışında 10 rakam olmalıdır.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning);
+            PhoneBox.Focus();
+            return;
+        }
+
         if (_editingFirm is null && Firms.Count >= 5)
         {
             MessageBox.Show("En fazla 5 firma eklenebilir.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -42,7 +49,7 @@ public partial class MainWindow
                 Name = name,
                 TaxNo = taxNo,
                 ContactName = ContactNameBox.Text.Trim(),
-                Phone = PhoneBox.Text.Trim(),
+                Phone = PhoneForStorage(PhoneBox.Text),
                 Email = EmailBox.Text.Trim(),
                 Address = AddressBox.Text.Trim()
             });
@@ -52,7 +59,7 @@ public partial class MainWindow
             _editingFirm.Name = name;
             _editingFirm.TaxNo = taxNo;
             _editingFirm.ContactName = ContactNameBox.Text.Trim();
-            _editingFirm.Phone = PhoneBox.Text.Trim();
+            _editingFirm.Phone = PhoneForStorage(PhoneBox.Text);
             _editingFirm.Email = EmailBox.Text.Trim();
             _editingFirm.Address = AddressBox.Text.Trim();
             FirmGrid.Items.Refresh();
@@ -91,7 +98,7 @@ public partial class MainWindow
         FirmNameBox.Text = firm.Name;
         TaxNoBox.Text = firm.TaxNo;
         ContactNameBox.Text = firm.ContactName;
-        PhoneBox.Text = firm.Phone;
+        PhoneBox.Text = PhoneForEntry(firm.Phone);
         EmailBox.Text = firm.Email;
         AddressBox.Text = firm.Address;
         _firmEditorDirty = false;
@@ -110,6 +117,26 @@ public partial class MainWindow
         ReNumberFirms();
         MarkDirty();
         if (_editingFirm == firm) ClearFirmForm();
+    }
+
+    internal static string PhoneForEntry(string? storedPhone)
+    {
+        var digits = new string((storedPhone ?? string.Empty).Where(char.IsDigit).ToArray());
+        return digits.Length == 11 && digits[0] == '0' ? digits[1..] : digits;
+    }
+
+    internal static string PhoneForStorage(string? enteredPhone)
+    {
+        var digits = new string((enteredPhone ?? string.Empty).Where(char.IsDigit).ToArray());
+        return digits.Length == 0 ? string.Empty : "0" + digits;
+    }
+
+    internal static bool IsValidPhoneEntry(string? enteredPhone)
+    {
+        var input = (enteredPhone ?? string.Empty).Trim();
+        if (input.Length == 0) return true;
+        if (input.Any(character => !char.IsDigit(character) && character is not (' ' or '-' or '(' or ')' or '.'))) return false;
+        return input.Count(char.IsDigit) == 10;
     }
 
     private void ReNumberFirms()

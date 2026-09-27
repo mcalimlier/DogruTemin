@@ -104,7 +104,7 @@ internal static class UiVisualPolishService
             if (string.IsNullOrWhiteSpace(AutomationProperties.GetName(picker)))
                 AutomationProperties.SetName(picker, picker.Name switch
                 {
-                    "AssignmentDatePicker" => "Komisyon görevlendirme tarihi",
+                    "AssignmentDatePicker" => "Komisyon Onay Tarihi",
                     "ApprovalDatePicker" => "Harcama belgesi tarihi",
                     "CostCalculationDatePicker" => "Yaklaşık maliyet hesap cetveli tarihi",
                     "MarketReportDatePicker" => "Piyasa fiyat araştırması tutanağı tarihi",

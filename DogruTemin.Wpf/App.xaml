@@ -432,8 +432,7 @@
                                                       ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                                       IsHitTestVisible="False"/>
                                     <ToggleButton x:Name="DropDownToggle"
-                                                  Width="40"
-                                                  HorizontalAlignment="Right"
+                                                  HorizontalAlignment="Stretch"
                                                   Background="Transparent"
                                                   BorderThickness="0"
                                                   Focusable="False"
@@ -445,7 +444,7 @@
                                                     <Path x:Name="Arrow" Data="M 0 0 L 5 5 L 10 0"
                                                           Stroke="#D8E4EF" StrokeThickness="1.6"
                                                           StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0"/>
                                                 </Border>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">

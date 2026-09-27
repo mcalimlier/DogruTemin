@@ -35,6 +35,7 @@ public partial class MainWindow
 
     private void AnyDate_Changed(object? sender, RoutedPropertyChangedEventArgs<DateTime?> e)
     {
+        UpdateApprovalDateReference();
         if (_suppressDirtyTracking) return;
         MarkDirty();
         var warnings = ValidationService.DateLogicWarnings(BuildDataFromUi())
@@ -51,6 +52,31 @@ public partial class MainWindow
         if (string.Equals(_lastDateSequenceWarning, warningText, StringComparison.Ordinal)) return;
         _lastDateSequenceWarning = warningText;
         MessageBox.Show(warningText, "DoğruTemin - Tarih Kontrolü", MessageBoxButton.OK, MessageBoxImage.Warning);
+    }
+
+    private void UpdateApprovalDateReference()
+    {
+        if (ApprovalDateReferenceText is null || ApprovalDocumentDatePicker is null) return;
+        ApprovalDateReferenceText.Text = ApprovalDocumentDatePicker.SelectedDate is DateTime date
+            ? $"Onay Belgesi tarihi: {date:dd.MM.yyyy}"
+            : "Onay Belgesi tarihi: Henüz girilmedi";
+    }
+
+    internal static IReadOnlyList<DogruTemin.Core.Models.ValidationIssue> GetDateSaveBlockingIssues(
+        DogruTemin.Core.Models.ProcessDates dates) =>
+        DateValidationService.RequiredSequenceIssues(dates, ValidationSeverity.Critical);
+
+    private void SaveDates_Click(object sender, RoutedEventArgs e)
+    {
+        var issues = GetDateSaveBlockingIssues(BuildDataFromUi().Dates);
+        if (issues.Count > 0)
+        {
+            MessageBox.Show(string.Join(Environment.NewLine, issues.Select(issue => issue.Message)),
+                "DoğruTemin - Tarih Sıralaması", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        Save_Click(sender, e);
     }
 
     private void OutputSelection_Changed(object sender, RoutedEventArgs e)

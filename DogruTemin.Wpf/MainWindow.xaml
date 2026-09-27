@@ -364,11 +364,8 @@
                                     <TextBlock Text="GÖREVLENDİRME / HARCAMA BELGESİ" Style="{StaticResource PremiumSectionTitle}" Margin="0,0,0,14"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="26"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
-                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Kurul / Komisyon Onay Tarihi" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><local:LargeDatePicker x:Name="AssignmentDatePicker" Grid.Column="1" SelectedDateChanged="AnyDate_Changed"/></Grid>
-                                        <Grid Grid.Column="2"><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Komisyon Sayısı" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><TextBox x:Name="AssignmentNoBox" Grid.Column="1" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></Grid>
-                                        <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Harcama Belgesi Tarihi" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><local:LargeDatePicker x:Name="ApprovalDatePicker" Grid.Column="1" SelectedDateChanged="AnyDate_Changed"/></Grid>
-                                        <Grid Grid.Row="2" Grid.Column="2"><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Harcama Belgesi Sayısı" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><TextBox x:Name="ApprovalNoBox" Grid.Column="1" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged" LostFocus="ApprovalNoBox_LostFocus"/></Grid>
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Harcama Belgesi Tarihi" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><local:LargeDatePicker x:Name="ApprovalDatePicker" Grid.Column="1" SelectedDateChanged="AnyDate_Changed"/></Grid>
+                                        <Grid Grid.Column="2"><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Harcama Belgesi Sayısı" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><TextBox x:Name="ApprovalNoBox" Grid.Column="1" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged" LostFocus="ApprovalNoBox_LostFocus"/></Grid>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -377,12 +374,12 @@
 
 
                     <!-- ONAY BELGESİ -->
-                    <ScrollViewer x:Name="ApprovalDocumentView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel Margin="0,0,8,16">
+                    <ScrollViewer x:Name="ApprovalDocumentView" Visibility="Collapsed" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,8,4">
                             <TextBlock Text="ONAY BELGESİ" Style="{StaticResource PageTitle}"/>
                             <TextBlock Text="Referansta karşılığı dolu bilgiler zorunludur (*). Opsiyonel alanlar boş bırakılabilir; Açıklamalar boşsa İşin Tanımı otomatik kullanılır." Style="{StaticResource PageSubtitle}" Margin="2,0,0,10"/>
 
-                            <Border Style="{StaticResource PremiumPanel}" Padding="18,16" Margin="0,0,0,12">
+                            <Border Style="{StaticResource PremiumPanel}" Padding="12,10" Margin="0,0,0,7">
                                 <StackPanel>
                                     <TextBlock Text="BELGE BİLGİLERİ" Style="{StaticResource PremiumSectionTitle}" FontSize="16" Margin="0,0,0,10"/>
                                     <Grid>
@@ -399,12 +396,12 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource PremiumPanel}" Padding="18,16" Margin="0,0,0,12">
+                            <Border Style="{StaticResource PremiumPanel}" Padding="12,10" Margin="0,0,0,7">
                                 <StackPanel>
                                     <TextBlock Text="ÖDENEK / İHALE BİLGİLERİ" Style="{StaticResource PremiumSectionTitle}" FontSize="16" Margin="0,0,0,10"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/><RowDefinition Height="10"/><RowDefinition/></Grid.RowDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition/><RowDefinition Height="5"/><RowDefinition/><RowDefinition Height="5"/><RowDefinition/><RowDefinition Height="5"/><RowDefinition/><RowDefinition Height="5"/><RowDefinition/></Grid.RowDefinitions>
                                         <StackPanel><TextBlock Text="Kullanılabilir Ödenek Tutarı *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAvailableBudgetBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                         <StackPanel Grid.Column="2"><TextBlock Text="Yatırım Proje Numarası (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalInvestmentProjectBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                         <StackPanel Grid.Row="2"><TextBlock Text="Bütçe Tertibi *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalBudgetCodeBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
@@ -413,12 +410,12 @@
                                         <StackPanel Grid.Row="4" Grid.Column="2"><TextBlock Text="İlanın Şekli ve Adedi *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalAnnouncementMethodBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                         <StackPanel Grid.Row="6"><TextBlock Text="Ön Yeterlik / İhale Dokümanı Satış Bedeli (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPrequalificationSalePriceBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                         <StackPanel Grid.Row="6" Grid.Column="2"><TextBlock Text="Fiyat Farkı Ödenecekse Dayanağı *" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalPriceDifferenceBasisBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
-                                        <StackPanel Grid.Row="8" Grid.ColumnSpan="3"><TextBlock Text="Açıklamalar (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalNotesBox" Style="{StaticResource PremiumFieldTextBox}" MinHeight="72" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
+                                        <StackPanel Grid.Row="8" Grid.ColumnSpan="3"><TextBlock Text="Açıklamalar (Opsiyonel)" Style="{StaticResource PremiumFieldLabel}"/><TextBox x:Name="ApprovalNotesBox" Style="{StaticResource PremiumFieldTextBox}" MinHeight="48" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top" TextChanged="AnyGlobalField_TextChanged"/></StackPanel>
                                     </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource PremiumPanel}" Padding="18,16" Margin="0,0,0,12">
+                            <Border Style="{StaticResource PremiumPanel}" Padding="12,10" Margin="0,0,0,7">
                                 <StackPanel>
                                     <TextBlock Text="ONAYA SUNAN" Style="{StaticResource PremiumSectionTitle}" FontSize="16" Margin="0,0,0,10"/>
                                     <Grid>
@@ -429,7 +426,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#F4F8FC" BorderBrush="#C8D8E6" BorderThickness="1" CornerRadius="10" Padding="15,11">
+                            <Border Background="#F4F8FC" BorderBrush="#C8D8E6" BorderThickness="1" CornerRadius="10" Padding="10,7">
                                 <TextBlock Foreground="#31506C" FontSize="12" TextWrapping="Wrap" Text="Otomatik alınacak bilgiler: alım yapan idarenin adı, işin tanımı/niteliği, işin miktarı, KDV hariç yaklaşık maliyet, piyasa araştırma görevlileri, muayene ve kabul komisyonu ile harcama yetkilisi."/>
                             </Border>
                         </StackPanel>
@@ -442,7 +439,11 @@
                             <TextBlock Text="Belge tarihleri ve çıktılar tek sayfada yönetilir." Style="{StaticResource PageSubtitle}" Margin="2,0,0,6"/>
 
                             <StackPanel x:Name="DatesView">
-                                <TextBlock Text="BELGE TARİHLERİ" Style="{StaticResource SectionTitle}" Margin="2,0,0,4"/>
+                                <Grid Margin="2,0,0,5">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="BELGE TARİHLERİ" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Style="{StaticResource ModernButton}" Content="TARİHLERİ KAYDET" Padding="14,7" Click="SaveDates_Click"/>
+                                </Grid>
                                 <Border Style="{StaticResource PremiumPanel}" Padding="12,10">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -452,6 +453,9 @@
                                         <StackPanel Grid.Row="2"><TextBlock Text="Muayene ve Kabul Tutanağı Tarihi" Style="{StaticResource PremiumFieldLabel}"/><local:LargeDatePicker x:Name="InspectionReportDatePicker" SelectedDateChanged="AnyDate_Changed"/></StackPanel>
                                         <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="Teslim Alma / Kabul Tarihi" Style="{StaticResource PremiumFieldLabel}"/><local:LargeDatePicker x:Name="DeliveryDatePicker" SelectedDateChanged="AnyDate_Changed"/></StackPanel>
                                     </Grid>
+                                </Border>
+                                <Border Background="#E9F2FF" CornerRadius="6" Padding="9,5" Margin="0,6,0,0">
+                                    <TextBlock x:Name="ApprovalDateReferenceText" Text="Onay Belgesi tarihi: Henüz girilmedi" Foreground="#173B5B" FontSize="12"/>
                                 </Border>
                             </StackPanel>
 
@@ -633,6 +637,11 @@
                                 <StackPanel>
                                     <TextBlock Text="AKTİF İŞLEM KOMİSYONLARI" Style="{StaticResource PremiumSectionTitle}" FontSize="16" Foreground="{StaticResource Gold500Brush}" Margin="0,0,0,3"/>
                                     <TextBlock Text="Bu bilgiler yalnız aktif işleme aittir. Varsayılan komisyon şablonu kullanılmaz." Foreground="{StaticResource PremiumMutedTextBrush}" FontSize="12.5" Margin="0,0,0,9"/>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Komisyon Onay Tarihi" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><local:LargeDatePicker x:Name="AssignmentDatePicker" Grid.Column="1" SelectedDateChanged="AnyDate_Changed"/></Grid>
+                                        <Grid Grid.Column="2"><Grid.ColumnDefinitions><ColumnDefinition Width="225"/><ColumnDefinition/></Grid.ColumnDefinitions><TextBlock Text="Komisyon Onay Sayısı" Style="{StaticResource PremiumFieldLabel}" Margin="0"/><TextBox x:Name="AssignmentNoBox" Grid.Column="1" Style="{StaticResource PremiumFieldTextBox}" TextChanged="AnyGlobalField_TextChanged"/></Grid>
+                                    </Grid>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="18"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <StackPanel>
@@ -952,7 +961,7 @@
                                     <ColumnDefinition Width="14"/>
                                     <ColumnDefinition Width="1*"/>
                                 </Grid.ColumnDefinitions>
-<Grid x:Name="FirmsView" Grid.Column="0" VerticalAlignment="Top">
+<Grid x:Name="FirmsView" Grid.Column="0" VerticalAlignment="Stretch">
                         <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -984,7 +993,11 @@
                                 </StackPanel>
                                 <StackPanel Grid.Row="2" Grid.Column="2">
                                     <TextBlock Text="TELEFON" Style="{StaticResource PremiumFieldLabel}"/>
-                                    <TextBox x:Name="PhoneBox" Style="{StaticResource PremiumFieldTextBox}" TextChanged="TransientFirmEditor_TextChanged"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="(0)" Foreground="{StaticResource PremiumMutedTextBrush}" FontSize="17.5" VerticalAlignment="Center" Margin="10,0,3,0"/>
+                                        <TextBox x:Name="PhoneBox" Grid.Column="1" Style="{StaticResource PremiumFieldTextBox}" TextChanged="TransientFirmEditor_TextChanged" ToolTip="(0) dışında 10 rakam girin"/>
+                                    </Grid>
                                 </StackPanel>
                                 <StackPanel Grid.Row="4" Grid.Column="0">
                                     <TextBlock Text="ADRES" Style="{StaticResource PremiumFieldLabel}"/>
@@ -1019,7 +1032,7 @@
                         </Border>
                     </Grid>
                                 <Border Grid.Column="1" Width="3" Background="#B77E0A" HorizontalAlignment="Center" Margin="0,2,0,2" CornerRadius="1.5"/>
-<Grid x:Name="OffersView" Grid.Column="2" VerticalAlignment="Top">
+<Grid x:Name="OffersView" Grid.Column="2" VerticalAlignment="Stretch">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>

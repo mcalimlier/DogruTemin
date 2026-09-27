@@ -31,7 +31,7 @@ public partial class MainWindow
             Firms.Add(new Firm
             {
                 Id = f.Id, No = f.No, Name = f.Name, TaxOffice = f.TaxOffice, TaxNo = f.TaxNo,
-                ContactName = f.ContactName, Phone = f.Phone, Email = f.Email, Address = f.Address, OfferDate = f.OfferDate,
+                ContactName = f.ContactName, Phone = PhoneForEntry(f.Phone), Email = f.Email, Address = f.Address, OfferDate = f.OfferDate,
                 Offers = f.Offers.Select(o => new FirmOfferCore { ProductId = o.ProductId, ApproximateUnitPrice = o.ApproximateUnitPrice, FinalUnitPrice = o.FinalUnitPrice }).ToList()
             });
         foreach (var m in data.InspectionCommission.Take(3)) InspectionCommission.Add(new CommissionMember { No = m.No, Name = m.Name, Title = m.Title });
@@ -93,7 +93,7 @@ public partial class MainWindow
             Firms = Firms.Take(5).Select(f => new DogruTemin.Core.Models.Firm
             {
                 Id = f.Id, No = f.No, Name = f.Name.Trim(), TaxOffice = f.TaxOffice.Trim(), TaxNo = f.TaxNo.Trim(),
-                ContactName = f.ContactName.Trim(), Phone = f.Phone.Trim(), Email = f.Email.Trim().ToLowerInvariant(), Address = f.Address.Trim(), OfferDate = f.OfferDate,
+                ContactName = f.ContactName.Trim(), Phone = PhoneForStorage(f.Phone), Email = f.Email.Trim().ToLowerInvariant(), Address = f.Address.Trim(), OfferDate = f.OfferDate,
                 Offers = f.Offers.Select(o => new FirmOfferCore { ProductId = o.ProductId, ApproximateUnitPrice = o.ApproximateUnitPrice, FinalUnitPrice = o.FinalUnitPrice }).ToList()
             }).ToList(),
             InspectionCommission = InspectionCommission.Take(3).Select(m => new DogruTemin.Core.Models.CommissionMember { No = m.No, Name = m.Name.Trim(), Title = m.Title.Trim() }).ToList(),
