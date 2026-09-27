@@ -161,12 +161,6 @@ public partial class MainWindow
             var layoutGrid = OutputView.Children.OfType<Grid>().FirstOrDefault();
             if (layoutGrid is not null)
             {
-                if (layoutGrid.RowDefinitions.Count == 0)
-                {
-                    layoutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                    layoutGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                }
-
                 var cards = layoutGrid.Children.OfType<Border>().ToList();
                 if (cards.Count >= 2)
                 {
@@ -175,13 +169,16 @@ public partial class MainWindow
 
                     Grid.SetRow(documentCard, 0);
                     Grid.SetColumn(documentCard, 0);
-                    Grid.SetColumnSpan(documentCard, 3);
+                    Grid.SetColumnSpan(documentCard, 1);
+                    documentCard.VerticalAlignment = VerticalAlignment.Stretch;
                     documentCard.Margin = new Thickness(0);
+                    documentCard.Padding = new Thickness(16, 14, 16, 14);
 
-                    Grid.SetRow(statusCard, 1);
-                    Grid.SetColumn(statusCard, 0);
-                    Grid.SetColumnSpan(statusCard, 3);
-                    statusCard.Margin = new Thickness(0, 12, 0, 0);
+                    Grid.SetRow(statusCard, 0);
+                    Grid.SetColumn(statusCard, 2);
+                    Grid.SetColumnSpan(statusCard, 1);
+                    statusCard.VerticalAlignment = VerticalAlignment.Stretch;
+                    statusCard.Margin = new Thickness(0);
                     statusCard.Padding = new Thickness(16, 14, 16, 14);
                 }
             }
@@ -202,16 +199,16 @@ public partial class MainWindow
             switch (child)
             {
                 case TextBlock text when text.FontSize <= 11:
-                    text.FontSize = 12.5;
+                    text.FontSize = 13.5;
                     break;
                 case TextBlock text when text.FontSize <= 13:
-                    text.FontSize = 14;
+                    text.FontSize = 15.5;
                     break;
                 case Button button when button.FontSize < 13.5:
-                    button.FontSize = 13.5;
+                    button.FontSize = 15.5;
                     break;
                 case CheckBox checkBox when checkBox.FontSize < 13:
-                    checkBox.FontSize = 13;
+                    checkBox.FontSize = 14;
                     break;
             }
 
