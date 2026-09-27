@@ -8,7 +8,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [1/2] DogruTemin 4.2.0 Final otomatik testleri calisiyor...
+echo [1/2] DogruTemin 4.3.0 otomatik testleri calisiyor...
 dotnet test "DogruTemin.Tests\DogruTemin.Tests.csproj" -c Release
 if errorlevel 1 (
   echo.
@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [2/2] Testler basarili. DogruTemin 4.2.0 Final aciliyor...
+echo [2/2] Testler basarili. DogruTemin 4.3.0 aciliyor...
 echo Kisa kontrol: coklu urun/firma, Adet-Miktar, hesaplama, Onay Belgesi, PDF ve kaydet-ac.
 echo.
 dotnet run --project "DogruTemin.Wpf\DogruTemin.Wpf.csproj" -c Release
