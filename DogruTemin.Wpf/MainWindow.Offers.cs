@@ -139,7 +139,10 @@ public partial class MainWindow
         if (!SaveOfferEditor(true)) return;
         Save_Click(this, new RoutedEventArgs());
         if (!HasUnsavedWork())
+        {
+            LoadOfferFirm(_offerEditingFirm);
             SetOfferEditorBanner("TEKLİF KALICI KAYDEDİLDİ", "Teklif ve işlem bilgileri diske kaydedildi.", OfferBannerTone.Success);
+        }
         else
             SetOfferEditorBanner("KALICI KAYIT TAMAMLANMADI", "Teklif değişikliği çalışma alanında duruyor. Kaydı tamamlayın veya değişiklikten vazgeçin.", OfferBannerTone.Warning);
     }
@@ -158,7 +161,7 @@ public partial class MainWindow
             {
                 if (!NumberParser.TryPositiveDecimal(row.ApproximatePrice, out var value))
                 {
-                    if (showErrors) MessageBox.Show($"{row.No}. ürün yaklaşık birim fiyatı 0'dan büyük geçerli bir sayı olmalıdır.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    if (showErrors) MessageBox.Show($"{row.No}. ürün yaklaşık birim fiyatı 0'dan büyük, en fazla iki ondalık basamaklı bir sayı olmalıdır.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
                 approx = value;
@@ -167,7 +170,7 @@ public partial class MainWindow
             {
                 if (!NumberParser.TryPositiveDecimal(row.FinalPrice, out var value))
                 {
-                    if (showErrors) MessageBox.Show($"{row.No}. ürün nihai birim fiyatı 0'dan büyük geçerli bir sayı olmalıdır.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    if (showErrors) MessageBox.Show($"{row.No}. ürün nihai birim fiyatı 0'dan büyük, en fazla iki ondalık basamaklı bir sayı olmalıdır.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
                 final = value;

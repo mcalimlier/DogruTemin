@@ -45,12 +45,14 @@ public sealed class WorkflowUiRefinementsTests
     }
 
     [Fact]
-    public void ApprovalDocumentUsesNoOuterScrollbarAndDatesShowApprovalDateReference()
+    public void FormPanelsAllowScrollingWhenNeededAndDatesShowApprovalDateReference()
     {
         var document = LoadMainWindowXaml();
         XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
         var approvalView = document.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "ApprovalDocumentView");
-        Assert.Equal("Disabled", (string?)approvalView.Attribute("VerticalScrollBarVisibility"));
+        Assert.Equal("Auto", (string?)approvalView.Attribute("VerticalScrollBarVisibility"));
+        var generalView = document.Descendants().Single(element => (string?)element.Attribute(x + "Name") == "GeneralView");
+        Assert.Equal("Auto", (string?)generalView.Attribute("VerticalScrollBarVisibility"));
         Assert.Contains(document.Descendants(), element => (string?)element.Attribute(x + "Name") == "ApprovalDateReferenceText");
         Assert.Contains(document.Descendants(), element => (string?)element.Attribute("Click") == "SaveDates_Click");
     }

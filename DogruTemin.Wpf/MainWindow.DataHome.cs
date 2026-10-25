@@ -79,6 +79,7 @@ public partial class MainWindow
         _preferredWinnerFirmId = data.PreferredWinnerFirmId ?? string.Empty;
         ReNumberFirms();
         ReNumberProducts();
+        ProductCountText.Text = $"{Products.Count} / {ProcurementLimits.MaxProducts} ürün";
     }
 
     private ProcurementData BuildDataFromUi()
@@ -367,6 +368,11 @@ public partial class MainWindow
         OutputCommissionText.Text = $"{filledCommission} / 6";
         OutputFirmText.Text = selectedTypesForOutput.Any(DocumentReadinessService.IsFinalProcessDocument) ? $"{firmCount} / EN AZ 3" : "GEREKMEZ";
         OutputProductText.Text = $"{productCount} / EN AZ 1";
+        var readyBrush = new SolidColorBrush(Color.FromRgb(90, 217, 139));
+        var incompleteBrush = new SolidColorBrush(Color.FromRgb(255, 192, 77));
+        OutputCommissionText.Foreground = filledCommission == 6 ? readyBrush : incompleteBrush;
+        OutputFirmText.Foreground = !selectedTypesForOutput.Any(DocumentReadinessService.IsFinalProcessDocument) || firmCount >= 3 ? readyBrush : incompleteBrush;
+        OutputProductText.Foreground = productCount > 0 ? readyBrush : incompleteBrush;
         OutputCriticalText.Text = selectedCoreIssues.Count.ToString(CultureInfo.InvariantCulture);
         OutputWarningText.Text = selectedAdvisories.Count.ToString(CultureInfo.InvariantCulture);
         OutputReadinessText.Text = $"%{readiness}";

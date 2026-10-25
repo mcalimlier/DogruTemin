@@ -46,6 +46,7 @@ public sealed class OfferNavigationTests
                 Assert.Single(window.OfferRows);
                 Assert.Equal("Örnek Ürün", window.OfferRows[0].ProductName);
                 VerifyTenProductSaveAndResponsiveArchive(window, storage);
+                PanelReviewAcceptance.Review(window);
             }
             catch (Exception ex)
             {
@@ -89,10 +90,12 @@ public sealed class OfferNavigationTests
         Invoke("SetSavedStatus", data.LastSavedAt!);
         Invoke("NavFirmsOffers_Click", window, new RoutedEventArgs());
         Assert.Equal(10, window.OfferRows.Count);
+        Assert.Equal("10 / 10 ürün", ((TextBlock)window.FindName("ProductCountText")).Text);
         Assert.Equal("19,53", window.OfferRows[0].FinalPrice);
         window.OfferRows[0].FinalPrice = "19,5300";
         Invoke("SaveOffer_Click", window, new RoutedEventArgs());
         Assert.Equal(19.53m, storage.LoadRecord(data.RecordId, out _)!.Firms[0].Offers[0].FinalUnitPrice);
+        Assert.Equal("19,53", window.OfferRows[0].FinalPrice);
         var status = (TextBlock)window.FindName("OfferEditorStatusTitle");
         var flags = string.Join("; ", new[] { "_hasUnsavedChanges", "_offerEditorDirty", "_firmEditorDirty", "_productEditorDirty" }.Select(name => name + "=" + typeof(MainWindow).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(window)));
         Assert.True(status.Text == "TEKLİF KALICI KAYDEDİLDİ", status.Text + " " + flags + " status=" + ((TextBlock)window.FindName("SaveStatusText")).Text);

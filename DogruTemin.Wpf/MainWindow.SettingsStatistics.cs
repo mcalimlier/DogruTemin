@@ -73,7 +73,7 @@ public partial class MainWindow
         AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {ApplicationSafetyService.RuntimeDescription}";
         AboutDataFolderText.Text = _storage.RootFolder;
         DataIntegrityText.Text = result.Message;
-        DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#167A46" : "#B42318"));
+        DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#7EE2A6" : "#FFA5A5"));
     }
 
     private void RunIntegrityCheck_Click(object sender, RoutedEventArgs e)

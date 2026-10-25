@@ -118,7 +118,7 @@ public partial class MainWindow
     {
         DatesView.Visibility = Visibility.Visible;
         OutputView.Visibility = Visibility.Collapsed;
-        DocumentsDatesView.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+        DocumentsDatesView.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         if (_datesOutputSeparator is not null)
             _datesOutputSeparator.Visibility = Visibility.Collapsed;
 

@@ -314,7 +314,7 @@
                     </ScrollViewer>
 
                     <!-- GENEL -->
-                    <ScrollViewer x:Name="GeneralView" Visibility="Collapsed" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="GeneralView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <TextBlock Text="MAL / HİZMET BİLGİSİ" Style="{StaticResource PageTitle}"/>
                             <TextBlock Text="İş başlığı, mal/hizmet kalemleri ve görevlendirme / harcama belgesi bilgilerini yönetin." Style="{StaticResource PageSubtitle}" Margin="2,0,0,18"/>
@@ -351,7 +351,7 @@
                                             <DataGridTextColumn Header="Birimi" Binding="{Binding Unit}" Width="100" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                             <DataGridTextColumn Header="Miktarı" Binding="{Binding Quantity}" Width="100" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                             <DataGridTemplateColumn Header="İşlemler" Width="115">
-                                                <DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"><Button Content="✎" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Margin="0,0,7,0" Click="ProductEdit_Click" Tag="{Binding}"/><Button Content="🗑" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Background="{StaticResource Danger500Brush}" Click="ProductDelete_Click" Tag="{Binding}"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"><Button Content="✎" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Margin="0,0,7,0" ToolTip="Mal/hizmet kalemini düzenle" AutomationProperties.Name="Mal/hizmet kalemini düzenle" Click="ProductEdit_Click" Tag="{Binding}"/><Button Content="🗑" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Background="{StaticResource Danger500Brush}" ToolTip="Mal/hizmet kalemini sil" AutomationProperties.Name="Mal/hizmet kalemini sil" Click="ProductDelete_Click" Tag="{Binding}"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
                                         </DataGrid.Columns>
                                     </DataGrid>
@@ -374,7 +374,7 @@
 
 
                     <!-- ONAY BELGESİ -->
-                    <ScrollViewer x:Name="ApprovalDocumentView" Visibility="Collapsed" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled">
+                    <ScrollViewer x:Name="ApprovalDocumentView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,8,4">
                             <TextBlock Text="ONAY BELGESİ" Style="{StaticResource PageTitle}"/>
                             <TextBlock Text="Referansta karşılığı dolu bilgiler zorunludur (*). Opsiyonel alanlar boş bırakılabilir; Açıklamalar boşsa İşin Tanımı otomatik kullanılır." Style="{StaticResource PageSubtitle}" Margin="2,0,0,10"/>
@@ -485,7 +485,7 @@
                                                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Checked="OutputSelection_Changed" Unchecked="OutputSelection_Changed"/>
                                                                         <StackPanel Grid.Column="1">
                                                                             <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13.5" FontWeight="SemiBold"/>
-                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Text="{Binding Note}" ToolTip="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                                                                         </StackPanel>
                                                                         <Border Grid.Column="2" CornerRadius="10" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                             <Border.Style>
@@ -530,7 +530,7 @@
                                                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Checked="OutputSelection_Changed" Unchecked="OutputSelection_Changed"/>
                                                                         <StackPanel Grid.Column="1">
                                                                             <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13.5" FontWeight="SemiBold"/>
-                                                                            <TextBlock Text="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                                                            <TextBlock Text="{Binding Note}" ToolTip="{Binding Note}" Foreground="#AFC5D8" FontSize="11.3" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
                                                                         </StackPanel>
                                                                         <Border Grid.Column="2" CornerRadius="10" Padding="6,3" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                                             <Border.Style>
@@ -718,7 +718,7 @@
                                     </StackPanel>
                                     <TextBlock Text="Kırmızı = kritik • Turuncu = uyarı" HorizontalAlignment="Right" Foreground="{StaticResource PremiumMutedTextBrush}" FontSize="12"/>
                                 </Grid>
-                                <DataGrid x:Name="ControlIssuesGrid" Grid.Row="1" Style="{StaticResource PremiumDataGrid}" ItemsSource="{Binding ValidationRows}" AutoGenerateColumns="False" IsReadOnly="True" RowHeight="50" CanUserAddRows="False" HeadersVisibility="Column" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <DataGrid x:Name="ControlIssuesGrid" Grid.Row="1" Style="{StaticResource PremiumDataGrid}" ItemsSource="{Binding ValidationRows}" AutoGenerateColumns="False" IsReadOnly="True" MinRowHeight="50" CanUserAddRows="False" HeadersVisibility="Column" ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Columns>
                                         <DataGridTemplateColumn Header="DURUM" Width="115">
                                             <DataGridTemplateColumn.CellTemplate><DataTemplate>
@@ -729,7 +729,7 @@
                                             </DataTemplate></DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="BÖLÜM" Binding="{Binding Area}" Width="190" ElementStyle="{StaticResource PremiumGridCellText}"/>
-                                        <DataGridTextColumn Header="AÇIKLAMA" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource PremiumGridCellText}"/>
+                                        <DataGridTextColumn Header="AÇIKLAMA" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource PremiumGridCellTextWrap}"/>
                                         <DataGridTemplateColumn Header="" Width="105"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Style="{StaticResource ModernButton}" Content="DÜZELT" Width="82" Height="34" Padding="8,4" FontSize="12.5" CommandParameter="{Binding TargetView}" Click="ControlFix_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -1031,8 +1031,8 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <Button Content="✎" Style="{StaticResource ModernButton}" Padding="7,4" Width="32" Height="30" Margin="0,0,5,0" Click="RowEdit_Click" Tag="{Binding}"/>
-                                                    <Button Content="🗑" Style="{StaticResource ModernButton}" Padding="7,4" Width="32" Height="30" Background="{StaticResource Danger500Brush}" Click="RowDelete_Click" Tag="{Binding}"/>
+                                                    <Button Content="✎" Style="{StaticResource ModernButton}" Padding="7,4" Width="32" Height="30" Margin="0,0,5,0" ToolTip="Firmayı düzenle" AutomationProperties.Name="Firmayı düzenle" Click="RowEdit_Click" Tag="{Binding}"/>
+                                                    <Button Content="🗑" Style="{StaticResource ModernButton}" Padding="7,4" Width="32" Height="30" Background="{StaticResource Danger500Brush}" ToolTip="Firmayı sil" AutomationProperties.Name="Firmayı sil" Click="RowDelete_Click" Tag="{Binding}"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
