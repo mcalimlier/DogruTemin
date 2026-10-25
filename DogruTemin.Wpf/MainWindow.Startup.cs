@@ -50,6 +50,9 @@ public partial class MainWindow
         };
         ReportStartup(64, "Ayarlar yükleniyor...");
         _settings = _storage.LoadSettings();
+        foreach (System.Windows.Controls.ComboBoxItem item in WindowSizeChoice.Items)
+            if ((string)item.Tag == _settings.WindowSizePreference) WindowSizeChoice.SelectedItem = item;
+        Loaded += (_, _) => ResponsiveLayoutService.ApplyPreference(this, _settings.WindowSizePreference);
 
         _suppressDirtyTracking = true;
         ReportStartup(73, "Aktif işlem ve kayıtlar yükleniyor...");

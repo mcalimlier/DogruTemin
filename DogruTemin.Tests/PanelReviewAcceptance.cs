@@ -14,7 +14,10 @@ internal static class PanelReviewAcceptance
         var folder = Environment.GetEnvironmentVariable("DOGRU_TEMIN_PANEL_AUDIT");
         if (!string.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
         var findings = new List<string>();
-        foreach (var view in new[] { "Home", "Institution", "General", "Firms", "ApprovalDocument", "Dates", "Output", "Control", "Statistics", "Archive", "AboutSafety" })
+        Assert.IsType<Grid>(window.FindName("AppScaleViewbox"));
+        Assert.Null(window.FindName("NavDataEntry"));
+        Assert.Equal(Visibility.Visible, ((FrameworkElement)window.FindName("DataEntrySubmenu")).Visibility);
+        foreach (var view in new[] { "Home", "Institution", "General", "Firms", "ApprovalDocument", "Dates", "Output", "Control", "Statistics", "Archive", "Settings", "AboutSafety" })
         foreach (var size in new[] { new Size(1024, 600), new Size(1366, 768) })
         {
             typeof(MainWindow).GetMethod("ShowView", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(window, new object[] { view });
@@ -22,6 +25,23 @@ internal static class PanelReviewAcceptance
             window.Width = size.Width; window.Height = size.Height;
             window.UpdateLayout();
             window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            if (view is "Settings" or "AboutSafety")
+            {
+                var host = (ScrollViewer)window.FindName("WorkspaceScroll");
+                Assert.True(host.ScrollableWidth < 1,
+                    $"{view} {size}: yatay kaydırma={host.ScrollableWidth}; viewport={host.ViewportWidth}; extent={host.ExtentWidth}");
+            }
+            Assert.Equal(1, ((FrameworkElement)window.FindName("WorkspaceLayout")).LayoutTransform.Value.M11);
+            if (view == "Firms")
+                Assert.Equal(size.Width < 1250 ? 2 : 0, Grid.GetRow((FrameworkElement)window.FindName("OffersView")));
+            if (size.Width == 1366)
+            {
+                var navigation = (ScrollViewer)window.FindName("NavigationScroll");
+                Assert.True(navigation.ScrollableHeight < 1, "Normal pencerede menü tamamen görünmeli.");
+                var bottom = (FrameworkElement)window.FindName("BottomNavigation");
+                var bounds = bottom.TransformToAncestor(navigation).TransformBounds(new Rect(bottom.RenderSize));
+                Assert.InRange(navigation.ActualHeight - bounds.Bottom, -1, 2);
+            }
             foreach (var button in UiTree.Descendants<Button>(window).Where(b => b.IsVisible && b.Content is string && b.ActualWidth > 0))
             {
                 var text = UiTree.Descendants<TextBlock>(button).FirstOrDefault();

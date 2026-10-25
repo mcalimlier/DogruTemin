@@ -48,15 +48,7 @@ public partial class MainWindow
 
     private void ConfigureFixedWindowForCurrentScreen()
     {
-        var workArea = SystemParameters.WorkArea;
-        var maxWidth = System.Math.Min(DesignWidth, workArea.Width * 0.94);
-        var maxHeight = System.Math.Min(DesignHeight, workArea.Height * 0.92);
-        var scale = System.Math.Min(maxWidth / DesignWidth, maxHeight / DesignHeight);
-
-        Width = System.Math.Round(DesignWidth * scale);
-        Height = System.Math.Round(DesignHeight * scale);
-        Left = workArea.Left + ((workArea.Width - Width) / 2.0);
-        Top = workArea.Top + ((workArea.Height - Height) / 2.0);
+        ResponsiveLayoutService.ApplyPreference(this, "Auto");
     }
 
     private void MainWindow_SourceInitialized(object? sender, EventArgs e)
@@ -224,6 +216,7 @@ public partial class MainWindow
     {
         if (view == "Commission") view = "Institution";
         _currentView = view;
+        WorkspaceLayout.MinWidth = view is "Settings" or "AboutSafety" ? 0 : 700;
 
         HomeView.Visibility = view == "Home" ? Visibility.Visible : Visibility.Collapsed;
         GeneralView.Visibility = view == "General" ? Visibility.Visible : Visibility.Collapsed;
@@ -234,20 +227,17 @@ public partial class MainWindow
         ControlView.Visibility = view == "Control" ? Visibility.Visible : Visibility.Collapsed;
         StatisticsView.Visibility = view == "Statistics" ? Visibility.Visible : Visibility.Collapsed;
         ArchiveView.Visibility = view == "Archive" ? Visibility.Visible : Visibility.Collapsed;
+        SettingsView.Visibility = view == "Settings" ? Visibility.Visible : Visibility.Collapsed;
+        NavSettings.Tag = view == "Settings" ? "Active" : null;
         AboutSafetyView.Visibility = view == "AboutSafety" ? Visibility.Visible : Visibility.Collapsed;
+        ResponsiveLayoutService.UpdateWorkspace(this);
+        WorkspaceScroll.ScrollToHorizontalOffset(0);
+        WorkspaceScroll.ScrollToVerticalOffset(0);
 
         if (view == "Firms") Dispatcher.BeginInvoke(new Action(() => FirmsView?.BringIntoView()));
         if (view == "Offers") Dispatcher.BeginInvoke(new Action(() => OffersView?.BringIntoView()));
 
-        var dataEntryView = view is "Institution" or "General" or "Firms" or "Offers" or "ApprovalDocument" or "Dates" or "Output";
-        if (dataEntryView)
-        {
-            _dataEntryExpanded = true;
-            UpdateDataEntryMenuState();
-        }
-
         NavHome.Tag = view == "Home" ? "Active" : null;
-        NavDataEntry.Tag = dataEntryView ? "Active" : null;
         NavInstitution.Tag = view == "Institution" ? "Active" : null;
         NavGeneral.Tag = view == "General" ? "Active" : null;
         NavFirmsOffers.Tag = view is "Firms" or "Offers" ? "Active" : null;
@@ -259,18 +249,7 @@ public partial class MainWindow
         NavAboutSafety.Tag = view == "AboutSafety" ? "Active" : null;
     }
 
-    private void UpdateDataEntryMenuState()
-    {
-        if (DataEntrySubmenu is null || DataEntryChevron is null) return;
-        DataEntrySubmenu.Visibility = _dataEntryExpanded ? Visibility.Visible : Visibility.Collapsed;
-        DataEntryChevron.Text = _dataEntryExpanded ? "⌄" : "›";
-    }
-
-    private void NavDataEntry_Click(object sender, RoutedEventArgs e)
-    {
-        _dataEntryExpanded = !_dataEntryExpanded;
-        UpdateDataEntryMenuState();
-    }
+    private void NavSettings_Click(object sender, RoutedEventArgs e) => ShowView("Settings");
 
     private void NavHome_Click(object sender, RoutedEventArgs e) => ShowView("Home");
     private void NavGeneral_Click(object sender, RoutedEventArgs e) => ShowView("General");

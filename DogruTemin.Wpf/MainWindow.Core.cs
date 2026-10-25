@@ -60,7 +60,6 @@ public partial class MainWindow : Window
     private string _preferredWinnerFirmId = string.Empty;
     private ICollectionView? _archiveView;
     private string _homeNextView = "General";
-    private bool _dataEntryExpanded;
     private readonly Action<int, string>? _startupProgress;
 
     private const double DesignWidth = 1450.0;

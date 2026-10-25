@@ -63,7 +63,7 @@ public partial class MainWindow
         foreach (var button in new[]
         {
             NavHome, NavInstitution, NavGeneral, NavFirmsOffers, NavApprovalDocument,
-            NavControl, NavStatistics, NavArchive, NavAboutSafety
+            NavControl, NavStatistics, NavArchive, NavSettings, NavAboutSafety
         })
         {
             button.Click += (_, _) => ClearStandaloneOutputActiveStateWhenNeeded();

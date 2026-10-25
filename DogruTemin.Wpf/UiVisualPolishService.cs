@@ -58,12 +58,19 @@ internal static class UiVisualPolishService
 
     private static void NormalizeButtons(MainWindow window)
     {
-        foreach (var button in UiTree.Descendants<Button>(window))
+        foreach (var button in ResponsiveLayoutService.LogicalNodes(window).OfType<Button>())
         {
             if (button.Content is string content && content is not ("—" or "×"))
             {
-                button.MinHeight = 42;
-                if (button.Height > 0 && button.Height < 42) button.Height = 42;
+                button.MinHeight = 32;
+                if (button.Height > 0 && button.Height < 32) button.Height = 32;
+                if (content.Length > 2 && ReferenceEquals(button.Style, window.TryFindResource("ModernButton")))
+                {
+                    button.Height = 36;
+                    button.FontSize = 11.5;
+                    button.FontWeight = FontWeights.Bold;
+                    button.Padding = new Thickness(14, 0, 14, 0);
+                }
                 if (string.IsNullOrWhiteSpace(AutomationProperties.GetName(button)))
                     AutomationProperties.SetName(button, content.Replace("/", " "));
             }
@@ -98,7 +105,7 @@ internal static class UiVisualPolishService
     {
         foreach (var picker in UiTree.Descendants<LargeDatePicker>(window))
         {
-            picker.Height = 42;
+            picker.Height = 35;
             picker.SnapsToDevicePixels = true;
             picker.UseLayoutRounding = true;
             if (string.IsNullOrWhiteSpace(AutomationProperties.GetName(picker)))

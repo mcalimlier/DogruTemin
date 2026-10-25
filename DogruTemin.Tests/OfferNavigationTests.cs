@@ -70,7 +70,7 @@ public sealed class OfferNavigationTests
         try
         {
             if (failure is not null)
-                throw failure;
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
         }
         finally
         {
@@ -119,17 +119,19 @@ public sealed class OfferNavigationTests
             window.Height = size.Height;
             window.UpdateLayout();
             window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-            Assert.True(grid.ActualHeight > 0);
+            Assert.True(grid.ActualHeight > 0, $"Arşiv tablosu görünmüyor: {size}; height={grid.ActualHeight}; window={window.ActualWidth}x{window.ActualHeight}");
             var template = (DataGridTemplateColumn)grid.Columns.Last();
             var buttons = Assert.IsType<StackPanel>(template.CellTemplate.LoadContent()).Children.OfType<Button>().ToList();
             Assert.Equal(3, buttons.Count);
             grid.ScrollIntoView(grid.Items[0], template);
             window.UpdateLayout();
+            window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            window.UpdateLayout();
             var actionContent = template.GetCellContent(grid.Items[0]);
             Assert.NotNull(actionContent);
             var actionPanel = actionContent as StackPanel ?? UiTree.Descendants<StackPanel>(actionContent).First();
             var needed = actionPanel.Children.OfType<Button>().Sum(button => button.ActualWidth + button.Margin.Left + button.Margin.Right);
-            Assert.True(needed <= actionContent.ActualWidth + 1, $"Satır işlemleri sığmıyor: {needed} / {actionContent.ActualWidth}");
+            Assert.True(needed <= actionContent.ActualWidth + 1, $"Satır işlemleri sığmıyor: {needed} / {actionContent.ActualWidth}; column={template.ActualWidth}; grid={grid.ActualWidth}x{grid.ActualHeight}; size={size}");
             foreach (var button in actionPanel.Children.OfType<Button>())
             {
                 var caption = UiTree.Descendants<TextBlock>(button).First();
@@ -137,7 +139,7 @@ public sealed class OfferNavigationTests
                 Assert.True(bounds.Left >= 0 && bounds.Right <= button.ActualWidth + 1, $"Düğme yazısı kesiliyor: {button.Content}");
             }
             var root = (FrameworkElement)window.Content;
-            Assert.True(root.ActualWidth <= window.ActualWidth + 1);
+            Assert.True(root.ActualWidth <= window.ActualWidth + 1, $"Kök yerleşim pencereye sığmıyor: {root.ActualWidth} / {window.ActualWidth}");
             var acceptance = Environment.GetEnvironmentVariable("DOGRU_TEMIN_ACCEPTANCE_DIR");
             if (!string.IsNullOrWhiteSpace(acceptance))
             {

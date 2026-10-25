@@ -35,6 +35,7 @@ public partial class MainWindow
         {
             _settings = new AppSettings
             {
+                WindowSizePreference = _settings.WindowSizePreference,
                 Institution = BuildInstitutionFromUi(),
                 DefaultUnit = "Adet",
                 DefaultInspectionCommission = new List<DogruTemin.Core.Models.CommissionMember>(),
@@ -46,6 +47,22 @@ public partial class MainWindow
         catch (Exception ex)
         {
             MessageBox.Show("Kurum bilgileri kaydedilemedi: " + ex.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ApplyWindowSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var preference = (WindowSizeChoice.SelectedItem as ComboBoxItem)?.Tag as string ?? "Auto";
+        try
+        {
+            _settings.WindowSizePreference = preference;
+            _storage.SaveSettings(_settings);
+            ResponsiveLayoutService.ApplyPreference(this, preference);
+            UiNotificationService.Show(this, "Pencere ayarı kaydedildi ve uygulandı.", TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Pencere ayarı kaydedilemedi: " + ex.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -73,7 +90,8 @@ public partial class MainWindow
         AboutRuntimeText.Text = $"Windows {(Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit")}  •  .NET {ApplicationSafetyService.RuntimeDescription}";
         AboutDataFolderText.Text = _storage.RootFolder;
         DataIntegrityText.Text = result.Message;
-        DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#7EE2A6" : "#FFA5A5"));
+        LastIntegrityCheckText.Text = $"Son kontrol: {DateTime.Now:dd.MM.yyyy HH:mm}";
+        DataIntegrityText.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(result.IsHealthy ? "#157347" : "#A72B37"));
     }
 
     private void RunIntegrityCheck_Click(object sender, RoutedEventArgs e)

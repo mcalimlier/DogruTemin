@@ -43,32 +43,32 @@
         <!-- Aşama 2.4: tüm metinler kontrol alanında dikey olarak ortalanır -->
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <!-- Explicit alan stilleri dahil tüm TextBox/ComboBox türevleri aynı dikey merkez standardını kullanır. -->
         <Style TargetType="TextBox">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
         </Style>
 
         <Style TargetType="ComboBox">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
         <Style x:Key="StandardButtonBase" TargetType="Button">
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="36"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="16.5"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
@@ -107,7 +107,7 @@
         <!-- R13: tüm ana paneller için ortak tipografi standardı -->
         <Style x:Key="PageTitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="29"/>
+            <Setter Property="FontSize" Value="19.5"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{StaticResource Text900Brush}"/>
             <Setter Property="Margin" Value="2,0,0,3"/>
@@ -116,7 +116,7 @@
 
         <Style x:Key="PageSubtitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="Foreground" Value="{StaticResource Text600Brush}"/>
             <Setter Property="Margin" Value="2,0,0,12"/>
@@ -125,15 +125,15 @@
 
         <Style x:Key="SectionTitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="19"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{StaticResource Text900Brush}"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
         </Style>
 
         <Style x:Key="SectionSubtitle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="Foreground" Value="{StaticResource Text600Brush}"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
@@ -141,7 +141,7 @@
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="{StaticResource Text600Brush}"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
@@ -154,10 +154,10 @@
             <Setter Property="Foreground" Value="{StaticResource Text900Brush}"/>
             <Setter Property="BorderBrush" Value="#D2DBE7"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="35"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -192,9 +192,9 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,3"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="Normal"/>
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="35"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
@@ -202,7 +202,7 @@
         <!-- Büyük ve rahat tarih seçimi -->
         <Style x:Key="LargeCalendarStyle" TargetType="Calendar">
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Width" Value="360"/>
             <Setter Property="Height" Value="330"/>
             <Setter Property="Background" Value="White"/>
@@ -254,7 +254,7 @@
         <Style x:Key="GridCellText" TargetType="TextBlock">
             <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
             <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
@@ -311,11 +311,11 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource PremiumInputBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="35"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
@@ -366,7 +366,7 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Padding" Value="10,7"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -413,11 +413,11 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource PremiumInputBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="42"/>
+            <Setter Property="Height" Value="35"/>
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="17.5"/>
-            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
@@ -579,9 +579,9 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="58"/>
+            <Setter Property="Height" Value="40"/>
             <Setter Property="Padding" Value="18,0"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -605,9 +605,9 @@
         </Style>
 
         <Style x:Key="SubNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
-            <Setter Property="Height" Value="44"/>
+            <Setter Property="Height" Value="38"/>
             <Setter Property="Padding" Value="30,0,8,0"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="Foreground" Value="#E5EDF6"/>
         </Style>
         <!-- EDHS ile ortak lacivert/altın kart ve vektör sembol dili. -->

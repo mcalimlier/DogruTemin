@@ -579,6 +579,8 @@ public class StorageService
 
     private static void NormalizeSettings(ApplicationSettings settings)
     {
+        if (settings.WindowSizePreference is not ("Auto" or "1280x720" or "1366x768" or "1920x1080" or "Maximized"))
+            settings.WindowSizePreference = "Auto";
         settings.SchemaVersion = Math.Max(settings.SchemaVersion, 1);
         settings.Institution ??= new InstitutionInfo();
         settings.DefaultInspectionCommission ??= new List<CommissionMember>();

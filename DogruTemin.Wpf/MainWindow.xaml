@@ -10,23 +10,23 @@
         WindowStartupLocation="Manual" WindowStyle="None" ShowInTaskbar="True" Background="White"
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown" StateChanged="Window_StateChanged">
-    <Viewbox x:Name="AppScaleViewbox" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-    <Border Width="1450" Height="945" CornerRadius="15" BorderBrush="#35546F" BorderThickness="1" Background="#031C38" Margin="8">
+    <Grid x:Name="AppScaleViewbox">
+    <Border CornerRadius="15" BorderBrush="#35546F" BorderThickness="1" Background="#031C38" Margin="8">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="86"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="255"/>
+                <ColumnDefinition Width="230"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- ÜST BAR -->
             <Grid Grid.Row="0" Grid.ColumnSpan="2" Background="#031C38" MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="255"/>
-                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="230"/>
+                    <ColumnDefinition x:Name="HeaderStatusColumn" Width="220"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -34,7 +34,7 @@
                     <Image Source="Assets/Logo.png" Width="170" Stretch="Uniform"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0">
+                <StackPanel x:Name="HeaderSaveStatus" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="18,0,0,0">
 <Border Background="#092746" CornerRadius="9" BorderBrush="#24496B" BorderThickness="1" Padding="13,8" Margin="0" Width="188">
                         <StackPanel>
                             <TextBlock Text="KAYIT DURUMU" Foreground="#8FA8C0" FontSize="10" FontWeight="SemiBold"/>
@@ -50,7 +50,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="12"/>
-                        <ColumnDefinition Width="122"/>
+                        <ColumnDefinition x:Name="HeaderReadinessColumn" Width="122"/>
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="98"/>
                         <ColumnDefinition Width="8"/>
@@ -60,14 +60,14 @@
                         <ColumnDefinition Width="44"/>
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Background="#082744" BorderBrush="#24496B" BorderThickness="1" CornerRadius="9" Padding="12,7" MinWidth="150">
+                    <Border x:Name="HeaderActiveOperation" Grid.Column="0" Background="#082744" BorderBrush="#24496B" BorderThickness="1" CornerRadius="9" Padding="12,7" MinWidth="150">
                         <StackPanel>
                             <TextBlock Text="AKTİF İŞLEM" Foreground="#8FA8C0" FontSize="10" FontWeight="SemiBold"/>
                             <TextBlock x:Name="ActiveOperationText" Text="Yeni İşlem" Foreground="White" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </StackPanel>
                     </Border>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel x:Name="HeaderReadiness" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <StackPanel VerticalAlignment="Center" Margin="0,0,7,0">
                             <TextBlock Text="HAZIRLIK" Foreground="#8FA8C0" FontSize="9.5" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                             <TextBlock Text="DURUMU" Foreground="#C3CFDC" FontSize="10.5" HorizontalAlignment="Right"/>
@@ -94,28 +94,20 @@
             <Grid Grid.Row="1" Grid.Column="0" Background="#031C38">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="92"/>
+                    <RowDefinition Height="84"/>
                 </Grid.RowDefinitions>
-                <StackPanel Margin="0,12,0,0">
+                <ScrollViewer x:Name="NavigationScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <DockPanel MinHeight="{Binding ViewportHeight, ElementName=NavigationScroll}" LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Top">
                     <!-- 1. GRUP: ANA EKRAN -->
                     <Button x:Name="NavHome" Style="{StaticResource NavButton}" Tag="Active" Click="NavHome_Click">
-                        <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE80F;" FontSize="22" Width="42"/><TextBlock Text="ANA EKRAN" VerticalAlignment="Center"/></StackPanel>
+                        <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE80F;" FontSize="17" Width="32"/><TextBlock Text="ANA EKRAN" VerticalAlignment="Center"/></StackPanel>
                     </Button>
 
-                    <Border Height="3" Background="#557A9D" Margin="16,10,16,10" CornerRadius="1.5"/>
+                    <Border Height="3" Background="#557A9D" Margin="16,6,16,6" CornerRadius="1.5"/>
 
                     <!-- 2. GRUP: VERİ GİRİŞİ -->
-                    <Button x:Name="NavDataEntry" Style="{StaticResource NavButton}" Click="NavDataEntry_Click">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="32"/></Grid.ColumnDefinitions>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8D2;" FontSize="22" Width="42"/>
-                                <TextBlock Text="VERİ GİRİŞİ" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <TextBlock x:Name="DataEntryChevron" Grid.Column="1" Text="›" Foreground="#C7D5E4" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                    </Button>
-                    <StackPanel x:Name="DataEntrySubmenu" Visibility="Collapsed" Margin="0,1,0,4">
+                    <StackPanel x:Name="DataEntrySubmenu" Margin="0,1,0,4">
                         <Button x:Name="NavInstitution" Style="{StaticResource SubNavButton}" Click="NavInstitution_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE77B;" FontSize="17" Width="30"/><TextBlock Text="KURUM BİLGİSİ" VerticalAlignment="Center"/></StackPanel></Button>
                         <Button x:Name="NavGeneral" Style="{StaticResource SubNavButton}" Click="NavGeneral_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70B;" FontSize="17" Width="30"/><TextBlock Text="MAL/HİZMET BİLGİSİ" VerticalAlignment="Center"/></StackPanel></Button>
                         <Button x:Name="NavFirmsOffers" Style="{StaticResource SubNavButton}" Click="NavFirmsOffers_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE731;" FontSize="17" Width="30"/><TextBlock Text="FİRMALAR/TEKLİFLER" VerticalAlignment="Center"/></StackPanel></Button>
@@ -123,14 +115,18 @@
                         <Button x:Name="NavDocumentsDates" Style="{StaticResource SubNavButton}" Click="NavDocumentsDates_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A5;" FontSize="17" Width="30"/><TextBlock Text="BELGELER/TARİHLER" VerticalAlignment="Center"/></StackPanel></Button>
                     </StackPanel>
 
-                    <Border Height="3" Background="#557A9D" Margin="16,10,16,10" CornerRadius="1.5"/>
+                    <Border Height="3" Background="#557A9D" Margin="16,6,16,6" CornerRadius="1.5"/>
 
-                    <!-- 3. GRUP: KONTROL / RAPOR / ARŞİV -->
-                    <Button x:Name="NavControl" Style="{StaticResource NavButton}" Click="NavControl_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9D5;" FontSize="22" Width="42"/><TextBlock Text="KONTROL MERKEZİ" VerticalAlignment="Center"/></StackPanel></Button>
-                    <Button x:Name="NavStatistics" Style="{StaticResource NavButton}" Click="NavStatistics_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9D2;" FontSize="22" Width="42"/><TextBlock Text="İSTATİSTİKLER" VerticalAlignment="Center"/></StackPanel></Button>
-                    <Button x:Name="NavArchive" Style="{StaticResource NavButton}" Click="NavArchive_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" FontSize="22" Width="42"/><TextBlock Text="İŞLEM ARŞİVİ" VerticalAlignment="Center"/></StackPanel></Button>
-                    <Button x:Name="NavAboutSafety" Style="{StaticResource NavButton}" Click="NavAboutSafety_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE946;" FontSize="22" Width="42"/><TextBlock Text="HAKKINDA/GÜVENLİK" VerticalAlignment="Center"/></StackPanel></Button>
-                </StackPanel>
+</StackPanel>
+                        <StackPanel DockPanel.Dock="Bottom" x:Name="BottomNavigation">                    <!-- 3. GRUP: KONTROL / RAPOR / ARŞİV -->
+                    <Button x:Name="NavControl" Style="{StaticResource NavButton}" Click="NavControl_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9D5;" FontSize="17" Width="32"/><TextBlock Text="KONTROL MERKEZİ" VerticalAlignment="Center"/></StackPanel></Button>
+                    <Button x:Name="NavStatistics" Style="{StaticResource NavButton}" Click="NavStatistics_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9D2;" FontSize="17" Width="32"/><TextBlock Text="İSTATİSTİKLER" VerticalAlignment="Center"/></StackPanel></Button>
+                    <Button x:Name="NavArchive" Style="{StaticResource NavButton}" Click="NavArchive_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" FontSize="17" Width="32"/><TextBlock Text="İŞLEM ARŞİVİ" VerticalAlignment="Center"/></StackPanel></Button>
+                    <Button x:Name="NavSettings" Style="{StaticResource NavButton}" Click="NavSettings_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE713;" FontSize="17" Width="32"/><TextBlock Text="AYARLAR" VerticalAlignment="Center"/></StackPanel></Button>
+                    <Button x:Name="NavAboutSafety" Style="{StaticResource NavButton}" Click="NavAboutSafety_Click"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE946;" FontSize="17" Width="32"/><TextBlock Text="HAKKINDA/GÜVENLİK" VerticalAlignment="Center"/></StackPanel></Button>
+</StackPanel>
+                    </DockPanel>
+                </ScrollViewer>
                 <Border Grid.Row="1" Margin="18,7,18,10" Padding="14,9" CornerRadius="9" Background="#082845" BorderBrush="#73581E" BorderThickness="1">
                     <StackPanel HorizontalAlignment="Left">
                         <TextBlock Text="Created by" Foreground="#A8BCD0" FontSize="11" FontWeight="SemiBold"/>
@@ -141,8 +137,9 @@
             </Grid>
 
             <!-- İÇERİK -->
-            <Border Grid.Row="1" Grid.Column="1" Background="White" CornerRadius="13,0,13,0" Padding="20">
-                <Grid>
+            <Border Grid.Row="1" Grid.Column="1" Background="White" CornerRadius="13,0,13,0" Padding="16">
+                <ScrollViewer x:Name="WorkspaceScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="WorkspaceLayout" MinWidth="700">
                     <!-- ANA EKRAN -->
                     <ScrollViewer x:Name="HomeView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,8,16">
@@ -350,7 +347,7 @@
                                             <DataGridTextColumn Header="Özelliği" Binding="{Binding Specification}" Width="1.5*" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                             <DataGridTextColumn Header="Birimi" Binding="{Binding Unit}" Width="100" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                             <DataGridTextColumn Header="Miktarı" Binding="{Binding Quantity}" Width="100" ElementStyle="{StaticResource PremiumGridCellText}"/>
-                                            <DataGridTemplateColumn Header="İşlemler" Width="115">
+                                            <DataGridTemplateColumn Header="İşlemler" Width="115" MinWidth="115">
                                                 <DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"><Button Content="✎" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Margin="0,0,7,0" ToolTip="Mal/hizmet kalemini düzenle" AutomationProperties.Name="Mal/hizmet kalemini düzenle" Click="ProductEdit_Click" Tag="{Binding}"/><Button Content="🗑" Style="{StaticResource ModernButton}" Padding="8,4" Width="36" Height="31" Background="{StaticResource Danger500Brush}" ToolTip="Mal/hizmet kalemini sil" AutomationProperties.Name="Mal/hizmet kalemini sil" Click="ProductDelete_Click" Tag="{Binding}"/></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
                                         </DataGrid.Columns>
@@ -685,11 +682,12 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <StackPanel>
                                 <TextBlock Text="AKILLI KONTROL MERKEZİ" Style="{StaticResource PageTitle}"/>
                                 <TextBlock Text="Eksik ve tutarsız bilgileri belge üretmeden önce tek ekranda bulun; DÜZELT ile doğrudan ilgili bölüme gidin." Style="{StaticResource PageSubtitle}" Margin="2,2,0,0"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0">
                                 <Button Style="{StaticResource ModernButton}" Content="YENİDEN KONTROL ET" Width="195" Height="46" Margin="0,0,10,0" Click="ControlRefresh_Click"/>
                                 <Button Style="{StaticResource ModernButton}" Content="ÇIKTIYA GİT" Width="130" Height="46" Background="#123B6C" Click="NavOutput_Click"/>
                             </StackPanel>
@@ -730,7 +728,7 @@
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header="BÖLÜM" Binding="{Binding Area}" Width="190" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                         <DataGridTextColumn Header="AÇIKLAMA" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource PremiumGridCellTextWrap}"/>
-                                        <DataGridTemplateColumn Header="" Width="105"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Style="{StaticResource ModernButton}" Content="DÜZELT" Width="82" Height="34" Padding="8,4" FontSize="12.5" CommandParameter="{Binding TargetView}" Click="ControlFix_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="" Width="105" MinWidth="105"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Style="{StaticResource ModernButton}" Content="DÜZELT" Width="82" Height="34" Padding="8,4" FontSize="12.5" CommandParameter="{Binding TargetView}" Click="ControlFix_Click"/></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock x:Name="ControlEmptyText" Grid.Row="1" Text="✓  Kritik hata veya uyarı bulunmadı. İşlem resmî belge üretimi için hazır görünüyor." Visibility="Collapsed" Foreground="#248A50" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
@@ -745,11 +743,12 @@
                     <ScrollViewer x:Name="StatisticsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <Grid Margin="0,0,0,14">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                                 <StackPanel>
                                     <TextBlock Text="İSTATİSTİKLER / YÖNETİM PANELİ" Style="{StaticResource PageTitle}"/>
                                     <TextBlock Text="Kaydedilmiş doğrudan temin işlemlerinin yıllık finansal ve operasyonel özeti." Style="{StaticResource PageSubtitle}" Margin="2,2,0,0"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0">
                                     <TextBlock Text="Rapor Yılı" Style="{StaticResource FieldLabel}" Margin="0,0,10,0"/>
                                     <ComboBox x:Name="StatisticsYearBox" Style="{StaticResource FieldComboBox}" Width="135" ItemsSource="{Binding StatisticsYears}" SelectionChanged="StatisticsYear_SelectionChanged"/>
                                     <Button Style="{StaticResource ModernButton}" Content="YENİLE" Width="86" Height="42" Padding="10,8" Margin="8,0,0,0" Click="RefreshStatistics_Click"/>
@@ -830,11 +829,12 @@
                         </Grid.RowDefinitions>
 
                         <Grid Grid.Row="0" Margin="0,0,0,16">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <StackPanel>
                                 <TextBlock Text="İŞLEM ARŞİVİ" Style="{StaticResource PageTitle}"/>
                                 <TextBlock Text="Geçmiş işlemleri arayın, filtreleyin, sıralayın ve çift tıklayarak hızla açın." Style="{StaticResource PageSubtitle}" Margin="2,2,0,0"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0">
                                 <TextBlock x:Name="ArchiveCountText" Text="0 kayıt" Foreground="{StaticResource Text600Brush}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,18,0"/>
                                 <Button Style="{StaticResource ModernButton}" Content="ARŞİV YEDEĞİ" Width="155" Height="46" Padding="14,10" FontSize="13.5" Background="#425B76" Margin="0,0,10,0" Click="ExportArchiveBackup_Click"/>
                                 <Button Style="{StaticResource ModernButton}" Content="YENİ İŞLEM" Width="135" Height="46" Padding="14,10" FontSize="13.5" Background="#248A50" Margin="0,0,10,0" Click="NewOperation_Click"/>
@@ -891,14 +891,14 @@
                             <Border Style="{StaticResource PremiumPanel}" Padding="14">
                                 <DataGrid x:Name="ArchiveGrid" ItemsSource="{Binding ArchiveRecords}" Style="{StaticResource ArchiveSheet}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" HeadersVisibility="All" CanUserAddRows="False" MouseDoubleClick="ArchiveGrid_MouseDoubleClick" RowHeight="48" AlternatingRowBackground="#F0F5F9" GridLinesVisibility="All" HorizontalGridLinesBrush="#D6E1EB" VerticalGridLinesBrush="#E4EBF2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="1">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="İŞLEM NO" Binding="{Binding OperationNumber}" Width="90"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="İŞLEM NO" Binding="{Binding OperationNumber}" Width="90" MinWidth="90"/>
                                         <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="İŞİN / ALIMIN ADI" Binding="{Binding JobTitle}" Width="*" MinWidth="150"/>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="HARCAMA TARİHİ" SortMemberPath="ApprovalSortKey" Binding="{Binding ApprovalDate}" Width="105"/>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="ÜRÜN / FİRMA" Binding="{Binding ScopeCounts}" Width="80"/>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="SON KAYIT" SortMemberPath="LastSavedValue" Binding="{Binding LastSaved}" Width="120"/>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="NİHAİ TUTAR" SortMemberPath="FinalTotalValue" Binding="{Binding FinalTotal}" Width="120"/>
-                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="BELGE DURUMU" Binding="{Binding OutputStatus}" Width="155"/>
-                                        <DataGridTemplateColumn Header="İŞLEMLER" Width="235"><DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="HARCAMA TARİHİ" SortMemberPath="ApprovalSortKey" Binding="{Binding ApprovalDate}" Width="105" MinWidth="105"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="ÜRÜN / FİRMA" Binding="{Binding ScopeCounts}" Width="80" MinWidth="80"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="SON KAYIT" SortMemberPath="LastSavedValue" Binding="{Binding LastSaved}" Width="120" MinWidth="120"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="NİHAİ TUTAR" SortMemberPath="FinalTotalValue" Binding="{Binding FinalTotal}" Width="120" MinWidth="120"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="BELGE DURUMU" Binding="{Binding OutputStatus}" Width="155" MinWidth="155"/>
+                                        <DataGridTemplateColumn Header="İŞLEMLER" Width="235" MinWidth="235"><DataGridTemplateColumn.CellTemplate><DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Button Content="✎ Düzenle" Width="75" Style="{StaticResource ArchiveRowAction}" Click="ArchiveRowEdit_Click" ToolTip="Kaydı aç; kaydetmeden önce değişiklik onayı alınır"/>
                                                 <Button Content="▣ Klasör" Width="70" Style="{StaticResource ArchiveRowAction}" Click="ArchiveRowFolder_Click"/>
@@ -922,40 +922,94 @@
                     </Grid>
 
 
+                    <ScrollViewer x:Name="SettingsView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,8,18">
+                            <TextBlock Text="AYARLAR" Style="{StaticResource PageTitle}"/>
+                            <TextBlock Text="Çalışma alanınızı ekranınıza göre düzenleyin." Style="{StaticResource PageSubtitle}"/>
+                            <Border Style="{StaticResource PremiumPanel}" Padding="24">
+                                <StackPanel>
+                                    <TextBlock Text="EKRAN VE PENCERE" FontFamily="Segoe UI" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+                                    <TextBlock Text="Pencere boyutu" Style="{StaticResource PremiumFieldLabel}" Margin="0,22,0,8"/>
+                                    <ComboBox x:Name="WindowSizeChoice" Style="{StaticResource FieldComboBox}" Width="320" Height="35" HorizontalAlignment="Left" SelectedIndex="0">
+                                        <ComboBoxItem Tag="Auto" Content="Otomatik · ekrana sığdır"/>
+                                        <ComboBoxItem Tag="1280x720" Content="1280 × 720"/>
+                                        <ComboBoxItem Tag="1366x768" Content="1366 × 768"/>
+                                        <ComboBoxItem Tag="1920x1080" Content="1920 × 1080"/>
+                                        <ComboBoxItem Tag="Maximized" Content="Ekranı kapla"/>
+                                    </ComboBox>
+                                    <TextBlock Text="Seçiminiz bir sonraki açılış için de saklanır. Büyük boyutlar ekranın kullanılabilir alanına sığdırılır. Pencere kenarından boyutu ayrıca değiştirebilirsiniz." Foreground="#C3D3E3" TextWrapping="Wrap" MaxWidth="700" HorizontalAlignment="Left" Margin="0,14,0,18" FontSize="14"/>
+                                    <Button Content="UYGULA VE KAYDET" Style="{StaticResource ModernButton}" Width="220" HorizontalAlignment="Left" Click="ApplyWindowSettings_Click"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#F0F5FA" CornerRadius="12" Padding="20" Margin="0,16,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Her ekranda okunabilir çalışma alanı" Foreground="#123A5B" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Yazı boyutları korunur. Dar pencerelerde uzun formlar ve tablolar kaydırılarak kullanılabilir. Veri giriş ekranları sol menüde her zaman açıktır." Foreground="#425B76" TextWrapping="Wrap" Margin="0,8,0,0" FontSize="14"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
                     <!-- HAKKINDA / VERİ GÜVENLİĞİ -->
                     <ScrollViewer x:Name="AboutSafetyView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,8,18">
                             <TextBlock Text="HAKKINDA / GÜVENLİK" Style="{StaticResource PageTitle}"/>
-                            <TextBlock Text="Sürüm bilgileri, veri bütünlüğü, yedekleme ve geri yükleme araçları" Style="{StaticResource PageSubtitle}" Margin="2,0,0,14"/>
-
-                            <Border Style="{StaticResource PremiumPanel}" Padding="18" Margin="0,0,0,14">
+                            <TextBlock Text="Uygulama bilgileri ve kayıtlarınızı korumak için ihtiyaç duyduğunuz araçlar." Style="{StaticResource PageSubtitle}"/>
+                            <Border Style="{StaticResource PremiumPanel}" Padding="24" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="64"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <Border Width="48" Height="48" Background="#204B6A" CornerRadius="12" VerticalAlignment="Top">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE946;" FontSize="25" Foreground="#FFD479" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock x:Name="AboutVersionText" FontSize="23" FontWeight="SemiBold" Foreground="White"/>
+                                        <TextBlock Text="Doğrudan Temin Süreç Yönetim Programı" FontSize="14" Foreground="#D7E4EF" Margin="0,5,0,10"/>
+                                        <TextBlock x:Name="AboutRuntimeText" FontSize="13" Foreground="#B2C8DA" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Background="#EFF8F3" BorderBrush="#C8E2D3" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,0,16">
                                 <StackPanel>
-                                    <TextBlock Text="HAKKINDA / SÜRÜM" Style="{StaticResource PremiumSectionTitle}" Margin="0,0,0,10"/>
-                                    <TextBlock x:Name="AboutVersionText" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,5"/>
-                                    <TextBlock x:Name="AboutRuntimeText" FontSize="13" Foreground="{StaticResource PremiumMutedTextBrush}" Margin="0,0,0,5"/>
-                                    <TextBlock Text="Veri klasörü" Style="{StaticResource PremiumFieldLabel}" Margin="0,4,0,2"/>
-                                    <TextBlock x:Name="AboutDataFolderText" FontSize="12.5" Foreground="White" TextWrapping="Wrap"/>
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource ModernButton}" Content="KONTROL ET" Width="135" Height="42" Margin="16,0,0,0" Click="RunIntegrityCheck_Click"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Veri bütünlüğü" Foreground="#163D30" FontSize="20" FontWeight="SemiBold"/>
+                                            <TextBlock x:Name="DataIntegrityText" FontSize="14" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                            <TextBlock x:Name="LastIntegrityCheckText" FontSize="12" Foreground="#537565" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </DockPanel>
                                 </StackPanel>
                             </Border>
-
-                            <Border Style="{StaticResource PremiumPanel}" Padding="18">
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource PremiumPanel}" Padding="22">
+                                    <StackPanel>
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" Foreground="#FFD479" FontSize="27" Margin="0,0,0,14"/>
+                                        <TextBlock Text="Güvenlik yedeği" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+                                        <TextBlock Text="Kayıtlarınızın bir kopyasını oluşturarak çalışmalarınızı koruyun." TextWrapping="Wrap" Foreground="#C5D8E8" FontSize="14" Margin="0,8,0,18" MinHeight="44"/>
+                                        <Button Style="{StaticResource ModernButton}" Content="YEDEK OLUŞTUR" Width="200" Height="44" HorizontalAlignment="Left" Click="CreateSafetyBackup_Click"/>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="2" Style="{StaticResource PremiumPanel}" Padding="22">
+                                    <StackPanel>
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE777;" Foreground="#FFD479" FontSize="27" Margin="0,0,0,14"/>
+                                        <TextBlock Text="Yedekten geri yükle" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+                                        <TextBlock Text="Önceki bir yedeğe dönün. Mevcut veriler değiştirilmeden önce onayınız alınır." TextWrapping="Wrap" Foreground="#C5D8E8" FontSize="14" Margin="0,8,0,18" MinHeight="44"/>
+                                        <Button Style="{StaticResource ModernButton}" Content="YEDEK SEÇ VE GERİ YÜKLE" Width="240" Height="44" HorizontalAlignment="Left" Background="#8A5A12" Click="RestoreSafetyBackup_Click"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Background="#F1F5F9" BorderBrush="#D5E0EA" BorderThickness="1" CornerRadius="12" Padding="22">
                                 <StackPanel>
-                                    <Grid Margin="0,0,0,10">
-                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock Text="VERİ GÜVENLİĞİ" Style="{StaticResource PremiumSectionTitle}"/>
-                                            <TextBlock x:Name="DataIntegrityText" FontSize="13" Foreground="#62D99B" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Style="{StaticResource ModernButton}" Content="KONTROL ET" Width="115" Height="40" Padding="10,6" FontSize="13" Background="#425B76" Click="RunIntegrityCheck_Click"/>
-                                    </Grid>
-                                    <WrapPanel Margin="0,6,0,0">
-                                        <Button Style="{StaticResource ModernButton}" Content="GÜVENLİK YEDEĞİ" Width="158" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Click="CreateSafetyBackup_Click"/>
-                                        <Button Style="{StaticResource ModernButton}" Content="YEDEKTEN GERİ YÜKLE" Width="202" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Background="#B7791F" Click="RestoreSafetyBackup_Click"/>
-                                        <Button Style="{StaticResource ModernButton}" Content="VERİ KLASÖRÜNÜ AÇ" Width="176" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Background="#425B76" Click="OpenDataFolder_Click"/>
-                                        <Button Style="{StaticResource ModernButton}" Content="YEDEK KLASÖRÜNÜ AÇ" Width="190" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Background="#425B76" Click="OpenBackupFolder_Click"/>
-                                        <Button Style="{StaticResource ModernButton}" Content="LOG KLASÖRÜ" Width="150" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Background="#425B76" Click="OpenLogFolder_Click"/>
-                                        <Button Style="{StaticResource ModernButton}" Content="TANILAMA PAKETİ" Width="185" Height="40" Padding="9,6" FontSize="13" Margin="0,0,8,8" Background="#315371" Click="CreateDiagnosticPackage_Click" ToolTip="İşlem verilerini ve PDF belgelerini içermeyen destek paketi oluşturur."/>
+                                    <TextBlock Text="Klasörler ve destek" FontSize="20" FontWeight="SemiBold" Foreground="#173B5A"/>
+                                    <TextBlock Text="VERİ KONUMU" Foreground="#586E81" FontSize="11" FontWeight="SemiBold" Margin="0,16,0,5"/>
+                                    <TextBlock x:Name="AboutDataFolderText" Foreground="#264A67" FontSize="13" TextWrapping="Wrap"/>
+                                    <WrapPanel Margin="0,16,0,0">
+                                        <Button Style="{StaticResource ModernButton}" Content="VERİ KLASÖRÜ" Width="150" Height="42" Margin="0,0,8,8" Background="#385C79" Click="OpenDataFolder_Click"/>
+                                        <Button Style="{StaticResource ModernButton}" Content="YEDEK KLASÖRÜ" Width="160" Height="42" Margin="0,0,8,8" Background="#385C79" Click="OpenBackupFolder_Click"/>
+                                        <Button Style="{StaticResource ModernButton}" Content="LOG KLASÖRÜ" Width="145" Height="42" Margin="0,0,8,8" Background="#385C79" Click="OpenLogFolder_Click"/>
+                                        <Button Style="{StaticResource ModernButton}" Content="TANILAMA PAKETİ" Width="180" Height="42" Margin="0,0,8,8" Background="#385C79" Click="CreateDiagnosticPackage_Click"/>
                                     </WrapPanel>
+                                    <TextBlock Text="Tanılama paketi işlem verilerinizi ve PDF belgelerinizi içermez." TextWrapping="Wrap" Foreground="#586E81" FontSize="13" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -1027,7 +1081,7 @@
                                     <DataGridTextColumn Header="Firma Adı" Binding="{Binding Name}" Width="1.65*" ElementStyle="{StaticResource PremiumGridCellTextWrap}"/>
                                     <DataGridTextColumn Header="Vergi No" Binding="{Binding TaxNo}" Width="0.95*" ElementStyle="{StaticResource PremiumGridCellText}"/>
                                     <DataGridTextColumn Header="Yetkili" Binding="{Binding ContactName}" Width="1.25*" ElementStyle="{StaticResource PremiumGridCellTextWrap}"/>
-                                    <DataGridTemplateColumn Header="İşlem" Width="92">
+                                    <DataGridTemplateColumn Header="İşlem" Width="92" MinWidth="92">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -1204,8 +1258,9 @@
                     </ScrollViewer>
 
                 </Grid>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Border>
-    </Viewbox>
+    </Grid>
 </Window>

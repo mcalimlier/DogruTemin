@@ -118,7 +118,7 @@ internal static class UiAccessibilityService
             var navName = key switch
             {
                 Key.A => "NavHome",
-                Key.V => "NavDataEntry",
+                Key.V => "NavInstitution",
                 Key.K => "NavControl",
                 Key.I => "NavStatistics",
                 Key.R => "NavArchive",
