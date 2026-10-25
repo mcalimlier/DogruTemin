@@ -66,7 +66,7 @@ public partial class MainWindow
         SeedOutputDocuments();
         ReportStartup(84, "Belge ve rapor bileşenleri hazırlanıyor...");
 
-        ProductCountText.Text = $"{Products.Count} / 8 ürün";
+        ProductCountText.Text = $"{Products.Count} / 10 ürün";
         _suppressDirtyTracking = false;
         UpdateDerivedState();
         SetSavedStatus(loaded?.LastSavedAt);

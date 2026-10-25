@@ -3,6 +3,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
+using DogruTemin.Core.Services;
+
 namespace DogruTemin.Wpf;
 
 public partial class MainWindow
@@ -181,9 +183,9 @@ public partial class MainWindow
             return;
         }
 
-        if (_editingProduct is null && Products.Count >= 8)
+        if (_editingProduct is null && Products.Count >= ProcurementLimits.MaxProducts)
         {
-            MessageBox.Show("En fazla 8 ürün / mal / hizmet eklenebilir.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("En fazla 10 ürün / mal / hizmet eklenebilir.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }
 
@@ -209,7 +211,7 @@ public partial class MainWindow
 
         _preferredWinnerFirmId = string.Empty;
         ReNumberProducts();
-        ProductCountText.Text = $"{Products.Count} / 8 ürün";
+        ProductCountText.Text = $"{Products.Count} / 10 ürün";
         MarkDirty();
         ClearProductForm();
     }
@@ -249,7 +251,7 @@ public partial class MainWindow
         foreach (var firm in Firms) firm.Offers.RemoveAll(o => o.ProductId == item.Id);
         _preferredWinnerFirmId = string.Empty;
         ReNumberProducts();
-        ProductCountText.Text = $"{Products.Count} / 8 ürün";
+        ProductCountText.Text = $"{Products.Count} / 10 ürün";
         if (_editingProduct == item) ClearProductForm();
         MarkDirty();
     }

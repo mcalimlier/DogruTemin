@@ -7,6 +7,30 @@ namespace DogruTemin.Tests;
 public sealed class SchemaMigrationServiceTests
 {
     [Fact]
+    public void UpgradePreservesOriginalVersionFourFilesEvenWhenAutomaticBackupsAreOff()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "DogruTemin_Upgrade_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var storage = new StorageService(root);
+            var old = ProcurementBoundaryTests.Scenario(1);
+            old.RecordId = "legacy";
+            old.SchemaVersion = 4;
+            var original = JsonSerializer.Serialize(old);
+            File.WriteAllText(storage.ActiveFile, original);
+            File.WriteAllText(Path.Combine(storage.RecordsFolder, "islem_legacy.json"), original);
+            var loaded = storage.LoadRecord(old.RecordId, out _)!;
+            storage.EnsureArchived(loaded);
+            storage.Save(loaded, createBackup: false);
+            var backups = Directory.GetFiles(storage.RecordBackupFolder, "gecis_v5_*.json");
+            Assert.Equal(2, backups.Length);
+            Assert.All(backups, path => Assert.Equal(original, File.ReadAllText(path)));
+            storage.Save(loaded, createBackup: false);
+            Assert.Equal(2, Directory.GetFiles(storage.RecordBackupFolder, "gecis_v5_*.json").Length);
+        }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    }
+    [Fact]
     public void OlderSchemaIsAdvancedToCurrentVersion()
     {
         var data = new ProcurementData { SchemaVersion = 1 };

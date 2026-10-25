@@ -11,6 +11,10 @@ public sealed class ArchiveRecordRow
     public DateTime ApprovalSortKey { get; set; } = DateTime.MinValue;
     public int ProductCount { get; set; }
     public int FirmCount { get; set; }
+    public string ScopeCounts => $"{ProductCount} / {FirmCount}";
+    public string FinalTotal { get; set; } = string.Empty;
+    public decimal FinalTotalValue { get; set; }
+    public string OutputStatus { get; set; } = string.Empty;
     public string LastSaved { get; set; } = string.Empty;
     public DateTime LastSavedValue { get; set; }
 }

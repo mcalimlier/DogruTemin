@@ -268,33 +268,33 @@
                                 <TextBlock Text="Firma teklifleri ve piyasa araştırması esas alınır" Foreground="#6A7C90" FontSize="13.5" HorizontalAlignment="Right"/>
                             </Grid>
                             <UniformGrid Columns="4" Margin="0,0,0,12">
-                                <Border Background="#F7F9FC" BorderBrush="#DCE5EE" BorderThickness="1" CornerRadius="10" Padding="14,11" Margin="0,0,4,0" SnapsToDevicePixels="True">
-                                    <StackPanel>
-                                        <TextBlock Text="YAKLAŞIK MALİYET" Foreground="#54708D" FontSize="12.5" FontWeight="Bold"/>
-                                        <TextBlock x:Name="HomeApproximateTotalText" Text="—" Foreground="#031C38" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="Firma ortalamaları" Foreground="#526277" FontSize="12.5"/>
-                                    </StackPanel>
+                                <Border Style="{StaticResource ProcurementMetricCard}" Padding="14,11" Margin="0,0,4,0" SnapsToDevicePixels="True">
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions><Image Grid.Column="1" Source="{StaticResource MetricCoins}" Width="32" Height="32" Opacity="0.75" IsHitTestVisible="False"/><StackPanel Margin="0,0,5,0">
+                                        <TextBlock Text="YAKLAŞIK MALİYET" Foreground="#D4E1ED" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock x:Name="HomeApproximateTotalText" Text="—" Foreground="#FFE2A1" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Firma ortalamaları" Foreground="#D4E1ED" FontSize="12.5"/>
+                                    </StackPanel></Grid>
                                 </Border>
-                                <Border Background="#EFF9F3" BorderBrush="#A8D5B9" BorderThickness="1" CornerRadius="10" Padding="14,11" Margin="3,0" SnapsToDevicePixels="True">
-                                    <StackPanel>
-                                        <TextBlock Text="NİHAİ TOPLAM" Foreground="#34704B" FontSize="12.5" FontWeight="Bold"/>
-                                        <TextBlock x:Name="HomeFinalTotalText" Text="—" Foreground="#248A50" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="En düşük toplam" Foreground="#4F7D60" FontSize="12.5"/>
-                                    </StackPanel>
+                                <Border Style="{StaticResource ProcurementMetricCard}" Padding="14,11" Margin="3,0" SnapsToDevicePixels="True">
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions><Image Grid.Column="1" Source="{StaticResource MetricTransfer}" Width="32" Height="32" Opacity="0.75" IsHitTestVisible="False"/><StackPanel Margin="0,0,5,0">
+                                        <TextBlock Text="NİHAİ TOPLAM" Foreground="#D4E1ED" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock x:Name="HomeFinalTotalText" Text="—" Foreground="#FFE2A1" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="En düşük toplam" Foreground="#D4E1ED" FontSize="12.5"/>
+                                    </StackPanel></Grid>
                                 </Border>
-                                <Border Background="#FFF9EC" BorderBrush="#E8C067" BorderThickness="1" CornerRadius="10" Padding="14,11" Margin="3,0" SnapsToDevicePixels="True">
-                                    <StackPanel>
-                                        <TextBlock Text="FARK" Foreground="#8A681A" FontSize="12.5" FontWeight="Bold"/>
-                                        <TextBlock x:Name="HomeDifferenceText" Text="—" Foreground="#8A5A12" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock x:Name="HomeDifferenceHintText" Text="Hesaplama bekleniyor" Foreground="#7F6A37" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
+                                <Border Style="{StaticResource ProcurementMetricCard}" Padding="14,11" Margin="3,0" SnapsToDevicePixels="True">
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions><Image Grid.Column="1" Source="{StaticResource MetricShield}" Width="32" Height="32" Opacity="0.75" IsHitTestVisible="False"/><StackPanel Margin="0,0,5,0">
+                                        <TextBlock Text="FARK" Foreground="#D4E1ED" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock x:Name="HomeDifferenceText" Text="—" Foreground="#FFE2A1" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="HomeDifferenceHintText" Text="Hesaplama bekleniyor" Foreground="#D4E1ED" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel></Grid>
                                 </Border>
-                                <Border Background="#F7F9FC" BorderBrush="#DCE5EE" BorderThickness="1" CornerRadius="10" Padding="14,11" Margin="4,0,0,0" SnapsToDevicePixels="True">
-                                    <StackPanel>
-                                        <TextBlock Text="KAZANAN FİRMA" Foreground="#54708D" FontSize="12.5" FontWeight="Bold"/>
-                                        <TextBlock x:Name="HomeWinnerText" Text="Henüz yok" Foreground="#031C38" FontSize="18" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                                        <TextBlock x:Name="HomeWinnerHintText" Text="Nihai teklifler bekleniyor" Foreground="#526277" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
-                                    </StackPanel>
+                                <Border Style="{StaticResource ProcurementMetricCard}" Padding="14,11" Margin="4,0,0,0" SnapsToDevicePixels="True">
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="38"/></Grid.ColumnDefinitions><Image Grid.Column="1" Source="{StaticResource MetricBank}" Width="32" Height="32" Opacity="0.75" IsHitTestVisible="False"/><StackPanel Margin="0,0,5,0">
+                                        <TextBlock Text="KAZANAN FİRMA" Foreground="#D4E1ED" FontSize="12.5" FontWeight="Bold"/>
+                                        <TextBlock x:Name="HomeWinnerText" Text="Henüz yok" Foreground="#FFE2A1" FontSize="18" FontWeight="Bold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                        <TextBlock x:Name="HomeWinnerHintText" Text="Nihai teklifler bekleniyor" Foreground="#D4E1ED" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel></Grid>
                                 </Border>
                             </UniformGrid>
                             <!-- Sıradaki önerilen adım -->
@@ -355,7 +355,7 @@
                                             </DataGridTemplateColumn>
                                         </DataGrid.Columns>
                                     </DataGrid>
-                                    <TextBlock x:Name="ProductCountText" Text="2 / 8 ürün" HorizontalAlignment="Right" Foreground="{StaticResource PremiumMutedTextBrush}" Margin="0,9,2,0"/>
+                                    <TextBlock x:Name="ProductCountText" Text="2 / 10 ürün" HorizontalAlignment="Right" Foreground="{StaticResource PremiumMutedTextBrush}" Margin="0,9,2,0"/>
                                 </StackPanel>
                             </Border>
 
@@ -843,7 +843,10 @@
                         </Grid>
 
                         <Border Grid.Row="1" Background="#EAF3FF" BorderBrush="#BDD5F2" BorderThickness="1" CornerRadius="9" Padding="14,10" Margin="0,0,0,14">
-                            <TextBlock Text="Arşiv kayıtları otomatik güncellenir. Silinen kayıtlar güvenli Silinenler yedeğine taşınır; son silinen kayıt geri alınabilir. ARŞİV YEDEĞİ tüm işlem verilerini ZIP olarak dışa aktarır." Foreground="#365F87" FontSize="13" TextWrapping="Wrap"/>
+                            <StackPanel>
+                            <TextBlock Text="Her satır tek güncel işlemdir. DÜZENLE ile açın; kaydederken eski kaydın değişmesi için açık onay alınır. KLASÖR kayıtla eşleşen PDF ve kaynak bilgilerini açar. Değişen işlemin belgelerini yeniden üretin. Silinen kayıtlar geri alınabilir." Foreground="#365F87" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="ArchiveWarningsText" Visibility="Collapsed" Foreground="#9D2933" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                            </StackPanel>
                         </Border>
 
                         <Border Grid.Row="2" Style="{StaticResource PremiumPanel}" Padding="14" Margin="0,0,0,14">
@@ -886,28 +889,35 @@
                         <Grid Grid.Row="3">
                             <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                             <Border Style="{StaticResource PremiumPanel}" Padding="14">
-                                <DataGrid x:Name="ArchiveGrid" ItemsSource="{Binding ArchiveRecords}" Style="{StaticResource PremiumDataGrid}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" HeadersVisibility="Column" CanUserAddRows="False" MouseDoubleClick="ArchiveGrid_MouseDoubleClick">
+                                <DataGrid x:Name="ArchiveGrid" ItemsSource="{Binding ArchiveRecords}" Style="{StaticResource ArchiveSheet}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" HeadersVisibility="All" CanUserAddRows="False" MouseDoubleClick="ArchiveGrid_MouseDoubleClick" RowHeight="48" AlternatingRowBackground="#F0F5F9" GridLinesVisibility="All" HorizontalGridLinesBrush="#D6E1EB" VerticalGridLinesBrush="#E4EBF2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="1">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="DURUM" Binding="{Binding Status}" Width="85"/>
-                                        <DataGridTextColumn Header="İŞLEM NO" Binding="{Binding OperationNumber}" Width="125"/>
-                                        <DataGridTextColumn Header="İŞİN / ALIMIN ADI" Binding="{Binding JobTitle}" Width="*"/>
-                                        <DataGridTextColumn Header="HARCAMA TARİHİ" Binding="{Binding ApprovalDate}" Width="145"/>
-                                        <DataGridTextColumn Header="ÜRÜN" Binding="{Binding ProductCount}" Width="70"/>
-                                        <DataGridTextColumn Header="FİRMA" Binding="{Binding FirmCount}" Width="70"/>
-                                        <DataGridTextColumn Header="SON KAYIT" Binding="{Binding LastSaved}" Width="155"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="İŞLEM NO" Binding="{Binding OperationNumber}" Width="90"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="İŞİN / ALIMIN ADI" Binding="{Binding JobTitle}" Width="*" MinWidth="150"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="HARCAMA TARİHİ" SortMemberPath="ApprovalSortKey" Binding="{Binding ApprovalDate}" Width="105"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="ÜRÜN / FİRMA" Binding="{Binding ScopeCounts}" Width="80"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="SON KAYIT" SortMemberPath="LastSavedValue" Binding="{Binding LastSaved}" Width="120"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="NİHAİ TUTAR" SortMemberPath="FinalTotalValue" Binding="{Binding FinalTotal}" Width="120"/>
+                                        <DataGridTextColumn ElementStyle="{StaticResource ArchiveSheetText}" Header="BELGE DURUMU" Binding="{Binding OutputStatus}" Width="155"/>
+                                        <DataGridTemplateColumn Header="İŞLEMLER" Width="235"><DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="✎ Düzenle" Width="75" Style="{StaticResource ArchiveRowAction}" Click="ArchiveRowEdit_Click" ToolTip="Kaydı aç; kaydetmeden önce değişiklik onayı alınır"/>
+                                                <Button Content="▣ Klasör" Width="70" Style="{StaticResource ArchiveRowAction}" Click="ArchiveRowFolder_Click"/>
+                                                <Button Content="× Sil" Width="54" Style="{StaticResource ArchiveRowAction}" Background="#FFF0F0" Foreground="#9D2933" Click="ArchiveRowDelete_Click"/>
+                                            </StackPanel>
+                                        </DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </Border>
-                            <Grid Grid.Row="1" Margin="0,16,0,0">
-                                <TextBlock Text="İpucu: Bir kaydı çift tıklayarak da açabilirsiniz." Foreground="{StaticResource Text600Brush}" FontSize="12.5" VerticalAlignment="Center"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <StackPanel Grid.Row="1" Margin="0,12,0,0">
+                                <TextBlock Text="Kaydı çift tıklayarak açabilir veya satırdaki işlemleri kullanabilirsiniz." Foreground="{StaticResource Text600Brush}" FontSize="12.5" Margin="0,0,0,8"/>
+                                <WrapPanel HorizontalAlignment="Right">
                                     <Button Style="{StaticResource ModernButton}" Content="KOPYALA" Width="110" Height="50" Padding="14,10" FontSize="13.5" Margin="0,0,10,0" Background="#5B6F89" Click="DuplicateArchive_Click"/>
                                     <Button Style="{StaticResource ModernButton}" Content="DIŞA AKTAR" Width="130" Height="50" Padding="14,10" FontSize="13.5" Margin="0,0,10,0" Background="#425B76" Click="ExportSelectedArchive_Click"/>
                                     <Button Style="{StaticResource ModernButton}" Content="SON SİLİNENİ GERİ AL" Width="205" Height="50" Padding="14,10" FontSize="13.5" Margin="0,0,10,0" Background="#B7791F" Click="RestoreDeletedArchive_Click"/>
                                     <Button Style="{StaticResource ModernButton}" Content="SEÇİLİ İŞLEMİ AÇ" Width="180" Height="50" Padding="14,10" FontSize="13.5" Margin="0,0,10,0" Background="#2C66B8" Click="OpenArchive_Click"/>
                                     <Button Style="{StaticResource ModernButton}" Content="ARŞİVDEN SİL" Width="150" Height="50" Padding="14,10" FontSize="13.5" Background="{StaticResource Danger500Brush}" Click="DeleteArchive_Click"/>
-                                </StackPanel>
-                            </Grid>
+                                </WrapPanel>
+                            </StackPanel>
                         </Grid>
                     </Grid>
 

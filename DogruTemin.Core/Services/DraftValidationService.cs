@@ -8,13 +8,13 @@ public static class DraftValidationService
     {
         var issues = new List<ValidationIssue>();
 
-        if (data.Products.Count > 8)
-            Critical(issues, "Products", "En fazla 8 ürün / mal / hizmet eklenebilir.");
+        if (data.Products.Count > ProcurementLimits.MaxProducts)
+            Critical(issues, "Products", "En fazla 10 ürün / mal / hizmet eklenebilir.");
 
         if (data.Firms.Count > 5)
             Critical(issues, "Firms", "En fazla 5 firma eklenebilir.");
 
-        foreach (var product in data.Products.Take(8))
+        foreach (var product in data.Products.Take(ProcurementLimits.MaxProducts))
         {
             if (!string.IsNullOrWhiteSpace(product.Unit) && product.Unit is not ("Adet" or "Miktar"))
                 Critical(issues, $"Product:{product.Id}:Unit", $"{product.No}. ürünün birimi Adet veya Miktar olmalıdır.");
@@ -36,6 +36,9 @@ public static class DraftValidationService
 
             foreach (var offer in firm.Offers)
             {
+                if ((offer.ApproximateUnitPrice.HasValue && !ProcurementLimits.HasMoneyPrecision(offer.ApproximateUnitPrice.Value))
+                    || (offer.FinalUnitPrice.HasValue && !ProcurementLimits.HasMoneyPrecision(offer.FinalUnitPrice.Value)))
+                    Critical(issues, $"Offer:{firm.Id}:{offer.ProductId}", "Birim fiyat en fazla iki ondalık basamak içerebilir; fiyatı açıkça düzeltiniz.");
                 if (offer.ApproximateUnitPrice is <= 0)
                     Critical(issues, $"Offer:{firm.Id}:{offer.ProductId}:Approx", $"{firm.No}. firma için girilen yaklaşık fiyat geçersiz.");
 

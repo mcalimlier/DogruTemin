@@ -24,7 +24,7 @@ public sealed class ProcurementWorkflowTests : IDisposable
             }
         };
 
-        for (var i = 1; i <= 9; i++)
+        for (var i = 1; i <= 11; i++)
         {
             data.Products.Add(new ProductItem
             {

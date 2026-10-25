@@ -18,7 +18,8 @@ public sealed class ProcurementWorkflow
     public ProcurementWorkflowResult Save(
         ProcurementData data,
         bool createBackup = true,
-        bool allowDateWarnings = false)
+        bool allowDateWarnings = false,
+        bool confirmReplacement = false)
     {
         ArgumentNullException.ThrowIfNull(data);
 
@@ -33,6 +34,13 @@ public sealed class ProcurementWorkflow
         var dateWarnings = ValidationService.DateLogicWarnings(data);
         if (dateWarnings.Count > 0 && !allowDateWarnings)
             return ProcurementWorkflowResult.AwaitingWarningConfirmation(dateWarnings);
+
+        if (!string.IsNullOrWhiteSpace(data.RecordId))
+        {
+            var previous = _storage.LoadRecord(data.RecordId, out _);
+            if (previous is not null && RecordIntegrity.ContentHash(previous) != RecordIntegrity.ContentHash(data) && !confirmReplacement)
+                return ProcurementWorkflowResult.AwaitingReplacementConfirmation();
+        }
 
         _storage.Save(data, createBackup);
 
@@ -71,6 +79,11 @@ public sealed class ProcurementWorkflowResult
     public string? BackupWarning { get; }
     public ProcurementData? Data { get; }
     public bool RequiresWarningConfirmation { get; }
+    public bool RequiresReplacementConfirmation { get; private init; }
+
+    public static ProcurementWorkflowResult AwaitingReplacementConfirmation() =>
+        new(false, Array.Empty<ValidationIssue>(), Array.Empty<ValidationIssue>(), null, null, false)
+        { RequiresReplacementConfirmation = true };
 
     public static ProcurementWorkflowResult Blocked(
         IReadOnlyList<ValidationIssue> blockingIssues) =>

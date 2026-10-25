@@ -10,3 +10,5 @@ exe_olustur/.gecici/
 *.suo
 *.cache
 *.log
+.superpowers/
+**/TestResults/

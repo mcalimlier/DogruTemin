@@ -11,6 +11,10 @@ public static class NumberParser
     {
         value = 0m;
         if (string.IsNullOrWhiteSpace(text)) return false;
+        // Quantities in the calculation loop are usually integers. Avoid regex and
+        // separator normalization for that unambiguous, frequent input.
+        if (text.All(char.IsAsciiDigit))
+            return decimal.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value) && value > 0m;
 
         // DoğruFatura ile aynı sağlam ayrıştırma yaklaşımı: önce para simgeleri/boşluklar
         // temizlenir, sonra son ayırıcıya göre ondalık ve binlik işaretleri normalize edilir.
@@ -49,8 +53,12 @@ public static class NumberParser
                 normalized = normalized.Replace(".", "", StringComparison.Ordinal);
         }
 
-        return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out value)
-               && value > 0m;
+        if (!decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out value) || value <= 0m) return false;
+        var rounded = decimal.Round(value, 2);
+        if (rounded != value) return false;
+        // Discard redundant trailing zero scale, never significant digits.
+        value = rounded;
+        return true;
     }
 
     public static string Money(decimal value) => value.ToString("N2", Tr) + " TL";

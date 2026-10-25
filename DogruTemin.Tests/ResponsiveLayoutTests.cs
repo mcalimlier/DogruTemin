@@ -5,6 +5,10 @@ namespace DogruTemin.Tests;
 public sealed class ResponsiveLayoutTests
 {
     [Theory]
+    [InlineData(1024, 600, 100)]
+    [InlineData(1280, 720, 100)]
+    [InlineData(1366, 768, 125)]
+    [InlineData(1366, 768, 150)]
     [InlineData(1366, 768, 100)]
     [InlineData(1920, 1080, 100)]
     [InlineData(1920, 1080, 125)]
@@ -15,7 +19,7 @@ public sealed class ResponsiveLayoutTests
     {
         var profile = ResponsiveLayoutService.CalculateForPixels(width, height, dpiPercent);
 
-        Assert.InRange(profile.ContentScale, 0.50, 1.0);
+        Assert.InRange(profile.ContentScale, 0.01, 1.0);
         Assert.True(profile.WindowWidthDip <= profile.WorkWidthDip * 0.96 + 0.2);
         Assert.True(profile.WindowHeightDip <= profile.WorkHeightDip * 0.94 + 0.2);
         Assert.True(profile.WindowWidthDip > 0);

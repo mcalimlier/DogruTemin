@@ -54,6 +54,8 @@ public partial class MainWindow : Window
     private AppSettings _settings = new();
     private string _operationNumber = string.Empty;
     private string _recordId = string.Empty;
+    private int _recordRevision;
+    private DogruTemin.Core.Models.SavedOutputInfo? _lastOutput;
     private DateTime _recordCreatedAt = DateTime.Now;
     private string _preferredWinnerFirmId = string.Empty;
     private ICollectionView? _archiveView;

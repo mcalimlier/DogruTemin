@@ -11,7 +11,7 @@ public static class DocumentValidationService
 
         issues.AddRange(DateValidationService.RequiredSequenceIssues(data.Dates, ValidationSeverity.Critical));
 
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
         var firms = data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();
 
         switch (document)
@@ -95,7 +95,7 @@ public static class DocumentValidationService
         RequireText(data.Institution.FullName, issues, "İdarenin tam adı");
         RequireText(data.Institution.Province, issues, "Kurum ili");
 
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
         if (products.Count == 0)
             Critical(issues, "Products", "En az bir ürün / hizmet");
 

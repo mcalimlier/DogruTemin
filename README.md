@@ -17,6 +17,8 @@ DoğruTemin; doğrudan temin süreçlerinin hazırlanması, firma tekliflerinin 
 
 ## Kullanıcı verileri
 
+25 Ekim geliştirme dalı; 10 ürün kapasitesi, iki ondalık giriş kontrolü, onaylı kayıt düzeltme, kayıtla eşleşen PDF paketi ve satır düğmeli arşiv listesini içerir. Ayrıntılar: [Kayıt ve belge geliştirmeleri](docs/2026-10-25-KAYIT-VE-BELGE-GELISTIRMELERI.md).
+
 Yeni veri kökü `Masaüstü\DoğruTemin` klasörüdür. Eski `Belgeler\DoğruTemin` verileri ilk açılışta kaynak silinmeden ve mevcut hedef dosyaların üzerine yazılmadan güvenli biçimde kopyalanır.
 
 ## Geliştirme ve kalite

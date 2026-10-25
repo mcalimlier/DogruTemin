@@ -14,6 +14,7 @@ public partial class MainWindow
 {
     private void ApplyDataToUi(ProcurementData data)
     {
+        ProcurementLimits.EnsureCapacity(data);
         Firms.Clear();
         Products.Clear();
         InspectionCommission.Clear();
@@ -25,7 +26,7 @@ public partial class MainWindow
         OfferFirmSelector.SelectedItem = null;
         _suppressOfferSelection = false;
 
-        foreach (var p in data.Products.Take(8))
+        foreach (var p in data.Products.Take(ProcurementLimits.MaxProducts))
             Products.Add(new ProductItem { Id = p.Id, No = p.No, Name = p.Name, Specification = p.Specification, Unit = p.Unit, Quantity = p.Quantity });
         foreach (var f in data.Firms.Take(5))
             Firms.Add(new Firm
@@ -72,6 +73,8 @@ public partial class MainWindow
         AutoBackupCheckBox.IsChecked = data.AutoBackup;
         _operationNumber = data.OperationNumber ?? string.Empty;
         _recordId = data.RecordId ?? string.Empty;
+        _recordRevision = data.Revision;
+        _lastOutput = data.LastOutput;
         _recordCreatedAt = data.CreatedAt == default ? DateTime.Now : data.CreatedAt;
         _preferredWinnerFirmId = data.PreferredWinnerFirmId ?? string.Empty;
         ReNumberFirms();
@@ -83,14 +86,16 @@ public partial class MainWindow
         return new ProcurementData
         {
             RecordId = _recordId,
+            Revision = _recordRevision,
+            LastOutput = _lastOutput,
             CreatedAt = _recordCreatedAt,
             OperationNumber = _operationNumber,
             JobTitle = JobTitleBox.Text.Trim(),
-            Products = Products.Take(8).Select(p => new DogruTemin.Core.Models.ProductItem
+            Products = Products.Select(p => new DogruTemin.Core.Models.ProductItem
             {
                 Id = p.Id, No = p.No, Name = p.Name.Trim(), Specification = p.Specification.Trim(), Unit = p.Unit, Quantity = p.Quantity.Trim()
             }).ToList(),
-            Firms = Firms.Take(5).Select(f => new DogruTemin.Core.Models.Firm
+            Firms = Firms.Select(f => new DogruTemin.Core.Models.Firm
             {
                 Id = f.Id, No = f.No, Name = f.Name.Trim(), TaxOffice = f.TaxOffice.Trim(), TaxNo = f.TaxNo.Trim(),
                 ContactName = f.ContactName.Trim(), Phone = PhoneForStorage(f.Phone), Email = f.Email.Trim().ToLowerInvariant(), Address = f.Address.Trim(), OfferDate = f.OfferDate,
@@ -137,7 +142,7 @@ public partial class MainWindow
 
     private void UpdateHomeProcessMap(ProcurementData data)
     {
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
         var firms = data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();
 
         var institutionDone = !string.IsNullOrWhiteSpace(data.Institution.TopAuthority)
@@ -300,7 +305,7 @@ public partial class MainWindow
         var productCount = data.Products.Count(p => !string.IsNullOrWhiteSpace(p.Name));
 
         HomeProductCountText.Text = productCount.ToString(CultureInfo.InvariantCulture);
-        HomeProductCountHintText.Text = productCount > 0 ? $"{productCount} / 8 kayıtlı" : "En az 1 gerekli";
+        HomeProductCountHintText.Text = productCount > 0 ? $"{productCount} / 10 kayıtlı" : "En az 1 gerekli";
         HomeFirmCountText.Text = firmCount.ToString(CultureInfo.InvariantCulture);
         HomeFirmCountHintText.Text = firmCount >= 3 ? $"{firmCount} firma hazır" : $"{firmCount} / en az 3";
         ActiveOperationText.Text = !string.IsNullOrWhiteSpace(data.JobTitle) ? data.JobTitle : (!string.IsNullOrWhiteSpace(data.OperationNumber) ? data.OperationNumber : "Yeni İşlem");
@@ -317,13 +322,13 @@ public partial class MainWindow
             var difference = calc.ApproximateCostTotal - calc.MarketResultTotal;
             var differencePercent = calc.ApproximateCostTotal == 0m ? 0m : difference / calc.ApproximateCostTotal * 100m;
             HomeDifferenceText.Text = NumberParser.Money(difference);
-            HomeDifferenceText.Foreground = difference >= 0m ? new SolidColorBrush(Color.FromRgb(126, 226, 166)) : new SolidColorBrush(Color.FromRgb(190, 61, 61));
+            HomeDifferenceText.Foreground = difference >= 0m ? new SolidColorBrush(Color.FromRgb(126, 226, 166)) : new SolidColorBrush(Color.FromRgb(255, 165, 165));
             HomeDifferenceHintText.Text = difference >= 0m ? $"Yaklaşık maliyete göre %{Math.Abs(differencePercent):0.0} düşük" : $"Yaklaşık maliyete göre %{Math.Abs(differencePercent):0.0} yüksek";
         }
         else
         {
             HomeDifferenceText.Text = "—";
-            HomeDifferenceText.Foreground = new SolidColorBrush(Color.FromRgb(31, 49, 67));
+            HomeDifferenceText.Foreground = new SolidColorBrush(Color.FromRgb(255, 226, 161));
             HomeDifferenceHintText.Text = "Hesaplama bekleniyor";
         }
 

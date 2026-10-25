@@ -11,6 +11,10 @@ public sealed class ColorContrastTests
     [InlineData("#FFFFFF", "#0A3154")]
     [InlineData("#DDF6E7", "#092746")]
     [InlineData("#C5D7E7", "#0A3154")]
+    [InlineData("#D4E1ED", "#133F60")]
+    [InlineData("#FFE2A1", "#133F60")]
+    [InlineData("#FFA5A5", "#133F60")]
+    [InlineData("#133F60", "#F0F5F9")]
     public void CriticalNormalTextPairsMeetMinimumContrast(string foreground, string background)
     {
         var ratio = ColorContrastService.ContrastRatio(foreground, background);

@@ -9,6 +9,7 @@ namespace DogruTemin.Core.Services;
 public class StorageService
 {
     public string? LastBackupWarning { get; private set; }
+    public List<string> LastArchiveWarnings { get; } = new();
     private readonly JsonSerializerOptions _json = new()
     {
         WriteIndented = true,
@@ -171,6 +172,7 @@ public class StorageService
 
     public IReadOnlyList<ProcurementData> ListRecords()
     {
+        LastArchiveWarnings.Clear();
         Directory.CreateDirectory(RecordsFolder);
         var result = new List<ProcurementData>();
         foreach (var file in Directory.GetFiles(RecordsFolder, "islem_*.json"))
@@ -181,9 +183,9 @@ public class StorageService
                 Normalize(data);
                 result.Add(data);
             }
-            catch
+            catch (Exception ex)
             {
-                // Tek bir bozuk arşiv kaydı, diğer kayıtların listelenmesini engellemez.
+                LastArchiveWarnings.Add(Path.GetFileName(file) + ": " + ex.Message);
             }
         }
         return result.OrderByDescending(x => x.LastSavedAt ?? x.CreatedAt).ToList();
@@ -191,7 +193,19 @@ public class StorageService
 
     public void Save(ProcurementData data, bool createBackup = true)
     {
+        SchemaMigrationService.Migrate(data);
         Normalize(data);
+        var invalid = DraftValidationService.Validate(data).Where(i => i.Severity == ValidationSeverity.Critical).ToList();
+        if (invalid.Count > 0) throw new InvalidDataException(string.Join("\n", invalid.Select(i => i.Message)));
+        using var held = new FileStream(RecordFile(data.RecordId) + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var previous = LoadRecord(data.RecordId, out var readWarning);
+        if (previous is null && File.Exists(RecordFile(data.RecordId)))
+            throw new InvalidDataException(readWarning ?? "Mevcut kayıt okunamıyor; üzerine yazılmadı.");
+        if (previous is not null && previous.Revision != data.Revision)
+            throw new InvalidOperationException("İşlem başka bir işlemde değişmiş. Arşivden güncel kaydı yeniden açınız; eski bilgiler üzerine yazılmadı.");
+        var changed = previous is null || RecordIntegrity.ContentHash(previous) != RecordIntegrity.ContentHash(data);
+        var originalRevision = data.Revision;
+        data.Revision = changed ? checked((previous?.Revision ?? 0) + 1) : Math.Max(1, data.Revision);
         data.LastSavedAt = DateTime.Now;
         Directory.CreateDirectory(DataFolder);
         Directory.CreateDirectory(RecordsFolder);
@@ -225,8 +239,16 @@ public class StorageService
         }
 
         var json = JsonSerializer.Serialize(data, _json);
-        AtomicWrite(ActiveFile, json);
-        AtomicWrite(RecordFile(data.RecordId), json);
+        try
+        {
+            PreserveSchemaUpgradeSource(RecordFile(data.RecordId));
+            PreserveSchemaUpgradeSource(ActiveFile);
+            AtomicWrite(RecordFile(data.RecordId), json);
+        }
+        catch { data.Revision = originalRevision; throw; }
+        try { AtomicWrite(ActiveFile, json); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        { LastBackupWarning = "İşlem arşive kaydedildi; aktif çalışma kopyası güncellenemedi. İşlemi arşivden yeniden açınız. " + ex.Message; }
         // Aktif kayıt kurum bilgisini kendi içinde taşır. Global varsayılan profil yalnız AYARLARI KAYDET ile değişir.
         SaveInstitution(data.Institution);
         if (createBackup)
@@ -240,12 +262,40 @@ public class StorageService
     {
         Normalize(data);
         Directory.CreateDirectory(RecordsFolder);
+        PreserveSchemaUpgradeSource(ActiveFile);
         var json = JsonSerializer.Serialize(data, _json);
         var file = RecordFile(data.RecordId);
         if (!File.Exists(file)) AtomicWrite(file, json);
         // Eski aktif kayda RecordId/SchemaVersion yazılarak her açılışta yeni arşiv kimliği üretilmesi önlenir.
         AtomicWrite(ActiveFile, json);
         SaveInstitution(data.Institution);
+    }
+
+    public string OutputFolderFor(string recordId)
+    {
+        if (string.IsNullOrWhiteSpace(recordId) || recordId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || recordId is "." or "..")
+            throw new InvalidDataException("Geçersiz işlem kimliği.");
+        return Path.Combine(PdfFolder, recordId);
+    }
+
+    public void RegisterOutput(ProcurementData source, SavedOutputInfo output, Action? publishFiles = null)
+    {
+        using var held = new FileStream(RecordFile(source.RecordId) + ".lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var current = LoadRecord(source.RecordId, out var warning) ?? throw new InvalidDataException(warning);
+        if (current.Revision != source.Revision || RecordIntegrity.ContentHash(current) != output.ContentHash)
+            throw new InvalidOperationException("Belge hazırlanırken kayıt değişti. Güncel kayıttan yeniden belge oluşturunuz.");
+        publishFiles?.Invoke();
+        current.LastOutput = output;
+        AtomicWrite(RecordFile(source.RecordId), JsonSerializer.Serialize(current, _json));
+        try
+        {
+            var active = Load(out _);
+            if (active?.RecordId == current.RecordId)
+                AtomicWrite(ActiveFile, JsonSerializer.Serialize(current, _json));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        { /* Archive is authoritative; active metadata can be refreshed on reopen. */ }
+        source.LastOutput = output;
     }
 
     public void ActivateRecord(ProcurementData data)
@@ -328,6 +378,8 @@ public class StorageService
 
             var copy = Deserialize(JsonSerializer.Serialize(source, _json));
             copy.RecordId = Guid.NewGuid().ToString("N");
+            copy.Revision = 0;
+            copy.LastOutput = null;
             copy.CreatedAt = DateTime.Now;
             copy.LastSavedAt = DateTime.Now;
             copy.OperationNumber = string.Empty;
@@ -485,13 +537,44 @@ public class StorageService
         return SchemaMigrationService.Migrate(data);
     }
 
-    private string RecordFile(string recordId) => Path.Combine(RecordsFolder, $"islem_{recordId}.json");
+    private void PreserveSchemaUpgradeSource(string file)
+    {
+        if (!File.Exists(file)) return;
+        try
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
+            if (document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty("SchemaVersion", out var version)
+                && version.TryGetInt32(out var number) && number == SchemaMigrationService.CurrentSchemaVersion) return;
+        }
+        catch (JsonException) { /* Preserve an unreadable active copy before recovery overwrites it. */ }
+        Directory.CreateDirectory(RecordBackupFolder);
+        var destination = Path.Combine(RecordBackupFolder, $"gecis_v{SchemaMigrationService.CurrentSchemaVersion}_{Path.GetFileName(file)}");
+        if (!File.Exists(destination)) File.Copy(file, destination, overwrite: false);
+    }
+
+    private string RecordFile(string recordId)
+    {
+        if (recordId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || recordId is "." or "..")
+            throw new InvalidDataException("Geçersiz işlem kimliği; kayıt dosyası değiştirilmedi.");
+        return Path.Combine(RecordsFolder, $"islem_{recordId}.json");
+    }
 
     private static void AtomicWrite(string file, string content)
     {
-        var temp = file + ".tmp";
-        File.WriteAllText(temp, content);
-        File.Move(temp, file, true);
+        var temp = file + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.Write(content);
+                writer.Flush();
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temp, file, true);
+        }
+        finally { if (File.Exists(temp)) File.Delete(temp); }
     }
 
     private static void NormalizeSettings(ApplicationSettings settings)
@@ -520,19 +603,22 @@ public class StorageService
 
     private static void Normalize(ProcurementData data)
     {
+        ProcurementLimits.EnsureCapacity(data);
         data.SchemaVersion = SchemaMigrationService.CurrentSchemaVersion;
         if (string.IsNullOrWhiteSpace(data.RecordId)) data.RecordId = Guid.NewGuid().ToString("N");
         if (data.CreatedAt == default) data.CreatedAt = data.LastSavedAt ?? DateTime.Now;
         data.Products ??= new(); data.Firms ??= new(); data.InspectionCommission ??= new(); data.MarketCommission ??= new();
         data.Dates ??= new(); data.Institution ??= new(); data.ApprovalDocument ??= new();
-        data.Products = data.Products.Take(8).ToList();
-        data.Firms = data.Firms.Take(5).ToList();
         for (var i = 0; i < data.Products.Count; i++) { data.Products[i].No = i + 1; if (string.IsNullOrWhiteSpace(data.Products[i].Id)) data.Products[i].Id = Guid.NewGuid().ToString("N"); }
         for (var i = 0; i < data.Firms.Count; i++)
         {
             data.Firms[i].No = i + 1;
             if (string.IsNullOrWhiteSpace(data.Firms[i].Id)) data.Firms[i].Id = Guid.NewGuid().ToString("N");
             data.Firms[i].Offers ??= new();
+            if (data.Firms[i].Offers.Any(o =>
+                (o.ApproximateUnitPrice.HasValue && !ProcurementLimits.HasMoneyPrecision(o.ApproximateUnitPrice.Value))
+                || (o.FinalUnitPrice.HasValue && !ProcurementLimits.HasMoneyPrecision(o.FinalUnitPrice.Value))))
+                throw new InvalidDataException("Kayıtta iki ondalıktan fazla birim fiyat var. Fiyatlar yuvarlanmadı; kaynak dosya korunuyor.");
         }
         data.Dates.ApprovalNo = TextNormalizer.Hys(data.Dates.ApprovalNo);
     }

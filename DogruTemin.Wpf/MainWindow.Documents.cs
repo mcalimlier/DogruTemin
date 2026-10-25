@@ -238,11 +238,21 @@ public partial class MainWindow
         return GetDocumentOrThrow(result);
     }
 
+    private ProcurementData? _preparedExportData;
+    private List<OutputDocumentType> _preparedExportTypes = new();
+
     private FixedDocument? BuildSelectedOfficialDocumentForExport(string actionName)
     {
+        _preparedExportData = null;
         var types = GetSelectedImplementedDocumentTypes("DoğruTemin - Çıktı");
         if (types is null) return null;
-        var data = BuildDataFromUi();
+        if (HasUnsavedWork() || string.IsNullOrWhiteSpace(_recordId))
+        {
+            if (_offerEditorDirty && !SaveOfferEditor(true)) return null;
+            Save_Click(this, new RoutedEventArgs());
+            if (HasUnsavedWork() || string.IsNullOrWhiteSpace(_recordId)) return null;
+        }
+        var data = _storage.LoadRecord(_recordId, out var warning) ?? throw new InvalidOperationException(warning);
         var result = DocumentWorkflow.Prepare(data, types, DocumentPreparationMode.Export);
         if (result.Status == DocumentPreparationStatus.Blocked)
         {
@@ -263,11 +273,20 @@ public partial class MainWindow
             if (chooser.ShowDialog() != true || string.IsNullOrWhiteSpace(chooser.SelectedFirmId)) return null;
             _preferredWinnerFirmId = chooser.SelectedFirmId;
             MarkDirty();
-            data = BuildDataFromUi();
+            Save_Click(this, new RoutedEventArgs());
+            if (HasUnsavedWork()) return null;
+            data = _storage.LoadRecord(_recordId, out warning) ?? throw new InvalidOperationException(warning);
             result = DocumentWorkflow.Prepare(data, types, DocumentPreparationMode.Export, advisoriesConfirmed: true);
         }
 
-        return GetDocumentOrThrow(result);
+        var document = GetDocumentOrThrow(result);
+        if (document is not null)
+        {
+            PdfVectorWriter.Validate(document);
+            _preparedExportData = data;
+            _preparedExportTypes = types;
+        }
+        return document;
     }
 
     private static FixedDocument? GetDocumentOrThrow(DocumentWorkflowResult result)
@@ -295,20 +314,9 @@ public partial class MainWindow
         {
             var document = BuildSelectedOfficialDocumentForExport("PDF kaydetme");
             if (document is null) return;
-            Directory.CreateDirectory(_storage.PdfFolder);
-            var dialog = new SaveFileDialog
-            {
-                Title = "DoğruTemin PDF Kaydet",
-                Filter = "PDF Belgesi (*.pdf)|*.pdf",
-                DefaultExt = ".pdf",
-                AddExtension = true,
-                InitialDirectory = _storage.PdfFolder,
-                FileName = $"DogruTemin_Belgeler_{DateTime.Now:yyyyMMdd_HHmm}.pdf"
-            };
-            if (dialog.ShowDialog(this) != true) return;
-            PdfImageWriter.Save(document, dialog.FileName);
+            var path = SavePreparedOutput(document);
             UpdateHomeActivitySummary();
-            UiNotificationService.Show(this, "PDF oluşturuldu:\n" + dialog.FileName, TimeSpan.FromSeconds(5));
+            UiNotificationService.Show(this, "Kayıtlı işlemden PDF oluşturuldu:\n" + path, TimeSpan.FromSeconds(5));
         }
         catch (Exception ex) { MessageBox.Show("PDF oluşturulamadı: " + ex.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
@@ -321,9 +329,19 @@ public partial class MainWindow
             if (document is null) return;
             var dialog = new PrintDialog();
             if (dialog.ShowDialog() != true) return;
+            SavePreparedOutput(document);
             dialog.PrintDocument(document.DocumentPaginator, "DoğruTemin Resmî Belgeleri");
         }
         catch (Exception ex) { MessageBox.Show("Yazdırma işlemi başlatılamadı: " + ex.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
+    private string SavePreparedOutput(FixedDocument document)
+    {
+        var data = _preparedExportData ?? throw new InvalidOperationException("Kayıtlı belge kaynağı bulunamadı.");
+        var path = new SavedDocumentService(_storage).Export(data, document, _preparedExportTypes);
+        _lastOutput = data.LastOutput;
+        RefreshArchiveRecords();
+        return path;
     }
 
     private void ApprovalNoBox_LostFocus(object sender, RoutedEventArgs e)

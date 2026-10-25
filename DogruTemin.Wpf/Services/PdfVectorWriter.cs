@@ -53,7 +53,20 @@ public static class PdfVectorWriter
             RenderElement(gfx, fixedPage, fixedPage);
         }
 
-        pdf.Save(path);
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            pdf.Save(temporary);
+            File.Move(temporary, path, true);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
+
+    public static void Validate(FixedDocument document)
+    {
+        var path = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "DogruTemin_Check_" + Guid.NewGuid().ToString("N") + ".pdf");
+        try { Save(document, path); }
+        finally { if (File.Exists(path)) File.Delete(path); }
     }
 
     private static void PreparePage(FixedPage page)
@@ -213,8 +226,24 @@ public static class PdfVectorWriter
     private static void DrawTextBlock(XGraphics gfx, FixedPage page, TextBlock block)
     {
         var text = block.Text ?? string.Empty;
-        if (text.Length == 0 || !TryBounds(page, block, out var rect))
-            return;
+        if (text.Length == 0) return;
+        if (!TryBounds(page, block, out var rect))
+            throw TextOverflow(text);
+
+        // Respect both page and cell bounds; a child can measure larger than its cell.
+        var bottom = Math.Min(rect.Bottom, ToPoint(page.Height));
+        var right = Math.Min(rect.Right, ToPoint(page.Width));
+        for (DependencyObject? parent = VisualTreeHelper.GetParent(block); parent is not null && parent != page; parent = VisualTreeHelper.GetParent(parent))
+            if (parent is Border cell && TryBounds(page, cell, out var cellRect))
+            {
+                bottom = Math.Min(bottom, cellRect.Bottom - ToPoint(cell.Padding.Bottom));
+                right = Math.Min(right, cellRect.Right - ToPoint(cell.Padding.Right));
+            }
+        rect = new XRect(rect.Left, rect.Top, Math.Max(0, right - rect.Left), Math.Max(0, bottom - rect.Top));
+        // A PDF-only font adjustment must never conceal clipping in the WPF
+        // document that will be sent to a physical printer.
+        if (ToPoint(block.ActualHeight) > rect.Height + 1.5 || ToPoint(block.ActualWidth) > rect.Width + 1.5)
+            throw TextOverflow(text);
 
         if (TryBrush(block.Background, out var background))
             gfx.DrawRectangle(background, rect);
@@ -227,24 +256,41 @@ public static class PdfVectorWriter
         var fontSize = Math.Max(1.0, ToPoint(block.FontSize));
         var font = CreateFont(family, fontSize, style);
         var brush = new XSolidBrush(color);
-        var lineHeight = block.LineHeight > 0 && !double.IsNaN(block.LineHeight)
-            ? ToPoint(block.LineHeight)
-            : Math.Max(fontSize * 1.18, font.GetHeight());
-
-        var lines = block.TextWrapping == TextWrapping.NoWrap
-            ? text.Replace("\r", string.Empty).Split('\n').ToList()
-            : WrapText(gfx, text, font, Math.Max(1, rect.Width));
+        var minimum = Math.Min(fontSize, ToPoint(7));
+        List<string> lines;
+        double lineHeight;
+        while (true)
+        {
+            font = CreateFont(family, fontSize, style);
+            lineHeight = block.LineHeight > 0 && !double.IsNaN(block.LineHeight)
+                ? ToPoint(block.LineHeight) * fontSize / Math.Max(1, ToPoint(block.FontSize))
+                : Math.Max(fontSize * 1.18, font.GetHeight());
+            lines = block.TextWrapping == TextWrapping.NoWrap
+                ? text.Replace("\r", string.Empty).Split('\n').ToList()
+                : WrapText(gfx, text, font, Math.Max(1, rect.Width));
+            var fits = lines.Count * lineHeight <= rect.Height + 0.5
+                && lines.All(line => gfx.MeasureString(line, font).Width <= rect.Width + 0.5)
+                && rect.Top >= -0.5 && rect.Left >= -0.5;
+            if (fits) break;
+            if (fontSize <= minimum + 0.01)
+            {
+                var error = TextOverflow(text);
+                error.Data["Layout"] = $"rect={rect}; lineHeight={lineHeight}; lines={lines.Count}; font={fontSize}";
+                throw error;
+            }
+            fontSize = Math.Max(minimum, fontSize - 0.25);
+        }
 
         var y = rect.Top;
         foreach (var line in lines)
         {
-            if (y + lineHeight > rect.Bottom + 0.5)
-                break;
-
             DrawTextLine(gfx, line, font, brush, new XRect(rect.Left, y, rect.Width, lineHeight), block.TextAlignment);
             y += lineHeight;
         }
     }
+
+    private static InvalidOperationException TextOverflow(string text) => new(
+        "Belge alanına metin sığmıyor: '" + (text.Length > 90 ? text[..90] + "…" : text) + "'. Metni kısaltınız veya belge düzenini kontrol ediniz. Eksik PDF oluşturulmadı.");
 
     private static XFont CreateFont(string family, double size, XFontStyleEx style)
     {
@@ -290,6 +336,19 @@ public static class PdfVectorWriter
             var line = string.Empty;
             foreach (var word in words)
             {
+                if (gfx.MeasureString(word, font).Width > width)
+                {
+                    if (line.Length > 0) { result.Add(line); line = string.Empty; }
+                    var elements = System.Globalization.StringInfo.GetTextElementEnumerator(word);
+                    while (elements.MoveNext())
+                    {
+                        var part = elements.GetTextElement();
+                        if (line.Length > 0 && gfx.MeasureString(line + part, font).Width > width)
+                        { result.Add(line); line = string.Empty; }
+                        line += part;
+                    }
+                    continue;
+                }
                 var candidate = line.Length == 0 ? word : line + " " + word;
                 if (line.Length == 0 || gfx.MeasureString(candidate, font).Width <= width)
                 {
@@ -375,7 +434,21 @@ public static class PdfVectorWriter
         try
         {
             var transform = element.TransformToAncestor(page);
-            var bounds = transform.TransformBounds(new Rect(new Point(0, 0), element.RenderSize));
+            var width = double.IsNaN(element.Width) ? element.RenderSize.Width : Math.Min(element.Width, element.RenderSize.Width);
+            var height = double.IsNaN(element.Height) ? element.RenderSize.Height : Math.Min(element.Height, element.RenderSize.Height);
+            var bounds = transform.TransformBounds(new Rect(0, 0, width, height));
+            // Centered auto-width text can use its allocated cell, rather than its
+            // WPF glyph width (PDF font metrics need not be pixel-identical).
+            if (element is TextBlock && double.IsNaN(element.Width) && VisualTreeHelper.GetParent(element) is FrameworkElement parent)
+            {
+                var slot = System.Windows.Controls.Primitives.LayoutInformation.GetLayoutSlot(element);
+                var available = slot.Width - element.Margin.Left - element.Margin.Right;
+                if (double.IsFinite(available) && available > width)
+                {
+                    var cell = parent.TransformToAncestor(page).TransformBounds(new Rect(slot.Left + element.Margin.Left, slot.Top, available, Math.Max(1, height)));
+                    bounds = new Rect(cell.Left, bounds.Top, cell.Width, bounds.Height);
+                }
+            }
             if (bounds.Width <= 0 || bounds.Height <= 0)
                 return false;
             rect = new XRect(ToPoint(bounds.Left), ToPoint(bounds.Top), ToPoint(bounds.Width), ToPoint(bounds.Height));

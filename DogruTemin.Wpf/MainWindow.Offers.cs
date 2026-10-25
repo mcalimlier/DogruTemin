@@ -93,7 +93,7 @@ public partial class MainWindow
 
             OfferTaxOfficeBox.Text = firm.TaxOffice ?? string.Empty;
             OfferDatePicker.SelectedDate = firm.OfferDate;
-            foreach (var p in Products.Take(8))
+            foreach (var p in Products.Take(ProcurementLimits.MaxProducts))
             {
                 var o = firm.Offers.FirstOrDefault(x => x.ProductId == p.Id);
                 OfferRows.Add(new OfferEditorRow
@@ -136,7 +136,12 @@ public partial class MainWindow
     {
         OfferGrid.CommitEdit(DataGridEditingUnit.Cell, true);
         OfferGrid.CommitEdit(DataGridEditingUnit.Row, true);
-        SaveOfferEditor(true);
+        if (!SaveOfferEditor(true)) return;
+        Save_Click(this, new RoutedEventArgs());
+        if (!HasUnsavedWork())
+            SetOfferEditorBanner("TEKLİF KALICI KAYDEDİLDİ", "Teklif ve işlem bilgileri diske kaydedildi.", OfferBannerTone.Success);
+        else
+            SetOfferEditorBanner("KALICI KAYIT TAMAMLANMADI", "Teklif değişikliği çalışma alanında duruyor. Kaydı tamamlayın veya değişiklikten vazgeçin.", OfferBannerTone.Warning);
     }
 
     private bool SaveOfferEditor(bool showErrors)
@@ -186,7 +191,7 @@ public partial class MainWindow
         var finalComplete = Products.Count > 0;
         var missingFinal = 0;
         var missingApprox = 0;
-        foreach (var p in Products.Take(8))
+        foreach (var p in Products.Take(ProcurementLimits.MaxProducts))
         {
             var o = firm.Offers.FirstOrDefault(x => x.ProductId == p.Id);
             if (o?.ApproximateUnitPrice is not > 0) missingApprox++;
@@ -204,8 +209,8 @@ public partial class MainWindow
         if (!anyMissing)
         {
             SetOfferEditorBanner(
-                justSaved ? "TEKLİF KAYDEDİLDİ" : "FİYATLAR TAMAM",
-                justSaved ? $"{firm.Name}: yaklaşık ve nihai fiyatların tamamı girildi. Kalıcı kayıt için üstteki KAYDET düğmesini kullanın." : $"{firm.Name}: yaklaşık ve nihai fiyatların tamamı girildi.",
+                justSaved ? "TEKLİF HAZIR • KAYIT BEKLİYOR" : "FİYATLAR TAMAM",
+                justSaved ? $"{firm.Name}: teklif çalışma alanına alındı; işlem kaydı tamamlanana kadar değişiklik kalıcı değildir." : $"{firm.Name}: yaklaşık ve nihai fiyatların tamamı girildi.",
                 OfferBannerTone.Success);
         }
         else
@@ -215,8 +220,8 @@ public partial class MainWindow
             if (missingFinal > 0) details.Add($"{missingFinal} nihai fiyat eksik");
             var consequence = missingFinal > 0 ? "Nihai fiyatı eksik firma değerlendirmeye alınmaz." : "Yaklaşık maliyet hesabı ve ilgili belge eksik kalır; firma nihai teklif değerlendirmesine katılabilir.";
             SetOfferEditorBanner(
-                justSaved ? "TEKLİF KAYDEDİLDİ • EKSİK VAR" : "FİYAT EKSİK",
-                $"{firm.Name}: {string.Join(", ", details)}. {consequence}" + (justSaved ? " Kalıcı kayıt için üstteki KAYDET düğmesini kullanın." : " Kırmızı işaretli alanları kontrol edin."),
+                justSaved ? "KAYIT BEKLİYOR • EKSİK VAR" : "FİYAT EKSİK",
+                $"{firm.Name}: {string.Join(", ", details)}. {consequence}" + (justSaved ? " Teklif çalışma alanında; kalıcı işlem kaydı henüz tamamlanmadı." : " Kırmızı işaretli alanları kontrol edin."),
                 OfferBannerTone.Warning);
         }
     }

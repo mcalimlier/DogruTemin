@@ -597,5 +597,42 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="#E5EDF6"/>
         </Style>
+        <!-- EDHS ile ortak lacivert/altın kart ve vektör sembol dili. -->
+        <SolidColorBrush x:Key="MetricGold" Color="#E8C778"/>
+        <Style x:Key="ProcurementMetricCard" TargetType="Border">
+            <Setter Property="CornerRadius" Value="12"/><Setter Property="Padding" Value="16"/><Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#133F60" Offset="0"/><GradientStop Color="#0A2946" Offset="0.55"/><GradientStop Color="#061D35" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+            <Setter Property="BorderBrush"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F4D99A" Offset="0"/><GradientStop Color="#B78B42" Offset="0.35"/><GradientStop Color="#3E5361" Offset="0.72"/><GradientStop Color="#CAAA64" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+            <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#BD9447" BlurRadius="10" ShadowDepth="2" Opacity="0.14"/></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="ArchiveRowAction" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+            <Setter Property="Height" Value="32"/><Setter Property="MinWidth" Value="54"/><Setter Property="Margin" Value="2,0"/><Setter Property="Padding" Value="6,3"/><Setter Property="FontSize" Value="12"/><Setter Property="Background" Value="#E8EFF6"/><Setter Property="Foreground" Value="#133F60"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="ActionSurface" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                    <TextBlock Text="{TemplateBinding Content}" FontSize="{TemplateBinding FontSize}" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ActionSurface" Property="Opacity" Value="0.8"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ActionSurface" Property="BorderBrush" Value="#C88B09"/><Setter TargetName="ActionSurface" Property="BorderThickness" Value="1"/></Trigger></ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="ArchiveSheet" TargetType="DataGrid" BasedOn="{StaticResource ModernDataGrid}">
+            <Setter Property="Foreground" Value="#133F60"/><Setter Property="FontSize" Value="12"/>
+            <Setter Property="ColumnHeaderHeight" Value="42"/>
+            <Setter Property="ColumnHeaderStyle"><Setter.Value><Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModernDataGridHeader}"><Setter Property="FontSize" Value="11"/><Setter Property="Height" Value="42"/><Setter Property="ContentTemplate"><Setter.Value><DataTemplate><TextBlock Text="{Binding}" FontSize="11" Foreground="White" TextWrapping="Wrap" TextAlignment="Center" Margin="3,0"/></DataTemplate></Setter.Value></Setter></Style></Setter.Value></Setter>
+            <Setter Property="RowStyle"><Setter.Value><Style TargetType="DataGridRow">
+                <Setter Property="Background" Value="White"/><Setter Property="Foreground" Value="#133F60"/>
+                <Style.Triggers><Trigger Property="AlternationIndex" Value="1"><Setter Property="Background" Value="#F0F5F9"/></Trigger><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#DCEBFA"/></Trigger></Style.Triggers>
+            </Style></Setter.Value></Setter>
+            <Setter Property="CellStyle"><Setter.Value><Style TargetType="DataGridCell">
+                <Setter Property="Foreground" Value="#133F60"/><Setter Property="Padding" Value="5,2"/><Setter Property="BorderThickness" Value="0"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="ArchiveSheetText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/><Setter Property="Foreground" Value="#133F60"/><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
+        <DrawingImage x:Key="MetricCoins"><DrawingImage.Drawing><GeometryDrawing Geometry="M 3,8 C 3,2 29,2 29,8 C 29,14 3,14 3,8 M 3,8 L 3,22 C 3,29 29,29 29,22 L 29,8 M 3,15 C 3,22 29,22 29,15"><GeometryDrawing.Pen><Pen Brush="{StaticResource MetricGold}" Thickness="1.6"/></GeometryDrawing.Pen></GeometryDrawing></DrawingImage.Drawing></DrawingImage>
+        <DrawingImage x:Key="MetricTransfer"><DrawingImage.Drawing><GeometryDrawing Geometry="M 2,9 L 29,9 M 22,2 L 29,9 L 22,16 M 30,23 L 3,23 M 10,16 L 3,23 L 10,30"><GeometryDrawing.Pen><Pen Brush="{StaticResource MetricGold}" Thickness="1.8"/></GeometryDrawing.Pen></GeometryDrawing></DrawingImage.Drawing></DrawingImage>
+        <DrawingImage x:Key="MetricShield"><DrawingImage.Drawing><GeometryDrawing Geometry="M 16,1 L 29,6 L 27,19 Q 24,28 16,31 Q 8,28 5,19 L 3,6 Z M 10,16 L 14,20 L 23,11"><GeometryDrawing.Pen><Pen Brush="{StaticResource MetricGold}" Thickness="1.8"/></GeometryDrawing.Pen></GeometryDrawing></DrawingImage.Drawing></DrawingImage>
+        <DrawingImage x:Key="MetricBank"><DrawingImage.Drawing><GeometryDrawing Geometry="M 2,10 L 16,2 L 30,10 Z M 4,14 L 28,14 M 7,14 L 7,27 M 16,14 L 16,27 M 25,14 L 25,27 M 2,30 L 30,30"><GeometryDrawing.Pen><Pen Brush="{StaticResource MetricGold}" Thickness="1.8"/></GeometryDrawing.Pen></GeometryDrawing></DrawingImage.Drawing></DrawingImage>
     </Application.Resources>
 </Application>

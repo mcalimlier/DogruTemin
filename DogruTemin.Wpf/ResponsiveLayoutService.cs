@@ -26,7 +26,7 @@ public static class ResponsiveLayoutService
         var availableWidth = workWidthDip * WorkAreaWidthUsage;
         var availableHeight = workHeightDip * WorkAreaHeightUsage;
         var scale = Math.Min(1.0, Math.Min(availableWidth / DesignWidth, availableHeight / DesignHeight));
-        scale = Math.Max(0.50, scale);
+        // Tiny work areas must still fit; never force a window larger than its monitor.
 
         return new WindowLayoutProfile(
             workWidthDip,
@@ -48,8 +48,9 @@ public static class ResponsiveLayoutService
     {
         ArgumentNullException.ThrowIfNull(window);
         window.ResizeMode = ResizeMode.CanResizeWithGrip;
-        window.MinWidth = 760;
-        window.MinHeight = 520;
+        var workArea = SystemParameters.WorkArea;
+        window.MinWidth = Math.Min(760, workArea.Width * WorkAreaWidthUsage);
+        window.MinHeight = Math.Min(520, workArea.Height * WorkAreaHeightUsage);
 
         if (window.FindName("AppScaleViewbox") is Viewbox viewbox)
         {

@@ -21,6 +21,7 @@ public partial class MainWindow
         foreach (var data in _storage.ListRecords())
         {
             var lastSaved = data.LastSavedAt ?? data.CreatedAt;
+            var calculation = ProcurementEngine.Calculate(data);
             var isActive = !string.IsNullOrWhiteSpace(_recordId) && data.RecordId == _recordId;
             ArchiveRecords.Add(new ArchiveRecordRow
             {
@@ -33,11 +34,16 @@ public partial class MainWindow
                 ApprovalSortKey = data.Dates.ApprovalDate ?? DateTime.MinValue,
                 ProductCount = data.Products.Count(p => !string.IsNullOrWhiteSpace(p.Name)),
                 FirmCount = data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name)),
+                FinalTotal = NumberParser.Money(calculation.MarketResultTotal),
+                FinalTotalValue = calculation.MarketResultTotal,
+                OutputStatus = SavedDocumentService.OutputStatus(data),
                 LastSaved = lastSaved.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture),
                 LastSavedValue = lastSaved
             });
         }
         ApplyArchiveView();
+        ArchiveWarningsText.Text = string.Join("\n", _storage.LastArchiveWarnings);
+        ArchiveWarningsText.Visibility = _storage.LastArchiveWarnings.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         UpdateHomeActivitySummary();
     }
 
@@ -49,7 +55,7 @@ public partial class MainWindow
         if (filterIndex == 2 && row.IsActive) return false;
         var query = ArchiveSearchBox?.Text?.Trim();
         if (string.IsNullOrWhiteSpace(query)) return true;
-        var searchable = $"{row.OperationNumber} {row.JobTitle} {row.ApprovalDate} {row.LastSaved} {row.Status}";
+        var searchable = $"{row.OperationNumber} {row.JobTitle} {row.ApprovalDate} {row.LastSaved} {row.Status} {row.OutputStatus}";
         return CultureInfo.GetCultureInfo("tr-TR").CompareInfo.IndexOf(searchable, query, CompareOptions.IgnoreCase) >= 0;
     }
 
@@ -98,6 +104,40 @@ public partial class MainWindow
         if (ArchiveGrid.SelectedItem is ArchiveRecordRow) OpenArchive_Click(sender, new RoutedEventArgs());
     }
 
+    private void ArchiveRowEdit_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not FrameworkElement { DataContext: ArchiveRecordRow row }) return;
+        ArchiveGrid.SelectedItem = row;
+        OpenArchive_Click(sender, e);
+        if (_recordId == row.RecordId)
+        {
+            ShowView("General");
+            UiNotificationService.Show(this, "Kayıt düzenlemeye açıldı. Kaydederken mevcut kaydın değiştirilmesi için onayınız alınacak.", TimeSpan.FromSeconds(5));
+        }
+    }
+
+    private void ArchiveRowFolder_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not FrameworkElement { DataContext: ArchiveRecordRow row }) return;
+        try
+        {
+            var folder = _storage.OutputFolderFor(row.RecordId);
+            System.IO.Directory.CreateDirectory(folder);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(folder) { UseShellExecute = true });
+        }
+        catch (Exception ex) { MessageBox.Show("Belge klasörü açılamadı: " + ex.Message, "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+
+    private void ArchiveRowDelete_Click(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is not FrameworkElement { DataContext: ArchiveRecordRow row }) return;
+        ArchiveGrid.SelectedItem = row;
+        DeleteArchive_Click(sender, e);
+    }
+
     private bool ConfirmRecordSwitch() => ConfirmUnsavedWork("devam et", "DoğruTemin - İşlem değiştir");
 
     private bool ConfirmUnsavedWork(string actionText, string title)
@@ -141,6 +181,8 @@ public partial class MainWindow
         InitializeBlankState(_settings);
         _suppressDirtyTracking = false;
         _storage.ClearActiveFile();
+        _recordRevision = 0;
+        _lastOutput = null;
         UpdateDerivedState();
         _hasUnsavedChanges = true;
         ShowDirtyStatus("Kaydedilmedi • Yeni işlem");

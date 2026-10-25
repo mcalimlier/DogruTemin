@@ -2,8 +2,10 @@ namespace DogruTemin.Core.Models;
 
 public class ProcurementData
 {
-    public int SchemaVersion { get; set; } = 4;
+    public int SchemaVersion { get; set; } = 5;
     public string RecordId { get; set; } = string.Empty;
+    public int Revision { get; set; }
+    public SavedOutputInfo? LastOutput { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public string OperationNumber { get; set; } = string.Empty;
     public string JobTitle { get; set; } = string.Empty;

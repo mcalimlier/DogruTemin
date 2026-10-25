@@ -10,6 +10,7 @@ on:
       - 'chore/**'
       - 'hardening/**'
       - 'refactor/**'
+      - 'codex/**'
   pull_request:
     branches:
       - main

@@ -29,6 +29,7 @@ public sealed class OfficialDocumentService
 
     public static FixedDocument BuildDocument(ProcurementData data, IEnumerable<OutputDocumentType> documentTypes)
     {
+        ProcurementLimits.EnsureCapacity(data);
         var doc = new FixedDocument();
         foreach (var type in documentTypes)
         {
@@ -922,7 +923,7 @@ public sealed class OfficialDocumentService
     }
 
     private static List<ProductItem> ActiveProducts(ProcurementData data) =>
-        data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
 
     private static List<Firm> ActiveFirms(ProcurementData data) =>
         data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();

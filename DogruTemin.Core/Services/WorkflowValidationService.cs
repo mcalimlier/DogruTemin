@@ -17,7 +17,7 @@ public static class WorkflowValidationService
         if (string.IsNullOrWhiteSpace(data.OperationNumber))
             Warning(issues, "OperationNumber", "İşlem numarası boş. Arşivde işlemi bulmayı kolaylaştırmak için işlem numarası girmeniz önerilir.");
 
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
         var firms = data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();
 
         if (products.Count == 0)

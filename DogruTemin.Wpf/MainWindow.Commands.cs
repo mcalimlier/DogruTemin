@@ -119,11 +119,12 @@ public partial class MainWindow
             }
             if (_offerEditorDirty)
             {
-                MessageBox.Show("Firmalar/Teklifler bölümünde kaydedilmemiş teklif değişikliği var. Önce TEKLİFİ KAYDET düğmesiyle teklif girişini tamamlayınız.", "DoğruTemin", MessageBoxButton.OK, MessageBoxImage.Information);
-                ShowView("Offers");
-                return;
+                OfferGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+                OfferGrid.CommitEdit(DataGridEditingUnit.Row, true);
+                if (!SaveOfferEditor(true)) return;
             }
             var data = BuildDataFromUi();
+            var datesConfirmed = false;
             var saveResult = _procurementWorkflow.Save(data, data.AutoBackup);
             if (saveResult.RequiresWarningConfirmation)
             {
@@ -132,17 +133,27 @@ public partial class MainWindow
                     "\n\nYine de taslak kaydedilsin mi?", "DoğruTemin - Tarih sırası", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (answer != MessageBoxResult.Yes) return;
 
+                datesConfirmed = true;
                 saveResult = _procurementWorkflow.Save(data, data.AutoBackup, allowDateWarnings: true);
+            }
+
+            if (saveResult.RequiresReplacementConfirmation)
+            {
+                var answer = MessageBox.Show($"'{data.JobTitle}' işleminin kayıtlı bilgileri değiştirilecek.\n\nDüzeltilmiş kayıt mevcut kaydın yerini alacak; arşivde ayrı bir eski sürüm tutulmayacak. Önceki PDF ve basılı belgeler yeni bilgileri temsil etmeyecek; belgeleri yeniden üretmeniz gerekir. Mevcut güvenlik yedekleme ayarı korunur.\n\nDeğişiklikler kaydedilsin mi?", "DoğruTemin - Kaydın üzerine yazma onayı", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (answer != MessageBoxResult.Yes) return;
+                saveResult = _procurementWorkflow.Save(data, data.AutoBackup, allowDateWarnings: datesConfirmed, confirmReplacement: true);
             }
 
             if (!saveResult.SavedSuccessfully)
             {
-                MessageBox.Show(string.Join("\n", saveResult.BlockingIssues.Take(8).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(string.Join("\n", saveResult.BlockingIssues.Take(ProcurementLimits.MaxProducts).Select(i => "• " + i.Message)), "DoğruTemin - Geçersiz veri", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var savedData = saveResult.Data!;
             _recordId = savedData.RecordId;
+            _recordRevision = savedData.Revision;
+            _lastOutput = savedData.LastOutput;
             _recordCreatedAt = savedData.CreatedAt;
             UpdateDerivedState(savedData);
             SetSavedStatus(savedData.LastSavedAt);

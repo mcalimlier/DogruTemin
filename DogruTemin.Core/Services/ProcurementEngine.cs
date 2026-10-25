@@ -8,8 +8,9 @@ public static class ProcurementEngine
 
     public static CalculationResult Calculate(ProcurementData data)
     {
+        ProcurementLimits.EnsureCapacity(data);
         var result = new CalculationResult();
-        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(8).ToList();
+        var products = data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name)).Take(ProcurementLimits.MaxProducts).ToList();
         var firms = data.Firms.Where(f => !string.IsNullOrWhiteSpace(f.Name)).Take(5).ToList();
 
         foreach (var product in products)

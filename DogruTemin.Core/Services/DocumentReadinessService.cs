@@ -56,7 +56,7 @@ public static class DocumentReadinessService
     {
         var products = data.Products
             .Where(p => !string.IsNullOrWhiteSpace(p.Name))
-            .Take(8)
+            .Take(ProcurementLimits.MaxProducts)
             .ToList();
         var firms = data.Firms
             .Where(f => !string.IsNullOrWhiteSpace(f.Name))
@@ -89,7 +89,7 @@ public static class DocumentReadinessService
     {
         var products = data.Products
             .Where(p => !string.IsNullOrWhiteSpace(p.Name))
-            .Take(8)
+            .Take(ProcurementLimits.MaxProducts)
             .ToList();
 
         if (products.Count == 0)

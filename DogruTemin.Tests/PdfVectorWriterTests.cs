@@ -11,6 +11,31 @@ namespace DogruTemin.Tests;
 public class PdfVectorWriterTests
 {
     [Fact]
+    public void OverflowIsReportedAndExistingPdfIsPreserved()
+    {
+        RunSta(() =>
+        {
+            var document = new FixedDocument();
+            var page = new FixedPage { Width = 300, Height = 200 };
+            page.Children.Add(new TextBlock { Text = "Çok uzun firma unvanı ve açıklaması " + new string('Ş', 100), Width = 70, Height = 12, FontSize = 14, TextWrapping = TextWrapping.Wrap });
+            var content = new PageContent();
+            ((System.Windows.Markup.IAddChild)content).AddChild(page);
+            document.Pages.Add(content);
+            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pdf");
+            try
+            {
+                File.WriteAllText(path, "önceki belge");
+                var failure = Record.Exception(() => PdfVectorWriter.Save(document, path));
+                Assert.True(failure is InvalidOperationException, $"Failure={failure}; child={page.Children[0].Visibility}; Actual={((FrameworkElement)page.Children[0]).ActualWidth}x{((FrameworkElement)page.Children[0]).ActualHeight}; VisualChildren={System.Windows.Media.VisualTreeHelper.GetChildrenCount(page)}");
+                var error = (InvalidOperationException)failure!;
+                Assert.Contains("sığmıyor", error.Message, StringComparison.OrdinalIgnoreCase);
+                Assert.Equal("önceki belge", File.ReadAllText(path));
+            }
+            finally { File.Delete(path); }
+        });
+    }
+
+    [Fact]
     public void TextOnlyDocumentUsesPdfFontsInsteadOfFullPageImage()
     {
         RunSta(() =>
