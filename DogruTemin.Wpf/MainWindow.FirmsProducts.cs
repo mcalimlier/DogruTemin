@@ -229,7 +229,14 @@ public partial class MainWindow
         _editingProduct = item;
         ProductNameBox.Text = item.Name;
         ProductSpecBox.Text = item.Specification;
-        ProductUnitBox.SelectedIndex = item.Unit == "Miktar" ? 1 : 0;
+        var selectedUnit = ProductUnitBox.Items.OfType<ComboBoxItem>()
+            .FirstOrDefault(option => option.Content?.ToString() == item.Unit);
+        if (selectedUnit is null)
+        {
+            selectedUnit = new ComboBoxItem { Content = item.Unit };
+            ProductUnitBox.Items.Add(selectedUnit);
+        }
+        ProductUnitBox.SelectedItem = selectedUnit;
         ProductQuantityBox.Text = item.Quantity;
         _productEditorDirty = false;
         _suppressDirtyTracking = false;

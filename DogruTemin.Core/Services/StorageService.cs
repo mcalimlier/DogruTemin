@@ -587,7 +587,7 @@ public class StorageService
         settings.DefaultMarketCommission ??= new List<CommissionMember>();
         settings.DefaultInspectionCommission = NormalizeCommissionTemplate(settings.DefaultInspectionCommission);
         settings.DefaultMarketCommission = NormalizeCommissionTemplate(settings.DefaultMarketCommission);
-        settings.DefaultUnit = settings.DefaultUnit == "Miktar" ? "Miktar" : "Adet";
+        settings.DefaultUnit = ProductUnits.IsSupported(settings.DefaultUnit) ? settings.DefaultUnit : "Adet";
     }
 
     private static List<CommissionMember> NormalizeCommissionTemplate(IEnumerable<CommissionMember> source)

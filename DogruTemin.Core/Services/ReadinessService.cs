@@ -11,7 +11,7 @@ public static class ReadinessService
             !string.IsNullOrWhiteSpace(data.JobTitle),
             data.Products.Any(p => !string.IsNullOrWhiteSpace(p.Name)),
             data.Products.Where(p => !string.IsNullOrWhiteSpace(p.Name))
-                .All(p => p.Unit is "Adet" or "Miktar" && NumberParser.TryPositiveDecimal(p.Quantity, out _)),
+                .All(p => ProductUnits.IsSupported(p.Unit) && NumberParser.TryPositiveDecimal(p.Quantity, out _)),
             data.Firms.Count(f => !string.IsNullOrWhiteSpace(f.Name)) >= 3,
             data.InspectionCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title)) == 3,
             data.MarketCommission.Count(m => !string.IsNullOrWhiteSpace(m.Name) && !string.IsNullOrWhiteSpace(m.Title)) == 3,

@@ -16,8 +16,8 @@ public static class DraftValidationService
 
         foreach (var product in data.Products.Take(ProcurementLimits.MaxProducts))
         {
-            if (!string.IsNullOrWhiteSpace(product.Unit) && product.Unit is not ("Adet" or "Miktar"))
-                Critical(issues, $"Product:{product.Id}:Unit", $"{product.No}. ürünün birimi Adet veya Miktar olmalıdır.");
+            if (!string.IsNullOrWhiteSpace(product.Unit) && !ProductUnits.IsSupported(product.Unit))
+                Critical(issues, $"Product:{product.Id}:Unit", $"{product.No}. ürünün birimi geçerli bir ölçü birimi olmalıdır.");
 
             if (!string.IsNullOrWhiteSpace(product.Quantity) && !NumberParser.TryPositiveDecimal(product.Quantity, out _))
                 Critical(issues, $"Product:{product.Id}:Quantity", $"{product.No}. ürün miktarı 0'dan büyük geçerli bir sayı olmalıdır.");

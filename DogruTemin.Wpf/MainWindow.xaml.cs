@@ -932,7 +932,14 @@ public partial class MainWindow : Window
         _editingProduct = item;
         ProductNameBox.Text = item.Name;
         ProductSpecBox.Text = item.Specification;
-        ProductUnitBox.SelectedIndex = item.Unit == "Miktar" ? 1 : 0;
+        var selectedUnit = ProductUnitBox.Items.OfType<ComboBoxItem>()
+            .FirstOrDefault(option => option.Content?.ToString() == item.Unit);
+        if (selectedUnit is null)
+        {
+            selectedUnit = new ComboBoxItem { Content = item.Unit };
+            ProductUnitBox.Items.Add(selectedUnit);
+        }
+        ProductUnitBox.SelectedItem = selectedUnit;
         ProductQuantityBox.Text = item.Quantity;
         _productEditorDirty = false;
         _suppressDirtyTracking = false;
@@ -1277,8 +1284,8 @@ public partial class MainWindow : Window
 
         foreach (var product in products)
         {
-            if (product.Unit is not ("Adet" or "Miktar"))
-                issues.Add($"{product.No}. ürün için birim Adet veya Miktar olmalıdır.");
+            if (!DogruTemin.Core.Services.ProductUnits.IsSupported(product.Unit))
+                issues.Add($"{product.No}. ürün için geçerli bir ölçü birimi seçilmelidir.");
             if (!NumberParser.TryPositiveDecimal(product.Quantity, out _))
                 issues.Add($"{product.No}. ürün için miktar/adet 0'dan büyük geçerli bir sayı olmalıdır.");
         }
@@ -1593,7 +1600,7 @@ public partial class MainWindow : Window
             institutionDone ? "Kurum hazır • komisyonları tamamlayın." : commissionDone ? "Komisyonlar hazır • kurum bilgisini tamamlayın." : "Kurum bilgisi ve iki komisyonu tamamlayın.");
 
         var productsValid = products.Count > 0 && products.All(p =>
-            p.Unit is "Adet" or "Miktar" && NumberParser.TryPositiveDecimal(p.Quantity, out _));
+            DogruTemin.Core.Services.ProductUnits.IsSupported(p.Unit) && NumberParser.TryPositiveDecimal(p.Quantity, out _));
         var generalDone = !string.IsNullOrWhiteSpace(data.JobTitle)
             && productsValid
             && data.Dates.AssignmentDate.HasValue

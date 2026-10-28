@@ -101,7 +101,7 @@ public static class DocumentValidationService
 
         foreach (var product in products)
         {
-            if (product.Unit is not ("Adet" or "Miktar"))
+            if (!ProductUnits.IsSupported(product.Unit))
                 Critical(issues, $"Product:{product.Id}:Unit", $"{product.No}. ürün birimi");
             if (!NumberParser.TryPositiveDecimal(product.Quantity, out _))
                 Critical(issues, $"Product:{product.Id}:Quantity", $"{product.No}. ürün miktarı");

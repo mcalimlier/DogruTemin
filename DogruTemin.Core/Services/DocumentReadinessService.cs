@@ -100,8 +100,8 @@ public static class DocumentReadinessService
 
         foreach (var product in products)
         {
-            if (product.Unit is not ("Adet" or "Miktar"))
-                issues.Add($"{product.No}. ürün için birim Adet veya Miktar olmalıdır.");
+            if (!ProductUnits.IsSupported(product.Unit))
+                issues.Add($"{product.No}. ürün için geçerli bir ölçü birimi seçilmelidir.");
 
             if (!NumberParser.TryPositiveDecimal(product.Quantity, out _))
                 issues.Add($"{product.No}. ürün için miktar/adet 0'dan büyük geçerli bir sayı olmalıdır.");

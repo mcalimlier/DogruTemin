@@ -162,7 +162,7 @@ public partial class MainWindow
             "Kurum bilgisi ve iki komisyon hazır.",
             institutionDone ? "Kurum hazır • komisyonları tamamlayın." : commissionDone ? "Komisyonlar hazır • kurum bilgisini tamamlayın." : "Kurum bilgisi ve iki komisyonu tamamlayın.");
 
-        var productsValid = products.Count > 0 && products.All(p => p.Unit is "Adet" or "Miktar" && NumberParser.TryPositiveDecimal(p.Quantity, out _));
+        var productsValid = products.Count > 0 && products.All(p => DogruTemin.Core.Services.ProductUnits.IsSupported(p.Unit) && NumberParser.TryPositiveDecimal(p.Quantity, out _));
         var generalDone = !string.IsNullOrWhiteSpace(data.JobTitle) && productsValid && data.Dates.AssignmentDate.HasValue && !string.IsNullOrWhiteSpace(data.Dates.AssignmentNo) && data.Dates.ApprovalDate.HasValue && !string.IsNullOrWhiteSpace(data.Dates.ApprovalNo);
         SetHomeStage(HomeStageGeneralStatus, HomeStageGeneralDetail, generalDone,
             generalDone ? $"{products.Count} ürün ve temel işlem bilgileri hazır." : "İş başlığı, ürünler ve görevlendirme/harcama bilgilerini tamamlayın.");
